@@ -1,0 +1,12 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav #drawer [mode]="mobile() ? 'over' : 'side'" [opened]="!mobile()">
+    <app-sidebar (navigated)="closeOnMobile(drawer)" />
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <app-header [showMenuButton]="mobile()" (menuToggle)="drawer.toggle()" />
+    <main>
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

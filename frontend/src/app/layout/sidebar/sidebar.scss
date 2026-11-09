@@ -1,0 +1,39 @@
+:host {
+  display: block;
+  color: #fff;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  padding: 0 24px;
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+
+  b {
+    font-weight: 700;
+    color: #ffb74d;
+  }
+}
+
+nav {
+  padding: 8px 12px;
+}
+
+a[mat-list-item] {
+  --mat-list-list-item-label-text-color: rgb(255 255 255 / 75%);
+  --mat-list-list-item-leading-icon-color: rgb(255 255 255 / 75%);
+  --mat-list-list-item-hover-label-text-color: #fff;
+  --mat-list-list-item-hover-state-layer-color: #fff;
+  --mat-list-list-item-focus-label-text-color: #fff;
+  border-radius: 8px;
+  margin-bottom: 4px;
+
+  &.active {
+    --mat-list-list-item-label-text-color: #1c1b1f;
+    --mat-list-list-item-leading-icon-color: #1c1b1f;
+    background: #ffb74d;
+  }
+}

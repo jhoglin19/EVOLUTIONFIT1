@@ -1,0 +1,12 @@
+<div class="brand">EVOLUTION<b>FIT</b></div>
+
+<nav aria-label="Navegación principal">
+  <mat-nav-list>
+    @for (item of items(); track item.path) {
+      <a mat-list-item [routerLink]="item.path" routerLinkActive="active" (click)="navigated.emit()">
+        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+      </a>
+    }
+  </mat-nav-list>
+</nav>

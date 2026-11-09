@@ -1,0 +1,18 @@
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.shell {
+  height: 100%;
+  background: var(--mat-sys-surface-container-lowest);
+  --mat-sidenav-container-width: 260px;
+  --mat-sidenav-container-shape: 0;
+  --mat-sidenav-container-background-color: #1c1b1f;
+  --mat-sidenav-container-text-color: #fff;
+  --mat-sidenav-container-divider-color: transparent;
+}
+
+main {
+  min-height: calc(100vh - 64px);
+}

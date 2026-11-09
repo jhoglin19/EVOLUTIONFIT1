@@ -1,0 +1,34 @@
+<mat-toolbar>
+  @if (showMenuButton()) {
+    <button mat-icon-button type="button" (click)="menuToggle.emit()" aria-label="Abrir menú">
+      <mat-icon>menu</mat-icon>
+    </button>
+  }
+
+  <span class="spacer"></span>
+
+  @if (user(); as u) {
+    <button mat-button type="button" [matMenuTriggerFor]="userMenu" class="user-button">
+      <span class="avatar" aria-hidden="true">{{ u.firstName.charAt(0) }}{{ u.lastName.charAt(0) }}</span>
+      <span class="who">
+        <span class="name">{{ u.firstName }} {{ u.lastName }}</span>
+        <span class="role">{{ roleLabel(u.role) }}</span>
+      </span>
+      <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+    </button>
+
+    <mat-menu #userMenu="matMenu" xPosition="before">
+      <div class="menu-info" (click)="$event.stopPropagation()">
+        <strong>{{ u.username }}</strong>
+        @if (u.email) {
+          <span>{{ u.email }}</span>
+        }
+      </div>
+      <mat-divider />
+      <button mat-menu-item type="button" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar sesión</span>
+      </button>
+    </mat-menu>
+  }
+</mat-toolbar>

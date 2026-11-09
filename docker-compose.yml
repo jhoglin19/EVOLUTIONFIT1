@@ -1,0 +1,56 @@
+# MySQL: es el MISMO servicio que ya tenías (mismo contenedor, puerto 3306 y volumen),
+# pero las contraseñas ahora vienen del archivo .env en lugar de estar escritas aquí.
+# Las contraseñas del .env deben ser las mismas con las que se creó la base: MySQL solo las
+# aplica la primera vez que crea el volumen, y cambiarlas aquí después no cambia las existentes.
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: evolutionfit-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_DATABASE: evolution_fit
+      MYSQL_USER: ${MYSQL_USER:-evolution_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD en .env}
+      TZ: America/Bogota
+    # Hora de Colombia para los valores por defecto de la base (created_at, etc.).
+    # No modifica los datos ya guardados.
+    command: --default-time-zone=-05:00
+    ports:
+      - "3306:3306"
+    volumes:
+      - evolutionfit_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Backend en contenedor. Es opcional y NO arranca con `docker compose up`.
+  # Para usarlo: docker compose --profile full up --build
+  # En el día a día lo normal es correr el backend desde VS Code con ./mvnw spring-boot:run.
+  backend:
+    profiles: ["full"]
+    build: ./backend
+    container_name: evolutionfit-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/evolution_fit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota&useUnicode=true&characterEncoding=UTF-8
+      DB_USERNAME: ${MYSQL_USER:-evolution_app}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-480}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-admin}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      TZ: America/Bogota
+    ports:
+      - "8080:8080"
+
+volumes:
+  evolutionfit_data:

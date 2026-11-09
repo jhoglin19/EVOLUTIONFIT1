@@ -1,0 +1,30 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Hola, {{ user()?.firstName }}</h1>
+      <p>Sesión iniciada como {{ roleLabel(user()?.role) }}.</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    @if (isAdmin()) {
+      <a class="tile" routerLink="/users">
+        <mat-card appearance="outlined">
+          <mat-card-content>
+            <mat-icon>manage_accounts</mat-icon>
+            <h2>Usuarios</h2>
+            <p>Crea y administra las cuentas del personal y sus roles.</p>
+          </mat-card-content>
+        </mat-card>
+      </a>
+    }
+
+    <mat-card appearance="outlined" class="soon">
+      <mat-card-content>
+        <mat-icon>hourglass_top</mat-icon>
+        <h2>Próximamente</h2>
+        <p>Clientes, planes, membresías, pagos, caja y control de acceso se habilitarán aquí a medida que se construyan.</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

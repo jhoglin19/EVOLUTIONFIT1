@@ -1,0 +1,61 @@
+<div class="login">
+  <section class="brand" aria-hidden="true">
+    <div class="brand-inner">
+      <span class="logo">EVOLUTION<b>FIT</b></span>
+      <h2>Tu gimnasio,<br />bajo control.</h2>
+      <p>Clientes, membresías, pagos y caja en un solo lugar.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h1>Iniciar sesión</h1>
+      <p class="subtitle">Ingresa con tu usuario o correo.</p>
+
+      @if (sessionExpired && !error()) {
+        <div class="alert info" role="status">Tu sesión expiró. Inicia sesión nuevamente.</div>
+      }
+      @if (error()) {
+        <div class="alert error" role="alert">{{ error() }}</div>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Usuario o correo</mat-label>
+        <input matInput formControlName="identifier" autocomplete="username" autofocus />
+        @if (form.controls.identifier.hasError('required')) {
+          <mat-error>Ingresa tu usuario o correo</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Contraseña</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          [type]="hidePassword() ? 'password' : 'text'"
+          autocomplete="current-password"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="hidePassword.set(!hidePassword())"
+          [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+        >
+          <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>Ingresa tu contraseña</mat-error>
+        }
+      </mat-form-field>
+
+      <button mat-flat-button class="submit" type="submit" [disabled]="loading()">
+        @if (loading()) {
+          <mat-spinner diameter="20" />
+        } @else {
+          Entrar
+        }
+      </button>
+    </form>
+  </section>
+</div>

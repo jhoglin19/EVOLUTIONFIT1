@@ -1,0 +1,102 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Usuarios</h1>
+      <p>Personal con acceso al sistema.</p>
+    </div>
+    <button mat-flat-button type="button" (click)="create()">
+      <mat-icon>person_add</mat-icon>
+      Nuevo usuario
+    </button>
+  </div>
+
+  <mat-form-field appearance="outline" class="search">
+    <mat-label>Buscar por nombre, usuario o correo</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput [formControl]="search" autocomplete="off" />
+  </mat-form-field>
+
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  <div class="table-wrap">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let u">{{ u.firstName }} {{ u.lastName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef>Usuario</th>
+        <td mat-cell *matCellDef="let u">{{ u.username }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>Correo</th>
+        <td mat-cell *matCellDef="let u">{{ u.email || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>Rol</th>
+        <td mat-cell *matCellDef="let u">
+          <span class="chip" [class.admin]="u.role === 'ADMIN'">{{ roleLabel(u.role) }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="lastLogin">
+        <th mat-header-cell *matHeaderCellDef>Último ingreso</th>
+        <td mat-cell *matCellDef="let u">
+          {{ u.lastLoginAt ? (u.lastLoginAt | date: 'dd/MM/yyyy HH:mm') : 'Nunca' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Activo</th>
+        <td mat-cell *matCellDef="let u">
+          <mat-slide-toggle
+            [checked]="u.active"
+            [disabled]="isSelf(u)"
+            (change)="toggleActive(u, $event.checked)"
+            [attr.aria-label]="'Activar o desactivar a ' + u.username"
+            [matTooltip]="isSelf(u) ? 'No puedes desactivar tu propio usuario' : ''"
+          />
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let u">
+          <button mat-icon-button type="button" (click)="edit(u)" aria-label="Editar usuario" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+
+      <tr class="mat-row empty" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="columns.length">
+          {{ loading() ? 'Cargando…' : 'No se encontraron usuarios.' }}
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [length]="total()"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+      aria-label="Paginación de usuarios"
+    />
+  </div>
+</div>
