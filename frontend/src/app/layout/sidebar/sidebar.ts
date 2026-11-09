@@ -16,6 +16,8 @@ interface NavItem {
 /** Agrega aquí las opciones a medida que se construyen los módulos. */
 const NAV_ITEMS: NavItem[] = [
   { label: 'Inicio', icon: 'dashboard', path: '/dashboard' },
+  { label: 'Clientes', icon: 'groups', path: '/clients' },
+  { label: 'Planes', icon: 'card_membership', path: '/plans' },
   { label: 'Usuarios', icon: 'manage_accounts', path: '/users', roles: ['ADMIN'] },
 ];
 

@@ -1,0 +1,111 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Clientes</h1>
+      <p>Personas inscritas en el gimnasio.</p>
+    </div>
+    <button mat-flat-button type="button" (click)="create()">
+      <mat-icon>person_add</mat-icon>
+      Nuevo cliente
+    </button>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search">
+      <mat-label>Buscar por documento, nombre o teléfono</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="search" autocomplete="off" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="status">
+      <mat-label>Estado</mat-label>
+      <mat-select [formControl]="status">
+        <mat-option value="all">Todos</mat-option>
+        <mat-option value="active">Activos</mat-option>
+        <mat-option value="inactive">Inactivos</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  <div class="table-wrap">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="document">
+        <th mat-header-cell *matHeaderCellDef>Documento</th>
+        <td mat-cell *matCellDef="let c">{{ c.documentType }} {{ c.documentNumber }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let c">{{ c.firstName }} {{ c.lastName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+        <td mat-cell *matCellDef="let c">{{ c.phone || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>Correo</th>
+        <td mat-cell *matCellDef="let c">{{ c.email || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef>Registro</th>
+        <td mat-cell *matCellDef="let c">{{ c.createdAt | date: 'dd/MM/yyyy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Activo</th>
+        <td mat-cell *matCellDef="let c">
+          @if (canChangeStatus) {
+            <mat-slide-toggle
+              [checked]="c.active"
+              (change)="toggleActive(c, $event.checked)"
+              [attr.aria-label]="'Activar o desactivar a ' + c.firstName + ' ' + c.lastName"
+            />
+          } @else {
+            <span class="chip" [class.on]="c.active">{{ c.active ? 'Activo' : 'Inactivo' }}</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let c">
+          <button mat-icon-button type="button" (click)="edit(c)" aria-label="Editar cliente" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+
+      <tr class="mat-row empty" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="columns.length">
+          {{ loading() ? 'Cargando…' : 'No se encontraron clientes.' }}
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [length]="total()"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+      aria-label="Paginación de clientes"
+    />
+  </div>
+</div>

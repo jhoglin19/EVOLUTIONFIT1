@@ -21,6 +21,16 @@ export const routes: Routes = [
         title: 'Inicio · EvolutionFit',
       },
       {
+        path: 'clients',
+        loadComponent: () => import('./features/clients/clients').then((m) => m.Clients),
+        title: 'Clientes · EvolutionFit',
+      },
+      {
+        path: 'plans',
+        loadComponent: () => import('./features/plans/plans').then((m) => m.Plans),
+        title: 'Planes · EvolutionFit',
+      },
+      {
         path: 'users',
         canActivate: [roleGuard('ADMIN')],
         loadComponent: () => import('./features/users/users').then((m) => m.Users),

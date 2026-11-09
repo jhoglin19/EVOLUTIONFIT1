@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>{{ editing ? 'Editar plan' : 'Nuevo plan' }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    @if (error()) {
+      <div class="alert" role="alert">{{ error() }}</div>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" autocomplete="off" />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Obligatorio</mat-error>
+      } @else if (form.controls.name.hasError('maxlength')) {
+        <mat-error>Máximo 80 caracteres</mat-error>
+      } @else if (form.controls.name.hasError('conflict')) {
+        <mat-error>{{ form.controls.name.getError('conflict') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Descripción (opcional)</mat-label>
+      <input matInput formControlName="description" autocomplete="off" />
+      @if (form.controls.description.hasError('maxlength')) {
+        <mat-error>Máximo 255 caracteres</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Duración (días)</mat-label>
+        <input matInput type="number" min="1" max="3650" step="1" formControlName="durationDays" />
+        @if (form.controls.durationDays.hasError('required')) {
+          <mat-error>Obligatoria</mat-error>
+        } @else if (form.controls.durationDays.invalid) {
+          <mat-error>Entero entre 1 y 3650</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Precio (COP)</mat-label>
+        <input matInput type="number" min="0" step="any" formControlName="price" />
+        @if (form.controls.price.hasError('required')) {
+          <mat-error>Obligatorio</mat-error>
+        } @else if (form.controls.price.invalid) {
+          <mat-error>Mayor o igual a 0, hasta 10 enteros y 2 decimales</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    @if (editing) {
+      <p class="hint">Cambiar el precio no modifica el valor de las membresías ya contratadas.</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      @if (saving()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        {{ editing ? 'Guardar cambios' : 'Crear plan' }}
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,114 @@
+<h2 mat-dialog-title>{{ editing ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    @if (error()) {
+      <div class="alert" role="alert">{{ error() }}</div>
+    }
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de documento</mat-label>
+        <mat-select formControlName="documentType">
+          @for (type of documentTypes; track type.value) {
+            <mat-option [value]="type.value">{{ type.label }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.documentType.hasError('required')) {
+          <mat-error>Obligatorio</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Número de documento</mat-label>
+        <input matInput formControlName="documentNumber" autocomplete="off" />
+        @if (form.controls.documentNumber.hasError('required')) {
+          <mat-error>Obligatorio</mat-error>
+        } @else if (form.controls.documentNumber.hasError('maxlength')) {
+          <mat-error>Máximo 30 caracteres</mat-error>
+        } @else if (form.controls.documentNumber.hasError('documentFormat')) {
+          <mat-error>{{ documentRequiresDigits ? 'Solo dígitos' : 'Solo letras y números' }}</mat-error>
+        } @else if (form.controls.documentNumber.hasError('conflict')) {
+          <mat-error>{{ form.controls.documentNumber.getError('conflict') }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombres</mat-label>
+        <input matInput formControlName="firstName" autocomplete="off" />
+        @if (form.controls.firstName.hasError('required')) {
+          <mat-error>Obligatorio</mat-error>
+        } @else if (form.controls.firstName.hasError('maxlength')) {
+          <mat-error>Máximo 80 caracteres</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Apellidos</mat-label>
+        <input matInput formControlName="lastName" autocomplete="off" />
+        @if (form.controls.lastName.hasError('required')) {
+          <mat-error>Obligatorio</mat-error>
+        } @else if (form.controls.lastName.hasError('maxlength')) {
+          <mat-error>Máximo 80 caracteres</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Teléfono (opcional)</mat-label>
+        <input matInput formControlName="phone" autocomplete="off" />
+        @if (form.controls.phone.hasError('pattern')) {
+          <mat-error>Entre 7 y 30 caracteres: dígitos, +, paréntesis, guion o espacios</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de nacimiento (opcional)</mat-label>
+        <input matInput type="date" formControlName="birthDate" [max]="today" />
+        @if (form.controls.birthDate.hasError('future')) {
+          <mat-error>No puede ser futura</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Correo (opcional)</mat-label>
+      <input matInput type="email" formControlName="email" autocomplete="off" />
+      @if (form.controls.email.hasError('email')) {
+        <mat-error>Correo no válido</mat-error>
+      } @else if (form.controls.email.hasError('maxlength')) {
+        <mat-error>Máximo 150 caracteres</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Dirección (opcional)</mat-label>
+      <input matInput formControlName="address" autocomplete="off" />
+      @if (form.controls.address.hasError('maxlength')) {
+        <mat-error>Máximo 200 caracteres</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Notas (opcional)</mat-label>
+      <textarea matInput formControlName="notes" rows="3"></textarea>
+      @if (form.controls.notes.hasError('maxlength')) {
+        <mat-error>Máximo 2000 caracteres</mat-error>
+      }
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      @if (saving()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        {{ editing ? 'Guardar cambios' : 'Registrar cliente' }}
+      }
+    </button>
+  </mat-dialog-actions>
+</form>
