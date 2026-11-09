@@ -27,5 +27,5 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
 - Hacer commit al terminar cada fase. NUNCA hacer push sin que yo lo pida.
 
 ## Estado
-- Hecho: estructura, login JWT, usuarios y roles (backend y frontend).
+- Hecho: estructura, login JWT, usuarios y roles, clientes y planes (backend y frontend).
 - Pendiente: el resto de módulos.
