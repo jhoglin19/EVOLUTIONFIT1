@@ -315,6 +315,51 @@ class MembershipServiceTest {
     }
 
     @Test
+    void cancellingAFrozenMembershipCancelsItsOngoingFreezeKeepingOnlyElapsedDays() {
+        Membership m = stubMembership(confirmed(10L, client, day(11, 1))); // base 30-11
+        MembershipFreeze f = MembershipFixtures.freeze(1L, m, day(11, 5), 10); // 05 al 14, en curso
+
+        service.cancel(10L, "Cambio de plan", ADMIN_ID);
+
+        assertThat(f.getStatus()).isEqualTo(FreezeStatus.CANCELLED);
+        assertThat(f.getAppliedDays()).isEqualTo(4); // 05 al 08
+        assertThat(f.getCancellationReason()).isEqualTo("Membresía anulada: Cambio de plan");
+        assertThat(f.getCancelledBy()).isEqualTo(ADMIN_ID);
+        assertThat(f.getCancelledAt()).isNotNull();
+        assertThat(m.getEndDate()).isEqualTo(day(12, 4));
+        assertThat(m.getStatus()).isEqualTo(MembershipStatus.CANCELLED);
+        verify(auditService).record(eq("MEMBERSHIP_FREEZE"), eq(1L), eq(AuditService.ACTION_CANCEL),
+                any(), any(), eq(ADMIN_ID));
+    }
+
+    @Test
+    void cancellingAMembershipCancelsAScheduledFreezeWithoutDays() {
+        Membership m = stubMembership(confirmed(10L, client, day(11, 1)));
+        MembershipFreeze f = MembershipFixtures.freeze(1L, m, day(11, 20), 5);
+
+        service.cancel(10L, "Error", ADMIN_ID);
+
+        assertThat(f.getStatus()).isEqualTo(FreezeStatus.CANCELLED);
+        assertThat(f.getAppliedDays()).isZero();
+        assertThat(m.getEndDate()).isEqualTo(day(11, 30));
+    }
+
+    @Test
+    void cancellingAMembershipLeavesFinishedFreezesUntouched() {
+        Membership m = stubMembership(confirmed(10L, client, day(11, 1)));
+        MembershipFreeze f = MembershipFixtures.freeze(1L, m, day(11, 2), 3); // terminó el 04
+        f.setStatus(FreezeStatus.COMPLETED);
+
+        service.cancel(10L, "Error", ADMIN_ID);
+
+        assertThat(f.getStatus()).isEqualTo(FreezeStatus.COMPLETED);
+        assertThat(f.getAppliedDays()).isEqualTo(3);
+        assertThat(f.getCancellationReason()).isNull();
+        assertThat(m.getEndDate()).isEqualTo(day(12, 3));
+        verify(auditService, never()).record(eq("MEMBERSHIP_FREEZE"), any(), any(), any(), any(), any());
+    }
+
+    @Test
     void aCancelledMembershipCannotBeCancelledAgain() {
         Membership m = stubMembership(confirmed(10L, client, day(11, 1)));
         m.setStatus(MembershipStatus.CANCELLED);

@@ -80,6 +80,7 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
    - Si se cancela después de empezar, sí cuenta y solo se suman los días ya transcurridos.
 4. **Días de congelación:** días calendario seguidos.
 5. **Anular la vigente con una siguiente registrada:** la siguiente pasa a empezar hoy.
+   - **Si la membresía anulada tiene una congelación programada o en curso,** esa congelación se cancela automáticamente con el motivo "Membresía anulada: …". Sigue la misma regla que una cancelación manual: sin empezar suma 0 días; en curso, solo los ya transcurridos. Las congelaciones ya terminadas no se tocan.
 6. **Cambiar de plan:** se anula la membresía actual y se crea otra. Solo ADMIN, con motivo.
 7. **Membresías migradas del sistema anterior:**
    - Solo ADMIN y solo vigentes (vencimiento ≥ hoy).

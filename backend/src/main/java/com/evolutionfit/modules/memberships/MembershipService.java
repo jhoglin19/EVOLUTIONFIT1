@@ -12,6 +12,7 @@ import com.evolutionfit.common.exception.ResourceNotFoundException;
 import com.evolutionfit.modules.audit.AuditService;
 import com.evolutionfit.modules.clients.Client;
 import com.evolutionfit.modules.clients.ClientRepository;
+import com.evolutionfit.modules.memberships.MembershipSupport.FreezeSnapshot;
 import com.evolutionfit.modules.memberships.MembershipSupport.MembershipSnapshot;
 import com.evolutionfit.modules.memberships.dto.CreateMembershipRequest;
 import com.evolutionfit.modules.memberships.dto.CurrentMembershipResponse;
@@ -213,10 +214,12 @@ public class MembershipService {
         boolean wasInForce = MembershipRules.isInForce(m, today);
 
         MembershipSnapshot before = MembershipSnapshot.of(m);
+        cancelOpenFreezes(m, reason.trim(), today, currentUserId);
         m.setStatus(MembershipStatus.CANCELLED);
         m.setCancelledAt(support.now());
         m.setCancelledBy(currentUserId);
         m.setCancellationReason(reason.trim());
+        support.recalculate(m, today);
         Membership saved = membershipRepository.save(m);
         support.audit(MembershipSupport.AUDIT_MEMBERSHIP, id, AuditService.ACTION_CANCEL,
                 before, MembershipSnapshot.of(saved), currentUserId);
@@ -254,6 +257,32 @@ public class MembershipService {
     }
 
     // ---- helpers ----
+
+    /**
+     * Al anular la membresía, sus congelaciones programadas o en curso se cancelan con la misma regla que
+     * una cancelación manual: sin empezar suman 0 días; en curso, solo los ya transcurridos. Las
+     * terminadas o ya canceladas no se tocan.
+     */
+    private void cancelOpenFreezes(Membership m, String reason, LocalDate today, Long currentUserId) {
+        String freezeReason = "Membresía anulada: " + reason;
+        if (freezeReason.length() > 255) {
+            freezeReason = freezeReason.substring(0, 255);
+        }
+        for (MembershipFreeze f : m.getFreezes()) {
+            if (f.isCancelled() || today.isAfter(f.getEndDate())) {
+                continue;
+            }
+            FreezeSnapshot before = FreezeSnapshot.of(f);
+            f.setAppliedDays(MembershipDates.appliedDaysOnCancel(f.getStartDate(), f.getEndDate(), today));
+            f.setStatus(FreezeStatus.CANCELLED);
+            f.setCancelledAt(support.now());
+            f.setCancelledBy(currentUserId);
+            f.setCancellationReason(freezeReason);
+            support.recalculate(m, today);
+            support.audit(MembershipSupport.AUDIT_FREEZE, f.getId(), AuditService.ACTION_CANCEL,
+                    before, FreezeSnapshot.of(f), currentUserId);
+        }
+    }
 
     private LocalDate startFor(List<Membership> memberships, LocalDate requestedStart, LocalDate today) {
         if (MembershipRules.next(memberships, today).isPresent()) {

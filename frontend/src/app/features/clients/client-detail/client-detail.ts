@@ -165,7 +165,7 @@ export class ClientDetail {
     this.askReason({
       title: 'Anular membresía',
       message:
-        'La membresía no se borra: queda anulada con el motivo. Si es la vigente y hay una siguiente, la siguiente empieza hoy. Para cambiar de plan, anula y registra otra.',
+        'La membresía no se borra: queda anulada con el motivo. Si tiene una congelación programada o en curso, se cancela (solo cuentan los días ya transcurridos). Si es la vigente y hay una siguiente, la siguiente empieza hoy. Para cambiar de plan, anula y registra otra.',
       confirmLabel: 'Anular',
     }).subscribe((reason) => {
       if (reason) {
