@@ -51,6 +51,10 @@ app:
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  memberships:
+    # Reglas del dueño (docs/REGLAS_NEGOCIO.md). Cambiarlas no requiere migración.
+    expiry-warning-days: ${MEMBERSHIP_EXPIRY_WARNING_DAYS:5}
+    max-freeze-days: ${MEMBERSHIP_MAX_FREEZE_DAYS:30}
   bootstrap-admin:
     # Solo se usa si la tabla users está vacía. Con la contraseña vacía no se crea ningún administrador.
     username: ${BOOTSTRAP_ADMIN_USERNAME:admin}

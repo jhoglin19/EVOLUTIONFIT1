@@ -71,6 +71,37 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
 
 ---
 
+## 8. Decisiones confirmadas en la fase 4 (membresías y congelaciones)
+
+1. **Pendiente de pago:** una membresía vendida queda `PENDING` hasta que se registre el pago total (fase 5). Hasta entonces, solo ADMIN crea membresías activas, y solo como migradas.
+2. **"Siguiente":** máximo una por cliente, contando juntas las pendientes de pago (`PENDING`) y las programadas (`SCHEDULED`).
+3. **Congelación cancelada:**
+   - Si se cancela antes de empezar, no cuenta como la única de la membresía y no suma días.
+   - Si se cancela después de empezar, sí cuenta y solo se suman los días ya transcurridos.
+4. **Días de congelación:** días calendario seguidos.
+5. **Anular la vigente con una siguiente registrada:** la siguiente pasa a empezar hoy.
+6. **Cambiar de plan:** se anula la membresía actual y se crea otra. Solo ADMIN, con motivo.
+7. **Membresías migradas del sistema anterior:**
+   - Solo ADMIN y solo vigentes (vencimiento ≥ hoy).
+   - Pueden empezar en el pasado y conservan el vencimiento real.
+   - No exigen pago.
+   - Precio editable; por defecto, el del plan.
+   - Nota de migración obligatoria.
+   - Una congelación permitida, salvo que el ADMIN marque que ya la usó en el sistema anterior.
+8. **Registro de cambios:** anulaciones, cancelaciones, ampliaciones y congelaciones quedan en `audit_logs`.
+9. **Estados y listados:** se calculan con fechas. La columna `status` es solo una copia que se actualiza a diario.
+
+### Interpretaciones de la fase 4 (a confirmar con el dueño)
+
+- **Cancelación el mismo día de inicio:** la congelación ya empezó, así que cuenta como la única, pero suma 0 días porque el cliente puede entrar ese día.
+- **Solo se congela la membresía vigente:** no una programada ni una pendiente de pago. La congelación no puede empezar en el pasado ni después del vencimiento.
+- **Renovación antes de vencer:** si el cliente tiene una vigente, la nueva empieza obligatoriamente el día siguiente al vencimiento; no se acepta otra fecha.
+- **Clientes inactivos:** no se les puede registrar una membresía.
+- **Planes inactivos:** no se venden, pero sí se pueden usar al migrar.
+- **Último día:** el día de vencimiento todavía es válido; al día siguiente la membresía está vencida.
+
+---
+
 ## Pendientes de definir
 
 - Prefijo del consecutivo de comprobantes (sección 6.2).

@@ -1,0 +1,180 @@
+<div class="page">
+  <a mat-button routerLink="/clients" class="back"><mat-icon>arrow_back</mat-icon> Clientes</a>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  @if (client(); as c) {
+    <div class="page-header">
+      <div>
+        <h1>{{ c.firstName }} {{ c.lastName }}</h1>
+        <p>
+          {{ c.documentType }} {{ c.documentNumber }}
+          @if (c.phone) {
+            · {{ c.phone }}
+          }
+          · <span class="chip" [class.on]="c.active">{{ c.active ? 'Activo' : 'Inactivo' }}</span>
+        </p>
+      </div>
+      <div class="actions">
+        @if (canMigrate()) {
+          <button mat-stroked-button type="button" (click)="migrate()">
+            <mat-icon>history</mat-icon>
+            Membresía migrada
+          </button>
+        }
+        <button
+          mat-flat-button
+          type="button"
+          (click)="sell()"
+          [disabled]="!canSell()"
+          [matTooltip]="canSell() ? '' : c.active ? 'Ya tiene una membresía siguiente' : 'El cliente está inactivo'"
+        >
+          <mat-icon>add_card</mat-icon>
+          Nueva membresía
+        </button>
+      </div>
+    </div>
+
+    <div class="cards">
+      <section class="card" aria-labelledby="current-title">
+        <h2 id="current-title">Membresía vigente</h2>
+        @if (summary().current; as m) {
+          <ng-container [ngTemplateOutlet]="membershipCard" [ngTemplateOutletContext]="{ $implicit: m }" />
+        } @else {
+          <p class="muted">Sin membresía vigente.</p>
+        }
+      </section>
+
+      <section class="card" aria-labelledby="next-title">
+        <h2 id="next-title">Siguiente</h2>
+        @if (summary().next; as m) {
+          <ng-container [ngTemplateOutlet]="membershipCard" [ngTemplateOutletContext]="{ $implicit: m }" />
+        } @else {
+          <p class="muted">Sin renovación registrada.</p>
+        }
+      </section>
+    </div>
+
+    <h2 class="section-title">Historial</h2>
+    <div class="table-wrap">
+      <table mat-table [dataSource]="history()">
+        <ng-container matColumnDef="plan">
+          <th mat-header-cell *matHeaderCellDef>Plan</th>
+          <td mat-cell *matCellDef="let m">
+            {{ m.planName }}
+            @if (m.migrated) {
+              <div class="sub">Migrada del sistema anterior</div>
+            }
+            @if (m.cancellationReason) {
+              <div class="sub">Anulada: {{ m.cancellationReason }}</div>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="startDate">
+          <th mat-header-cell *matHeaderCellDef>Inicio</th>
+          <td mat-cell *matCellDef="let m">{{ m.startDate | date: 'dd/MM/yyyy' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="endDate">
+          <th mat-header-cell *matHeaderCellDef>Vence</th>
+          <td mat-cell *matCellDef="let m">{{ m.endDate | date: 'dd/MM/yyyy' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let m"><app-membership-status-chip [status]="m.status" /></td>
+        </ng-container>
+        <ng-container matColumnDef="price">
+          <th mat-header-cell *matHeaderCellDef>Valor</th>
+          <td mat-cell *matCellDef="let m">{{ m.priceAtPurchase | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let m">
+            @if (m.status !== 'CANCELLED') {
+              <button
+                mat-icon-button
+                type="button"
+                (click)="cancelMembership(m)"
+                aria-label="Anular membresía"
+                matTooltip="Anular"
+              >
+                <mat-icon>block</mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        <tr class="mat-row empty" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="columns.length">Sin membresías.</td>
+        </tr>
+      </table>
+    </div>
+  }
+</div>
+
+<ng-template #membershipCard let-m>
+  <div class="card-head">
+    <strong>{{ m.planName }}</strong>
+    <app-membership-status-chip [status]="m.status" />
+  </div>
+  <dl>
+    <dt>Inicio</dt>
+    <dd>{{ m.startDate | date: 'dd/MM/yyyy' }}</dd>
+    <dt>Vence</dt>
+    <dd>
+      {{ m.endDate | date: 'dd/MM/yyyy' }}
+      @if (m.endDate !== m.baseEndDate) {
+        <span class="sub">(incluye días congelados)</span>
+      }
+    </dd>
+    <dt>Valor</dt>
+    <dd>{{ m.priceAtPurchase | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd>
+    @if (m.migrated) {
+      <dt>Migrada</dt>
+      <dd>{{ m.migrationNote }}</dd>
+    }
+  </dl>
+
+  @for (f of m.freezes; track f.id) {
+    <div class="freeze">
+      <mat-icon>ac_unit</mat-icon>
+      <div>
+        {{ f.startDate | date: 'dd/MM/yyyy' }} a {{ f.endDate | date: 'dd/MM/yyyy' }} ({{ f.days }} días) ·
+        {{ freezeLabel(f) }}
+        <div class="sub">{{ f.reason }}</div>
+        @if (f.status === 'CANCELLED') {
+          <div class="sub">Cancelada: {{ f.cancellationReason }} · {{ f.appliedDays }} días sumados</div>
+        }
+      </div>
+    </div>
+  }
+  @if (m.freezeUsedInPreviousSystem) {
+    <p class="sub">Ya usó la congelación en el sistema anterior.</p>
+  }
+
+  <div class="card-actions">
+    @if (m.canFreeze) {
+      <button mat-stroked-button type="button" (click)="freeze(m)">
+        <mat-icon>ac_unit</mat-icon>
+        Congelar
+      </button>
+    }
+    @if (isAdmin) {
+      @if (openFreeze(m); as f) {
+        <button mat-button type="button" (click)="extendFreeze(m, f)">Ampliar congelación</button>
+        <button mat-button type="button" (click)="cancelFreeze(f)">Cancelar congelación</button>
+      }
+      <button mat-button type="button" (click)="cancelMembership(m)">Anular</button>
+    }
+  </div>
+</ng-template>

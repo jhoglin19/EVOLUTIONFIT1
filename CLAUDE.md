@@ -30,5 +30,6 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
 - Hacer commit al terminar cada fase. NUNCA hacer push sin que yo lo pida.
 
 ## Estado
-- Hecho: estructura, login JWT, usuarios y roles, clientes y planes (backend y frontend).
-- Pendiente: el resto de módulos.
+- Hecho: estructura, login JWT, usuarios y roles, clientes y planes, membresías y congelaciones (backend y frontend, migración V3).
+- Pendiente: el resto de módulos. En la fase 5, el pago total activa las membresías PENDING (recalcular sus fechas ese día).
+- Pruebas con MySQL real: V3MigrationTest y MembershipConcurrencyTest usan Testcontainers: con Docker apagado se omiten (aparecen como Skipped), así que revisarlo antes de dar una fase por terminada.

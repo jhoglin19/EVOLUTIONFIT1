@@ -1,0 +1,96 @@
+<h2 mat-dialog-title>Membresía migrada del sistema anterior</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    <p class="hint">
+      {{ data.client.firstName }} {{ data.client.lastName }} · {{ data.client.documentNumber }}.
+      Conserva el vencimiento real y no exige pago. Solo membresías vigentes.
+    </p>
+
+    @if (error()) {
+      <div class="alert" role="alert">{{ error() }}</div>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Plan</mat-label>
+      <mat-select formControlName="planId">
+        @for (plan of plans(); track plan.id) {
+          <mat-option [value]="plan.id">
+            {{ plan.name }} · {{ plan.durationDays }} {{ plan.durationDays === 1 ? 'día' : 'días' }}
+            @if (!plan.active) {
+              (inactivo)
+            }
+          </mat-option>
+        }
+      </mat-select>
+      @if (form.controls.planId.hasError('required')) {
+        <mat-error>Obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Inicio</mat-label>
+        <input matInput type="date" formControlName="startDate" [max]="today" />
+        @if (form.controls.startDate.hasError('required')) {
+          <mat-error>Obligatoria</mat-error>
+        } @else if (form.controls.startDate.hasError('notAfter')) {
+          <mat-error>No puede ser futura</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Vencimiento real</mat-label>
+        <input matInput type="date" formControlName="endDate" [min]="today" />
+        @if (form.controls.endDate.hasError('required')) {
+          <mat-error>Obligatorio</mat-error>
+        } @else if (form.controls.endDate.hasError('notBefore')) {
+          <mat-error>Solo se migran vigentes</mat-error>
+        }
+      </mat-form-field>
+    </div>
+    @if (form.hasError('endBeforeStart')) {
+      <div class="alert" role="alert">El vencimiento no puede ser anterior al inicio.</div>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Precio pagado (COP)</mat-label>
+      <input matInput type="number" min="0" step="any" formControlName="price" />
+      <mat-hint>Por defecto, el precio actual del plan.</mat-hint>
+      @if (form.controls.price.hasError('required')) {
+        <mat-error>Obligatorio</mat-error>
+      } @else if (form.controls.price.invalid) {
+        <mat-error>Mayor o igual a 0, hasta 2 decimales</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Nota de migración</mat-label>
+      <input matInput formControlName="migrationNote" maxlength="255" autocomplete="off" />
+      <mat-hint>Por ejemplo, el número o código del cliente en el sistema anterior.</mat-hint>
+      @if (form.controls.migrationNote.invalid) {
+        <mat-error>Obligatoria</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-checkbox formControlName="freezeUsedInPreviousSystem">
+      Ya usó la congelación de esta membresía en el sistema anterior
+    </mat-checkbox>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Notas (opcional)</mat-label>
+      <textarea matInput formControlName="notes" rows="2"></textarea>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      @if (saving()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        Registrar migrada
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

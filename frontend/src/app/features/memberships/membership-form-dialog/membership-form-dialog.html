@@ -1,0 +1,68 @@
+<h2 mat-dialog-title>Nueva membresía</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    <p class="hint">{{ data.client.firstName }} {{ data.client.lastName }} · {{ data.client.documentNumber }}</p>
+
+    @if (error()) {
+      <div class="alert" role="alert">{{ error() }}</div>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Plan</mat-label>
+      <mat-select formControlName="planId">
+        @for (plan of plans(); track plan.id) {
+          <mat-option [value]="plan.id">
+            {{ plan.name }} · {{ plan.durationDays }} {{ plan.durationDays === 1 ? 'día' : 'días' }} ·
+            {{ plan.price | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}
+          </mat-option>
+        }
+      </mat-select>
+      @if (form.controls.planId.hasError('required')) {
+        <mat-error>Obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Fecha de inicio (opcional)</mat-label>
+      <input matInput type="date" formControlName="startDate" [min]="today" />
+      <mat-hint>Vacía: desde el día del pago. Si tiene una vigente, empieza al día siguiente de su vencimiento.</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Notas (opcional)</mat-label>
+      <textarea matInput formControlName="notes" rows="2"></textarea>
+    </mat-form-field>
+
+    @if (preview(); as p) {
+      <div class="summary" aria-live="polite">
+        <div>
+          <strong>{{ p.startDate | date: 'dd/MM/yyyy' }}</strong> a
+          <strong>{{ p.endDate | date: 'dd/MM/yyyy' }}</strong> ·
+          {{ p.price | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}
+        </div>
+        @if (p.scheduled) {
+          <div>Renovación: queda programada tras el vencimiento actual ({{ p.currentEndDate | date: 'dd/MM/yyyy' }}).</div>
+        }
+      </div>
+    }
+    @if (previewError()) {
+      <div class="alert" role="alert">{{ previewError() }}</div>
+    }
+
+    <p class="hint">
+      Queda <strong>pendiente de pago</strong>. El pago total la activa; las fechas definitivas se fijan ese día.
+    </p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      @if (saving()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        Registrar
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

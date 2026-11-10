@@ -1,0 +1,67 @@
+<h2 mat-dialog-title>{{ extending ? 'Ampliar congelación' : 'Congelar membresía' }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    <p class="hint">
+      {{ data.membership.clientName }} · {{ data.membership.planName }} · vence el
+      {{ data.membership.endDate | date: 'dd/MM/yyyy' }}.
+      Una congelación por membresía, máximo {{ maxDays }} días calendario seguidos. Mientras esté congelado no puede entrar.
+    </p>
+
+    @if (error()) {
+      <div class="alert" role="alert">{{ error() }}</div>
+    }
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Inicio</mat-label>
+        <input
+          matInput
+          type="date"
+          formControlName="startDate"
+          [min]="today"
+          [max]="data.membership.endDate"
+          [readonly]="extending"
+        />
+        @if (form.controls.startDate.hasError('required')) {
+          <mat-error>Obligatorio</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ extending ? 'Total de días' : 'Días' }}</mat-label>
+        <input matInput type="number" step="1" formControlName="days" [min]="minDays" [max]="maxDays" />
+        @if (form.controls.days.hasError('required')) {
+          <mat-error>Obligatorio</mat-error>
+        } @else if (form.controls.days.invalid) {
+          <mat-error>Entero entre {{ minDays }} y {{ maxDays }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Motivo</mat-label>
+      <textarea matInput formControlName="reason" rows="2" maxlength="255"></textarea>
+      @if (form.controls.reason.invalid) {
+        <mat-error>El motivo es obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    @if (newEndDate(); as end) {
+      <div class="summary" aria-live="polite">
+        Nuevo vencimiento: <strong>{{ end | date: 'dd/MM/yyyy' }}</strong>
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      @if (saving()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        {{ extending ? 'Ampliar' : 'Congelar' }}
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

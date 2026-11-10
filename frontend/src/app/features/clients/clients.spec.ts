@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -25,6 +26,7 @@ function setup(role: string, confirmed = false) {
   const dialog = { open: vi.fn(() => ({ afterClosed: () => of(confirmed) })) };
   TestBed.configureTestingModule({
     providers: [
+      provideRouter([]),
       { provide: ClientsService, useValue: api },
       { provide: MatDialog, useValue: dialog },
       { provide: AuthService, useValue: { hasRole: (...roles: string[]) => roles.includes(role) } },

@@ -54,3 +54,9 @@ table {
   text-align: center;
   color: var(--mat-sys-on-surface-variant);
 }
+
+.name-link {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+  font-weight: 500;
+}

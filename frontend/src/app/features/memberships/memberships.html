@@ -1,0 +1,96 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Membresías</h1>
+      <p>Los estados se calculan con las fechas de hoy. Para vender, abre la ficha del cliente.</p>
+    </div>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search">
+      <mat-label>Buscar por documento o nombre</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="search" autocomplete="off" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="status">
+      <mat-label>Estado</mat-label>
+      <mat-select [formControl]="state">
+        <mat-option [value]="null">Todos</mat-option>
+        @for (s of states; track s[0]) {
+          <mat-option [value]="s[0]">{{ s[1] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-slide-toggle [formControl]="expiringSoon" class="toggle">
+      Por vencer ({{ warningDays }} días)
+    </mat-slide-toggle>
+  </div>
+
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  <div class="table-wrap">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="client">
+        <th mat-header-cell *matHeaderCellDef>Cliente</th>
+        <td mat-cell *matCellDef="let m">
+          <a [routerLink]="['/clients', m.clientId]">{{ m.clientName }}</a>
+          <div class="sub">{{ m.clientDocument }}</div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="plan">
+        <th mat-header-cell *matHeaderCellDef>Plan</th>
+        <td mat-cell *matCellDef="let m">
+          {{ m.planName }}
+          @if (m.migrated) {
+            <div class="sub">Migrada del sistema anterior</div>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="startDate">
+        <th mat-header-cell *matHeaderCellDef>Inicio</th>
+        <td mat-cell *matCellDef="let m">{{ m.startDate | date: 'dd/MM/yyyy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="endDate">
+        <th mat-header-cell *matHeaderCellDef>Vence</th>
+        <td mat-cell *matCellDef="let m">{{ m.endDate | date: 'dd/MM/yyyy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let m"><app-membership-status-chip [status]="m.status" /></td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+
+      <tr class="mat-row empty" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="columns.length">
+          {{ loading() ? 'Cargando…' : 'No se encontraron membresías.' }}
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [length]="total()"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+      aria-label="Paginación de membresías"
+    />
+  </div>
+</div>

@@ -26,6 +26,17 @@ export const routes: Routes = [
         title: 'Clientes · EvolutionFit',
       },
       {
+        path: 'clients/:id',
+        loadComponent: () =>
+          import('./features/clients/client-detail/client-detail').then((m) => m.ClientDetail),
+        title: 'Ficha del cliente · EvolutionFit',
+      },
+      {
+        path: 'memberships',
+        loadComponent: () => import('./features/memberships/memberships').then((m) => m.Memberships),
+        title: 'Membresías · EvolutionFit',
+      },
+      {
         path: 'plans',
         loadComponent: () => import('./features/plans/plans').then((m) => m.Plans),
         title: 'Planes · EvolutionFit',

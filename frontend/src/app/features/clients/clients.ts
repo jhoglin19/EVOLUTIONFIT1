@@ -14,6 +14,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -29,6 +30,7 @@ type StatusFilter = 'all' | 'active' | 'inactive';
   selector: 'app-clients',
   imports: [
     DatePipe,
+    RouterLink,
     ReactiveFormsModule,
     MatTableModule,
     MatPaginatorModule,

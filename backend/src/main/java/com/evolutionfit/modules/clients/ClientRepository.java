@@ -1,14 +1,28 @@
 package com.evolutionfit.modules.clients;
 
+import java.util.Optional;
+
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
     boolean existsByDocumentNumber(String documentNumber);
+
+    /**
+     * SELECT ... FOR UPDATE sobre el cliente. Las operaciones que cambian sus membresías lo toman al inicio
+     * de la transacción, así dos solicitudes simultáneas se ejecutan una después de la otra y no pueden
+     * crear dos membresías activas o siguientes.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Client c where c.id = :id")
+    Optional<Client> findByIdForUpdate(@Param("id") Long id);
 
     boolean existsByDocumentNumberAndIdNot(String documentNumber, Long id);
 

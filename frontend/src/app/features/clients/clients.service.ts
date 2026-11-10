@@ -22,6 +22,10 @@ export class ClientsService {
     return this.http.get<Page<Client>>(this.url, { params });
   }
 
+  get(id: number): Observable<Client> {
+    return this.http.get<Client>(`${this.url}/${id}`);
+  }
+
   create(request: ClientRequest): Observable<Client> {
     return this.http.post<Client>(this.url, request);
   }
