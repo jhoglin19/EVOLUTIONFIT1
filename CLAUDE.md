@@ -2,6 +2,8 @@
 
 Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ (léelo antes de implementar un módulo).
 
+**Reglas de negocio: [docs/REGLAS_NEGOCIO.md](docs/REGLAS_NEGOCIO.md) es fuente obligatoria.** Léelo antes de implementar cualquier módulo. Prevalece sobre el documento técnico y sobre cualquier suposición.
+
 ## Stack
 - Backend: Java 21, Spring Boot 3.3.5, Spring Security + JWT, JPA/Hibernate, Flyway, Swagger. Carpeta backend/
 - Frontend: Angular, Angular Material, Reactive Forms. Carpeta frontend/
@@ -17,7 +19,8 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
 - Roles: ADMIN y RECEPTIONIST.
 - Nunca escribir contraseñas ni claves en el código ni en archivos versionados: todo va en .env (ignorado por git).
 - Base de datos: Hibernate NO crea tablas (ddl-auto=none). Todo cambio de esquema es una migración nueva de Flyway (V2, V3...). Nunca editar V1 ni borrar datos.
-- No asumir reglas de negocio pendientes (sección 15 del documento): preguntar o dejarlas configurables y documentadas.
+- No asumir reglas de negocio: las definidas están en docs/REGLAS_NEGOCIO.md; lo que no esté ahí, preguntar o dejarlo configurable y documentado.
+- El control de acceso físico (docs/HARDWARE_CONTROL_ACCESO.md) es la fase 8: no analizarlo ni programarlo antes.
 - Mantener el precio histórico en cada membresía (price_at_purchase).
 
 ## Forma de trabajo
