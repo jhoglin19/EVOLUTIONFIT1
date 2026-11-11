@@ -19,6 +19,9 @@ public class AuditService {
     public static final String ACTION_CANCEL = "CANCEL";
     public static final String ACTION_EXTEND = "EXTEND";
     public static final String ACTION_RESCHEDULE = "RESCHEDULE";
+    public static final String ACTION_ACTIVATE = "ACTIVATE";
+    public static final String ACTION_DISCOUNT = "DISCOUNT";
+    public static final String ACTION_VOID = "VOID";
 
     private final AuditLogRepository repository;
     private final ObjectMapper objectMapper;

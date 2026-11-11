@@ -42,6 +42,23 @@ export const routes: Routes = [
         title: 'Planes · EvolutionFit',
       },
       {
+        path: 'enrollment',
+        loadComponent: () => import('./features/enrollment/enrollment').then((m) => m.Enrollment),
+        title: 'Inscripción · EvolutionFit',
+      },
+      {
+        path: 'payments',
+        loadComponent: () => import('./features/payments/payments').then((m) => m.Payments),
+        title: 'Pagos · EvolutionFit',
+      },
+      {
+        path: 'settings/receipt',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () =>
+          import('./features/settings/receipt-settings').then((m) => m.ReceiptSettingsPage),
+        title: 'Datos del comprobante · EvolutionFit',
+      },
+      {
         path: 'users',
         canActivate: [roleGuard('ADMIN')],
         loadComponent: () => import('./features/users/users').then((m) => m.Users),

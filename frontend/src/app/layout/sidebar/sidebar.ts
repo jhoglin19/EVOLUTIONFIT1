@@ -16,9 +16,12 @@ interface NavItem {
 /** Agrega aquí las opciones a medida que se construyen los módulos. */
 const NAV_ITEMS: NavItem[] = [
   { label: 'Inicio', icon: 'dashboard', path: '/dashboard' },
+  { label: 'Nueva inscripción', icon: 'point_of_sale', path: '/enrollment' },
   { label: 'Clientes', icon: 'groups', path: '/clients' },
   { label: 'Membresías', icon: 'event_available', path: '/memberships' },
+  { label: 'Pagos', icon: 'payments', path: '/payments' },
   { label: 'Planes', icon: 'card_membership', path: '/plans' },
+  { label: 'Datos del comprobante', icon: 'receipt_long', path: '/settings/receipt', roles: ['ADMIN'] },
   { label: 'Usuarios', icon: 'manage_accounts', path: '/users', roles: ['ADMIN'] },
 ];
 

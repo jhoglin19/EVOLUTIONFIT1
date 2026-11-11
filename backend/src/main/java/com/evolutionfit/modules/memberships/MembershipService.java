@@ -19,6 +19,7 @@ import com.evolutionfit.modules.memberships.dto.CurrentMembershipResponse;
 import com.evolutionfit.modules.memberships.dto.MembershipPreviewResponse;
 import com.evolutionfit.modules.memberships.dto.MembershipResponse;
 import com.evolutionfit.modules.memberships.dto.MigratedMembershipRequest;
+import com.evolutionfit.modules.memberships.dto.PaymentPreviewResponse;
 import com.evolutionfit.modules.plans.Plan;
 import com.evolutionfit.modules.plans.PlanRepository;
 
@@ -135,6 +136,7 @@ public class MembershipService {
         m.setPlanDurationDays(plan.getDurationDays());
         m.setPriceAtPurchase(plan.getPrice());
         m.setStartDate(start);
+        m.setRequestedStartDate(request.startDate());
         m.setBaseEndDate(MembershipDates.endDate(start, plan.getDurationDays()));
         m.setEndDate(m.getBaseEndDate());
         m.setStatus(MembershipStatus.PENDING);
@@ -228,6 +230,73 @@ public class MembershipService {
             support.rescheduleNext(saved, today, currentUserId);
         }
         return MembershipResponse.from(saved, today);
+    }
+
+    // ---- pago (lo usa el módulo de pagos dentro de su transacción) ----
+
+    /**
+     * Bloquea al cliente y devuelve la membresía lista para cobrar. Debe ser lo primero que lee la
+     * transacción del pago: así dos cobros simultáneos de la misma membresía se ejecutan en serie.
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Membership lockPendingForPayment(Long membershipId) {
+        Long clientId = membershipRepository.findClientIdById(membershipId)
+                .orElseThrow(() -> new ResourceNotFoundException("Membresía no encontrada"));
+        support.lockClient(clientId);
+        Membership m = findOrThrow(membershipId);
+        if (m.getStatus() == MembershipStatus.CANCELLED) {
+            throw new BusinessException("La membresía está anulada; no se puede cobrar");
+        }
+        if (m.getStatus() != MembershipStatus.PENDING) {
+            throw new ConflictException("La membresía ya está pagada");
+        }
+        return m;
+    }
+
+    /** Fechas que tendrá la membresía si se paga hoy. No guarda nada. */
+    @Transactional(readOnly = true)
+    public PaymentPreviewResponse paymentPreview(Long membershipId) {
+        Membership m = findOrThrow(membershipId);
+        if (m.getStatus() != MembershipStatus.PENDING) {
+            throw new ConflictException(m.getStatus() == MembershipStatus.CANCELLED
+                    ? "La membresía está anulada; no se puede cobrar" : "La membresía ya está pagada");
+        }
+        LocalDate today = support.today();
+        LocalDate currentEnd = currentEndExcluding(m, today);
+        LocalDate start = MembershipDates.activationStart(today, m.getRequestedStartDate(), currentEnd);
+        return new PaymentPreviewResponse(m.getId(), m.getPlanName(), m.getPriceAtPurchase(), start,
+                MembershipDates.endDate(start, m.getPlanDurationDays()), start.isAfter(today),
+                m.getRequestedStartDate(),
+                MembershipDates.requestedStartPassed(today, m.getRequestedStartDate(), currentEnd), currentEnd);
+    }
+
+    /**
+     * El pago total activa la membresía: fija sus fechas definitivas (calculadas hoy) y queda activa o
+     * programada. Se llama con el cliente ya bloqueado por {@link #lockPendingForPayment}.
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void activate(Membership m, Long currentUserId) {
+        LocalDate today = support.today();
+        MembershipSnapshot before = MembershipSnapshot.of(m);
+        LocalDate start = MembershipDates.activationStart(today, m.getRequestedStartDate(),
+                currentEndExcluding(m, today));
+        m.setStartDate(start);
+        m.setBaseEndDate(MembershipDates.endDate(start, m.getPlanDurationDays()));
+        m.setActivatedAt(support.now());
+        m.setStatus(MembershipStatus.ACTIVE); // confirmada; el estado real lo calcula recalculate
+        support.recalculate(m, today);
+        membershipRepository.save(m);
+        support.audit(MembershipSupport.AUDIT_MEMBERSHIP, m.getId(), AuditService.ACTION_ACTIVATE,
+                before, MembershipSnapshot.of(m), currentUserId);
+    }
+
+    private LocalDate currentEndExcluding(Membership m, LocalDate today) {
+        return support.clientMemberships(m.getClient().getId()).stream()
+                .filter(other -> !other.getId().equals(m.getId()))
+                .filter(other -> MembershipRules.isInForce(other, today))
+                .map(Membership::getEndDate)
+                .findFirst()
+                .orElse(null);
     }
 
     /**

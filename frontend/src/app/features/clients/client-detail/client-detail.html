@@ -31,15 +31,19 @@
             Membresía migrada
           </button>
         }
+        <button mat-flat-button type="button" (click)="renew()" [disabled]="!canSell()">
+          <mat-icon>point_of_sale</mat-icon>
+          Renovar y cobrar
+        </button>
         <button
-          mat-flat-button
+          mat-stroked-button
           type="button"
           (click)="sell()"
           [disabled]="!canSell()"
           [matTooltip]="canSell() ? '' : c.active ? 'Ya tiene una membresía siguiente' : 'El cliente está inactivo'"
         >
           <mat-icon>add_card</mat-icon>
-          Nueva membresía
+          Registrar sin cobrar
         </button>
       </div>
     </div>
@@ -64,7 +68,62 @@
       </section>
     </div>
 
-    <h2 class="section-title">Historial</h2>
+    <h2 class="section-title">Pagos</h2>
+    <div class="table-wrap payments">
+      <table mat-table [dataSource]="payments()">
+        <ng-container matColumnDef="paidAt">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let p">{{ p.paidAt | date: 'dd/MM/yyyy h:mm a' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="receipt">
+          <th mat-header-cell *matHeaderCellDef>Comprobante</th>
+          <td mat-cell *matCellDef="let p">{{ p.receiptNumber || 'Sin comprobante' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="plan">
+          <th mat-header-cell *matHeaderCellDef>Plan</th>
+          <td mat-cell *matCellDef="let p">{{ p.planName }}</td>
+        </ng-container>
+        <ng-container matColumnDef="method">
+          <th mat-header-cell *matHeaderCellDef>Método</th>
+          <td mat-cell *matCellDef="let p">{{ methodName(p) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef>Total</th>
+          <td mat-cell *matCellDef="let p">{{ p.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let p">
+            {{ paymentStatus(p) }}
+            @if (p.voidReason) {
+              <div class="sub">{{ p.voidReason }}</div>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let p">
+            @if (p.receiptNumber) {
+              <button mat-icon-button type="button" (click)="receipt(p)" aria-label="Ver comprobante" matTooltip="Comprobante">
+                <mat-icon>receipt_long</mat-icon>
+              </button>
+            }
+            @if (isAdmin && p.status === 'COMPLETED') {
+              <button mat-icon-button type="button" (click)="voidPayment(p)" aria-label="Anular pago" matTooltip="Anular pago">
+                <mat-icon>money_off</mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="paymentColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: paymentColumns"></tr>
+        <tr class="mat-row empty" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="paymentColumns.length">Sin pagos.</td>
+        </tr>
+      </table>
+    </div>
+
+    <h2 class="section-title">Historial de membresías</h2>
     <div class="table-wrap">
       <table mat-table [dataSource]="history()">
         <ng-container matColumnDef="plan">
@@ -163,6 +222,12 @@
   }
 
   <div class="card-actions">
+    @if (m.status === 'PENDING') {
+      <button mat-flat-button type="button" (click)="charge(m)">
+        <mat-icon>point_of_sale</mat-icon>
+        Cobrar
+      </button>
+    }
     @if (m.canFreeze) {
       <button mat-stroked-button type="button" (click)="freeze(m)">
         <mat-icon>ac_unit</mat-icon>

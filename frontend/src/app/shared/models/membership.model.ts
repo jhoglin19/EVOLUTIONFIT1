@@ -30,6 +30,8 @@ export interface Membership {
   planDurationDays: number;
   startDate: string;
   endDate: string;
+  requestedStartDate?: string | null;
+  activatedAt?: string | null;
   baseEndDate: string;
   status: MembershipStatus;
   priceAtPurchase: number;
@@ -55,6 +57,20 @@ export interface MembershipPreview {
   startDate: string;
   endDate: string;
   scheduled: boolean;
+  currentEndDate?: string | null;
+}
+
+/** Lo que pasará si se paga hoy una membresía pendiente. */
+export interface PaymentPreview {
+  membershipId: number;
+  planName: string;
+  listPrice: number;
+  startDate: string;
+  endDate: string;
+  scheduled: boolean;
+  requestedStartDate?: string | null;
+  /** La fecha elegida al vender ya pasó: empezará el día del pago. */
+  requestedStartPassed: boolean;
   currentEndDate?: string | null;
 }
 

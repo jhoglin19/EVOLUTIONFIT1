@@ -1,0 +1,122 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Datos del comprobante</h1>
+      <p>Encabezado del comprobante interno de pago (no es factura electrónica). Los campos vacíos no se imprimen.</p>
+    </div>
+    <button mat-stroked-button type="button" (click)="preview()">
+      <mat-icon>visibility</mat-icon>
+      Vista previa
+    </button>
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (error()) {
+    <div class="alert" role="alert">{{ error() }}</div>
+  }
+  @if (settings() && !settings()!.tradeName && !settings()!.legalName) {
+    <div class="warning" role="status">
+      <mat-icon>info</mat-icon>
+      Aún no hay datos del gimnasio: los comprobantes se emiten sin encabezado hasta que los completes.
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <h2>Gimnasio</h2>
+    <div class="grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre comercial</mat-label>
+        <input matInput formControlName="tradeName" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Titular o razón social</mat-label>
+        <input matInput formControlName="legalName" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>NIT (con dígito de verificación)</mat-label>
+        <input matInput formControlName="taxId" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Matrícula mercantil</mat-label>
+        <input matInput formControlName="commercialRegistration" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Dirección</mat-label>
+        <input matInput formControlName="address" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Ciudad</mat-label>
+        <input matInput formControlName="city" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Teléfono</mat-label>
+        <input matInput formControlName="phone" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Correo</mat-label>
+        <input matInput type="email" formControlName="email" />
+        @if (form.controls.email.invalid) {
+          <mat-error>Correo no válido</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <h2>Numeración</h2>
+    <div class="grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Prefijo</mat-label>
+        <input matInput formControlName="receiptPrefix" maxlength="10" />
+        <mat-hint>Si lo cambias, la numeración sigue (no se reinicia).</mat-hint>
+        @if (form.controls.receiptPrefix.invalid) {
+          <mat-error>Hasta 10 letras, números o guiones</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ settings()?.initialNumberLocked ? 'Siguiente número' : 'Número inicial' }}</mat-label>
+        <input matInput type="number" min="1" max="999999" step="1" formControlName="initialNumber" />
+        <mat-hint>
+          @if (settings()?.initialNumberLocked) {
+            Bloqueado: ya se emitieron comprobantes.
+          } @else {
+            Se puede cambiar hasta emitir el primer comprobante.
+          }
+        </mat-hint>
+        @if (form.controls.initialNumber.invalid) {
+          <mat-error>Entero entre 1 y 999999</mat-error>
+        }
+      </mat-form-field>
+    </div>
+    @if (settings(); as s) {
+      <p class="sub">Próximo comprobante: <strong>{{ s.nextReceiptNumber }}</strong></p>
+    }
+
+    <div class="actions">
+      <button mat-flat-button type="submit" [disabled]="saving()">Guardar</button>
+    </div>
+  </form>
+
+  <h2>Logo</h2>
+  <div class="logo">
+    @if (logoUrl(); as url) {
+      <img [src]="url" alt="Logo actual del gimnasio" />
+    } @else {
+      <p class="sub">Sin logo.</p>
+    }
+    <div class="actions">
+      <input #logoInput type="file" accept="image/png,image/jpeg" (change)="onLogoSelected($event)" hidden />
+      <button mat-stroked-button type="button" (click)="logoInput.click()">
+        <mat-icon>upload</mat-icon>
+        Subir logo
+      </button>
+      @if (settings()?.hasLogo) {
+        <button mat-button type="button" (click)="removeLogo()">Quitar logo</button>
+      }
+    </div>
+    <p class="sub">PNG o JPG de hasta {{ maxLogoKb }} KB.</p>
+    @if (logoError()) {
+      <div class="alert" role="alert">{{ logoError() }}</div>
+    }
+  </div>
+</div>

@@ -112,4 +112,40 @@ class MembershipDatesTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("ya terminó");
     }
+
+    // ---- activación por pago ----
+
+    @Test
+    void paymentWithoutCurrentStartsTheDayOfPayment() {
+        assertThat(MembershipDates.activationStart(TODAY, null, null)).isEqualTo(TODAY);
+    }
+
+    @Test
+    void paymentWithACurrentMembershipStartsTheDayAfterItsExpiry() {
+        assertThat(MembershipDates.activationStart(TODAY, null, day(12, 12))).isEqualTo(day(12, 13));
+        // Aunque al vender se hubiera pedido otra fecha.
+        assertThat(MembershipDates.activationStart(TODAY, day(11, 20), day(12, 12))).isEqualTo(day(12, 13));
+        // La vigente vence hoy: empieza mañana.
+        assertThat(MembershipDates.activationStart(TODAY, null, TODAY)).isEqualTo(TODAY.plusDays(1));
+    }
+
+    @Test
+    void paymentRespectsARequestedStartThatIsStillInTheFuture() {
+        assertThat(MembershipDates.activationStart(TODAY, day(11, 20), null)).isEqualTo(day(11, 20));
+        assertThat(MembershipDates.requestedStartPassed(TODAY, day(11, 20), null)).isFalse();
+    }
+
+    @Test
+    void aRequestedStartThatAlreadyPassedStartsTheDayOfPaymentAndWarns() {
+        assertThat(MembershipDates.activationStart(TODAY, day(11, 5), null)).isEqualTo(TODAY);
+        assertThat(MembershipDates.requestedStartPassed(TODAY, day(11, 5), null)).isTrue();
+        // Con una vigente no hay aviso: manda el vencimiento de la vigente.
+        assertThat(MembershipDates.requestedStartPassed(TODAY, day(11, 5), day(11, 30))).isFalse();
+        assertThat(MembershipDates.requestedStartPassed(TODAY, TODAY, null)).isFalse();
+    }
+
+    @Test
+    void paymentAfterExpiryHasNoGraceDays() {
+        assertThat(MembershipDates.activationStart(TODAY, null, TODAY.minusDays(1))).isEqualTo(TODAY);
+    }
 }

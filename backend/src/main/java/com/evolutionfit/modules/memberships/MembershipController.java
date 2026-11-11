@@ -11,6 +11,7 @@ import com.evolutionfit.modules.memberships.dto.ExtendFreezeRequest;
 import com.evolutionfit.modules.memberships.dto.MembershipPreviewResponse;
 import com.evolutionfit.modules.memberships.dto.MembershipResponse;
 import com.evolutionfit.modules.memberships.dto.MigratedMembershipRequest;
+import com.evolutionfit.modules.memberships.dto.PaymentPreviewResponse;
 import com.evolutionfit.modules.memberships.dto.ReasonRequest;
 import com.evolutionfit.security.AuthUserDetails;
 
@@ -68,6 +69,12 @@ public class MembershipController {
     @GetMapping("/memberships/{id}")
     public MembershipResponse get(@PathVariable Long id) {
         return membershipService.get(id);
+    }
+
+    /** Fechas que tendrá una membresía pendiente si se paga hoy. */
+    @GetMapping("/memberships/{id}/payment-preview")
+    public PaymentPreviewResponse paymentPreview(@PathVariable Long id) {
+        return membershipService.paymentPreview(id);
     }
 
     @GetMapping("/clients/{clientId}/memberships")

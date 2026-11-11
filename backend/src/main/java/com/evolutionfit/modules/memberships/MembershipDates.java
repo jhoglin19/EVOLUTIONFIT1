@@ -49,6 +49,30 @@ public final class MembershipDates {
         return requestedStart;
     }
 
+    /**
+     * Inicio definitivo al pagar una membresía pendiente (docs/REGLAS_NEGOCIO.md, secciones 1 y 8):
+     * <ol>
+     *   <li>Si el cliente tiene una vigente, el día siguiente a su vencimiento (incluye días congelados).</li>
+     *   <li>Si no, la fecha pedida al vender, si todavía es futura.</li>
+     *   <li>Si no, el día del pago (también cuando la fecha pedida ya pasó).</li>
+     * </ol>
+     */
+    public static LocalDate activationStart(LocalDate today, LocalDate requestedStart, LocalDate currentEndDate) {
+        if (currentEndDate != null && !currentEndDate.isBefore(today)) {
+            return currentEndDate.plusDays(1);
+        }
+        if (requestedStart != null && requestedStart.isAfter(today)) {
+            return requestedStart;
+        }
+        return today;
+    }
+
+    /** La fecha pedida al vender ya pasó y el cliente no tiene vigente: se empieza el día del pago. */
+    public static boolean requestedStartPassed(LocalDate today, LocalDate requestedStart, LocalDate currentEndDate) {
+        boolean hasCurrent = currentEndDate != null && !currentEndDate.isBefore(today);
+        return !hasCurrent && requestedStart != null && requestedStart.isBefore(today);
+    }
+
     /** Último día de una congelación de {@code days} días calendario seguidos. */
     public static LocalDate freezeEndDate(LocalDate start, int days) {
         if (days < 1) {

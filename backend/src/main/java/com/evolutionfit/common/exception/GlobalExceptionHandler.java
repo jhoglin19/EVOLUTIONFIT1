@@ -126,6 +126,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             case 404 -> "Recurso no encontrado";
             case 405 -> "Método HTTP no permitido para este recurso";
             case 415 -> "Tipo de contenido no soportado";
+            case 413 -> "El archivo supera el tamaño máximo permitido (logo: 500 KB)";
             case 400 -> "Solicitud inválida";
             default -> "No se pudo procesar la solicitud";
         };

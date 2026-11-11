@@ -1,0 +1,264 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>
+        @switch (mode()) {
+          @case ('pay') {
+            Cobrar membresía
+          }
+          @case ('renew') {
+            Renovar y cobrar
+          }
+          @default {
+            Nueva inscripción
+          }
+        }
+      </h1>
+      <p>El pago total activa la membresía y genera su comprobante interno.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (error()) {
+    <div class="alert" role="alert">{{ error() }}</div>
+  }
+
+  @if (result(); as paid) {
+    <section class="done" aria-live="polite">
+      <mat-icon class="ok">check_circle</mat-icon>
+      <h2>Pago registrado · Comprobante {{ paid.receiptNumber }}</h2>
+      <p>
+        {{ paid.clientName }} · {{ paid.planName }} del {{ paid.membershipStartDate | date: 'dd/MM/yyyy' }} al
+        {{ paid.membershipEndDate | date: 'dd/MM/yyyy' }}
+        ({{ paid.membershipStatus === 'SCHEDULED' ? 'programada' : 'activa' }}).
+      </p>
+      <p>
+        Total {{ paid.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }} · {{ methodName(paid.method) }}
+      </p>
+      <div class="actions">
+        <button mat-flat-button type="button" (click)="showReceipt(paid)">
+          <mat-icon>receipt_long</mat-icon>
+          Ver o imprimir comprobante
+        </button>
+        <a mat-stroked-button [routerLink]="['/clients', paid.clientId]">Ir a la ficha</a>
+        <button mat-button type="button" (click)="restart(stepper)">Nueva inscripción</button>
+      </div>
+    </section>
+  }
+
+  <mat-stepper linear #stepper [class.hidden]="!!result()" orientation="vertical">
+    @if (mode() === 'enroll') {
+      <mat-step label="Cliente" [completed]="clientStepDone()">
+        @if (client(); as c) {
+          <div class="summary">
+            <strong>{{ c.firstName }} {{ c.lastName }}</strong> · {{ c.documentType }} {{ c.documentNumber }}
+            <span class="sub">Cliente existente</span>
+          </div>
+          <div class="actions">
+            <button mat-button type="button" (click)="clearClient()">Buscar otro</button>
+            <button mat-flat-button type="button" (click)="next(stepper, clientStepDone())">Siguiente</button>
+          </div>
+        } @else {
+          <form class="row search" (ngSubmit)="findClient()">
+            <mat-form-field appearance="outline">
+              <mat-label>Número de documento</mat-label>
+              <input matInput [formControl]="search" autocomplete="off" />
+              <mat-hint>Primero se busca para no registrar dos veces a la misma persona.</mat-hint>
+            </mat-form-field>
+            <button mat-stroked-button type="submit">Buscar</button>
+          </form>
+
+          @if (searched()) {
+            <p class="sub">No está registrado. Completa sus datos:</p>
+            <form [formGroup]="clientForm" class="grid" novalidate>
+              <mat-form-field appearance="outline">
+                <mat-label>Tipo de documento</mat-label>
+                <mat-select formControlName="documentType">
+                  @for (t of documentTypes; track t.value) {
+                    <mat-option [value]="t.value">{{ t.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Número de documento</mat-label>
+                <input matInput formControlName="documentNumber" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Nombre</mat-label>
+                <input matInput formControlName="firstName" />
+                @if (clientForm.controls.firstName.invalid) {
+                  <mat-error>Obligatorio</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Apellido</mat-label>
+                <input matInput formControlName="lastName" />
+                @if (clientForm.controls.lastName.invalid) {
+                  <mat-error>Obligatorio</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Teléfono (opcional)</mat-label>
+                <input matInput formControlName="phone" />
+                @if (clientForm.controls.phone.invalid) {
+                  <mat-error>Entre 7 y 30 dígitos o símbolos + ( ) -</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Correo (opcional)</mat-label>
+                <input matInput type="email" formControlName="email" />
+                @if (clientForm.controls.email.invalid) {
+                  <mat-error>Correo no válido</mat-error>
+                }
+              </mat-form-field>
+            </form>
+            <div class="actions">
+              <button mat-flat-button type="button" (click)="next(stepper, clientStepDone(), clientForm)">
+                Siguiente
+              </button>
+            </div>
+          }
+        }
+      </mat-step>
+    }
+
+    @if (mode() !== 'pay') {
+      <mat-step label="Plan" [completed]="planForm.valid && !salePreviewError()">
+        @if (mode() === 'renew' && client(); as c) {
+          <p class="sub">{{ c.firstName }} {{ c.lastName }} · {{ c.documentType }} {{ c.documentNumber }}</p>
+        }
+        <form [formGroup]="planForm" class="grid" novalidate>
+          <mat-form-field appearance="outline">
+            <mat-label>Plan</mat-label>
+            <mat-select formControlName="planId">
+              @for (plan of plans(); track plan.id) {
+                <mat-option [value]="plan.id">
+                  {{ plan.name }} · {{ plan.durationDays }} {{ plan.durationDays === 1 ? 'día' : 'días' }} ·
+                  {{ plan.price | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (planForm.controls.planId.invalid) {
+              <mat-error>Obligatorio</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha de inicio (opcional)</mat-label>
+            <input matInput type="date" formControlName="startDate" [min]="today" />
+            <mat-hint>Vacía: desde hoy, o tras el vencimiento de la vigente.</mat-hint>
+          </mat-form-field>
+        </form>
+        @if (dates(); as d) {
+          <div class="summary">
+            Del <strong>{{ d.start | date: 'dd/MM/yyyy' }}</strong> al <strong>{{ d.end | date: 'dd/MM/yyyy' }}</strong>
+            @if (d.scheduled) {
+              · queda programada
+            }
+          </div>
+        }
+        @if (salePreviewError()) {
+          <div class="alert" role="alert">{{ salePreviewError() }}</div>
+        }
+        <div class="actions">
+          <button mat-flat-button type="button" (click)="next(stepper, planForm.valid && !salePreviewError(), planForm)">
+            Siguiente
+          </button>
+        </div>
+      </mat-step>
+    }
+
+    <mat-step label="Pago" [completed]="paymentStepDone()">
+      @if (mode() === 'pay' && pending(); as m) {
+        <p class="sub">{{ m.clientName }} · {{ m.planName }}</p>
+      }
+      <form [formGroup]="paymentForm" class="grid" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>Método de pago</mat-label>
+          <mat-select formControlName="method">
+            @for (m of methods; track m.value) {
+              <mat-option [value]="m.value">{{ m.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Referencia{{ referenceRequired() ? '' : ' (opcional)' }}</mat-label>
+          <input matInput formControlName="reference" autocomplete="off" />
+          @if (paymentForm.controls.reference.invalid) {
+            <mat-error>Obligatoria para {{ methodName(paymentForm.controls.method.value) }}</mat-error>
+          }
+        </mat-form-field>
+        @if (isAdmin) {
+          <mat-form-field appearance="outline">
+            <mat-label>Descuento en COP (opcional)</mat-label>
+            <input matInput type="number" min="0" step="any" formControlName="discountAmount" />
+            <mat-hint>Solo el administrador puede aplicar descuentos.</mat-hint>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Motivo del descuento</mat-label>
+            <input matInput formControlName="discountReason" maxlength="255" />
+          </mat-form-field>
+        }
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>Notas (opcional)</mat-label>
+          <input matInput formControlName="notes" maxlength="255" />
+        </mat-form-field>
+      </form>
+      @if (discountProblem(); as problem) {
+        <div class="alert" role="alert">{{ problem }}</div>
+      }
+      <div class="actions">
+        <button mat-flat-button type="button" (click)="next(stepper, paymentStepDone(), paymentForm)">Siguiente</button>
+      </div>
+    </mat-step>
+
+    <mat-step label="Confirmar">
+      @if (paymentPreview()?.requestedStartPassed) {
+        <div class="warning" role="alert">
+          <mat-icon>warning</mat-icon>
+          La fecha de inicio elegida al registrarla ({{ paymentPreview()!.requestedStartDate | date: 'dd/MM/yyyy' }}) ya
+          pasó: la membresía empezará hoy, el día del pago.
+        </div>
+      }
+      <dl class="confirm">
+        <dt>Cliente</dt>
+        <dd>{{ clientName() }}</dd>
+        <dt>Plan</dt>
+        <dd>{{ planName() }}</dd>
+        @if (dates(); as d) {
+          <dt>Vigencia</dt>
+          <dd>
+            {{ d.start | date: 'dd/MM/yyyy' }} a {{ d.end | date: 'dd/MM/yyyy' }}
+            {{ d.scheduled ? '(programada)' : '' }}
+          </dd>
+        }
+        <dt>Valor del plan</dt>
+        <dd>{{ listPrice() | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd>
+        @if (discount() > 0) {
+          <dt>Descuento</dt>
+          <dd>- {{ discount() | currency: 'COP' : 'symbol-narrow' : '1.0-2' }} ({{ paymentForm.controls.discountReason.value }})</dd>
+        }
+        <dt>Total a cobrar</dt>
+        <dd class="total">{{ total() | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd>
+        <dt>Método</dt>
+        <dd>
+          {{ methodName(paymentForm.controls.method.value) }}
+          @if (paymentForm.controls.reference.value) {
+            · Ref. {{ paymentForm.controls.reference.value }}
+          }
+        </dd>
+      </dl>
+      <div class="actions">
+        <button mat-button matStepperPrevious type="button" [disabled]="saving()">Atrás</button>
+        <button mat-flat-button type="button" (click)="confirm()" [disabled]="saving() || total() === null">
+          @if (saving()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Cobrar y activar
+          }
+        </button>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div>

@@ -61,6 +61,14 @@ public class Membership {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
+    /** Inicio futuro elegido al vender (opcional). Se respeta al pagar si sigue siendo futuro. */
+    @Column(name = "requested_start_date")
+    private LocalDate requestedStartDate;
+
+    /** Momento en que el pago total la activó. Null en migradas y pendientes. */
+    @Column(name = "activated_at")
+    private LocalDateTime activatedAt;
+
     /** Vencimiento efectivo = vencimiento base + días congelados aplicados. */
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;

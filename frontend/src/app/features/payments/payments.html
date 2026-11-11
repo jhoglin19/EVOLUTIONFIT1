@@ -1,0 +1,135 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Pagos</h1>
+      <p>Pagos registrados y sus comprobantes internos.</p>
+    </div>
+    <a mat-flat-button routerLink="/enrollment">
+      <mat-icon>point_of_sale</mat-icon>
+      Nueva inscripción
+    </a>
+  </div>
+
+  <form class="filters" [formGroup]="filters">
+    <mat-form-field appearance="outline" class="search">
+      <mat-label>Documento, nombre o comprobante</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput formControlName="query" autocomplete="off" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Desde</mat-label>
+      <input matInput type="date" formControlName="from" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Hasta</mat-label>
+      <input matInput type="date" formControlName="to" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Método</mat-label>
+      <mat-select formControlName="method">
+        <mat-option [value]="null">Todos</mat-option>
+        @for (m of methods; track m.value) {
+          <mat-option [value]="m.value">{{ m.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="status">
+        <mat-option [value]="null">Todos</mat-option>
+        <mat-option value="COMPLETED">Pagados</mat-option>
+        <mat-option value="VOIDED">Anulados</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  <div class="table-wrap">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="paidAt">
+        <th mat-header-cell *matHeaderCellDef>Fecha</th>
+        <td mat-cell *matCellDef="let p">{{ p.paidAt | date: 'dd/MM/yyyy h:mm a' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="receipt">
+        <th mat-header-cell *matHeaderCellDef>Comprobante</th>
+        <td mat-cell *matCellDef="let p">{{ p.receiptNumber || 'Sin comprobante' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="client">
+        <th mat-header-cell *matHeaderCellDef>Cliente</th>
+        <td mat-cell *matCellDef="let p">
+          <a [routerLink]="['/clients', p.clientId]">{{ p.clientName }}</a>
+          <div class="sub">{{ p.clientDocument }}</div>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="plan">
+        <th mat-header-cell *matHeaderCellDef>Plan</th>
+        <td mat-cell *matCellDef="let p">{{ p.planName }}</td>
+      </ng-container>
+      <ng-container matColumnDef="method">
+        <th mat-header-cell *matHeaderCellDef>Método</th>
+        <td mat-cell *matCellDef="let p">
+          {{ methodName(p.method) }}
+          @if (p.reference) {
+            <div class="sub">{{ p.reference }}</div>
+          }
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="amount">
+        <th mat-header-cell *matHeaderCellDef>Total</th>
+        <td mat-cell *matCellDef="let p">
+          {{ p.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}
+          @if (p.discountAmount > 0) {
+            <div class="sub">Descuento {{ p.discountAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</div>
+          }
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let p">
+          <span class="chip" [class.voided]="p.status === 'VOIDED'">{{ statusName(p.status) }}</span>
+          @if (p.voidReason) {
+            <div class="sub">{{ p.voidReason }}</div>
+          }
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let p">
+          @if (p.receiptNumber) {
+            <button mat-icon-button type="button" (click)="receipt(p)" aria-label="Ver comprobante" matTooltip="Comprobante">
+              <mat-icon>receipt_long</mat-icon>
+            </button>
+          }
+          @if (isAdmin && p.status === 'COMPLETED') {
+            <button mat-icon-button type="button" (click)="voidPayment(p)" aria-label="Anular pago" matTooltip="Anular">
+              <mat-icon>block</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      <tr class="mat-row empty" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="columns.length">{{ loading() ? 'Cargando…' : 'No se encontraron pagos.' }}</td>
+      </tr>
+    </table>
+    <mat-paginator
+      [length]="total()"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[20, 50, 100]"
+      (page)="onPage($event)"
+      aria-label="Paginación de pagos"
+    />
+  </div>
+</div>

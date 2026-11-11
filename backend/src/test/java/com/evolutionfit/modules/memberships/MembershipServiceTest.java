@@ -381,4 +381,89 @@ class MembershipServiceTest {
         assertThat(expired.getStatus()).isEqualTo(MembershipStatus.EXPIRED);
         assertThat(started.getStatus()).isEqualTo(MembershipStatus.ACTIVE);
     }
+
+    // ---- activación por pago (fase 5) ----
+
+    @Test
+    void saleStoresTheRequestedStartDate() {
+        service.create(sale(day(11, 20)), ADMIN_ID);
+        assertThat(saved().getRequestedStartDate()).isEqualTo(day(11, 20));
+    }
+
+    @Test
+    void lockForPaymentLocksTheClientAndRejectsPaidOrCancelled() {
+        Membership p = stubMembership(pending(20L, client, TODAY));
+        assertThat(service.lockPendingForPayment(20L)).isSameAs(p);
+        InOrder order = inOrder(clientRepository, membershipRepository);
+        order.verify(clientRepository).findByIdForUpdate(1L);
+        order.verify(membershipRepository).findById(20L);
+
+        stubMembership(confirmed(21L, client, day(11, 1)));
+        assertThatThrownBy(() -> service.lockPendingForPayment(21L))
+                .isInstanceOf(ConflictException.class).hasMessageContaining("ya está pagada");
+
+        Membership cancelled = stubMembership(pending(22L, client, TODAY));
+        cancelled.setStatus(MembershipStatus.CANCELLED);
+        assertThatThrownBy(() -> service.lockPendingForPayment(22L))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("anulada");
+    }
+
+    @Test
+    void paymentActivatesFromTheDayOfPaymentWhenThereIsNoCurrent() {
+        Membership m = stubMembership(pending(20L, client, TODAY.minusDays(3))); // fecha provisional vieja
+
+        service.activate(m, ADMIN_ID);
+
+        assertThat(m.getStartDate()).isEqualTo(TODAY);
+        assertThat(m.getBaseEndDate()).isEqualTo(day(12, 8));
+        assertThat(m.getEndDate()).isEqualTo(day(12, 8));
+        assertThat(m.getStatus()).isEqualTo(MembershipStatus.ACTIVE);
+        assertThat(m.getActivatedAt()).isNotNull();
+        verify(auditService).record(eq("MEMBERSHIP"), eq(20L), eq(AuditService.ACTION_ACTIVATE),
+                any(MembershipSnapshot.class), any(MembershipSnapshot.class), eq(ADMIN_ID));
+    }
+
+    @Test
+    void paymentWithACurrentMembershipIsScheduledAfterItsExpiryIncludingFrozenDays() {
+        Membership current = stubMembership(confirmed(10L, client, day(11, 1))); // base 30-11
+        MembershipFixtures.freeze(1L, current, day(11, 5), 5); // vence 05-12
+        Membership m = stubMembership(pending(20L, client, day(12, 1)));
+
+        service.activate(m, ADMIN_ID);
+
+        assertThat(m.getStartDate()).isEqualTo(day(12, 6));
+        assertThat(m.getEndDate()).isEqualTo(day(1, 4));
+        assertThat(m.getStatus()).isEqualTo(MembershipStatus.SCHEDULED);
+    }
+
+    @Test
+    void paymentRespectsAFutureRequestedStartAndIgnoresAPastOne() {
+        Membership future = stubMembership(pending(20L, client, day(11, 20)));
+        future.setRequestedStartDate(day(11, 20));
+        service.activate(future, ADMIN_ID);
+        assertThat(future.getStartDate()).isEqualTo(day(11, 20));
+        assertThat(future.getStatus()).isEqualTo(MembershipStatus.SCHEDULED);
+
+        clientMemberships.clear();
+        Membership past = stubMembership(pending(21L, client, day(11, 5)));
+        past.setRequestedStartDate(day(11, 5));
+        assertThat(service.paymentPreview(21L).requestedStartPassed()).isTrue();
+        service.activate(past, ADMIN_ID);
+        assertThat(past.getStartDate()).isEqualTo(TODAY);
+        assertThat(past.getStatus()).isEqualTo(MembershipStatus.ACTIVE);
+    }
+
+    @Test
+    void paymentPreviewShowsTheDatesWithoutSaving() {
+        stubMembership(confirmed(10L, client, day(11, 1)));
+        stubMembership(pending(20L, client, day(12, 1)));
+
+        var preview = service.paymentPreview(20L);
+
+        assertThat(preview.startDate()).isEqualTo(day(12, 1));
+        assertThat(preview.endDate()).isEqualTo(day(12, 30));
+        assertThat(preview.scheduled()).isTrue();
+        assertThat(preview.listPrice()).isEqualByComparingTo("90000");
+        verify(membershipRepository, never()).save(any());
+    }
 }

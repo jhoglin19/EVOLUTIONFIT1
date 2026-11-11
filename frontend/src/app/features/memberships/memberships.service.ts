@@ -12,6 +12,7 @@ import {
   MembershipPreview,
   MembershipStatus,
   MigratedMembershipRequest,
+  PaymentPreview,
 } from '../../shared/models/membership.model';
 import { Page } from '../../shared/models/page.model';
 
@@ -54,6 +55,14 @@ export class MembershipsService {
       params = params.set('startDate', startDate);
     }
     return this.http.get<MembershipPreview>(`${this.url}/preview`, { params });
+  }
+
+  get(id: number): Observable<Membership> {
+    return this.http.get<Membership>(`${this.url}/${id}`);
+  }
+
+  paymentPreview(id: number): Observable<PaymentPreview> {
+    return this.http.get<PaymentPreview>(`${this.url}/${id}/payment-preview`);
   }
 
   create(request: CreateMembershipRequest): Observable<Membership> {

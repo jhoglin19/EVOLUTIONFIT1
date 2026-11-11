@@ -34,7 +34,8 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
   - Fases 1 y 2: estructura, login JWT, usuarios y roles.
   - Fase 3: clientes y planes.
   - Fase 4: membresías y congelaciones (backend, frontend y migración V3). Probada en el navegador.
+  - Fase 5: pagos, asistente de inscripción y comprobantes PDF (backend, frontend y migración V4). Falta probarla en el navegador.
 - Pendiente:
-  - Fase 5: pagos y comprobantes PDF. El pago total activa las membresías PENDING y recalcula sus fechas ese día.
+  - Cargar los datos reales del gimnasio desde "Datos del comprobante" (nunca en el código).
   - Luego, en orden: caja, control de acceso (incluye el hardware de la fase 8) y notificaciones/dashboard/reportes.
-- Pruebas con MySQL real: V3MigrationTest y MembershipConcurrencyTest usan Testcontainers. Con Docker apagado se omiten (aparecen como Skipped), así que hay que revisarlo antes de dar una fase por terminada.
+- Pruebas con MySQL real: V3MigrationTest, V4MigrationTest, MembershipConcurrencyTest y PaymentConcurrencyTest usan Testcontainers. Con Docker apagado se omiten (aparecen como Skipped), así que hay que revisarlo antes de dar una fase por terminada.

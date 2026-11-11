@@ -33,6 +33,12 @@ spring:
     baseline-on-migrate: true
     baseline-version: 1
 
+  servlet:
+    multipart:
+      # Margen sobre los 500 KB del logo: así el backend responde con el mensaje claro de 500 KB.
+      max-file-size: 2MB
+      max-request-size: 2MB
+
   jackson:
     time-zone: America/Bogota
     default-property-inclusion: non_null
@@ -55,6 +61,9 @@ app:
     # Reglas del dueño (docs/REGLAS_NEGOCIO.md). Cambiarlas no requiere migración.
     expiry-warning-days: ${MEMBERSHIP_EXPIRY_WARNING_DAYS:5}
     max-freeze-days: ${MEMBERSHIP_MAX_FREEZE_DAYS:30}
+  receipts:
+    # Tamaño del comprobante PDF. Por ahora solo LETTER (carta); la tirilla de 80 mm se agregará después.
+    paper-size: ${RECEIPT_PAPER_SIZE:LETTER}
   bootstrap-admin:
     # Solo se usa si la tabla users está vacía. Con la contraseña vacía no se crea ningún administrador.
     username: ${BOOTSTRAP_ADMIN_USERNAME:admin}

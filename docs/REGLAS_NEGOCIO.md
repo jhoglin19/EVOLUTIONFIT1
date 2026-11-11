@@ -101,8 +101,46 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
 - **Planes inactivos:** no se venden, pero sí se pueden usar al migrar.
 - **Último día:** el día de vencimiento todavía es válido; al día siguiente la membresía está vencida.
 
+## 9. Decisiones confirmadas en la fase 5 (pagos y comprobantes)
+
+1. **Anular un pago anula también su membresía**, con el mismo motivo y las reglas de la fase 4:
+   - Si era la vigente, la siguiente empieza hoy.
+   - Su congelación abierta se cancela.
+   - El pago y la membresía no se borran.
+   - El comprobante conserva su número y se reimprime marcado como ANULADO.
+2. **Descuento:**
+   - Es un monto fijo en COP, lo aplica solo un ADMIN y siempre con motivo.
+   - No puede superar el valor del plan.
+   - Se permite un total de $0 solo con un descuento total del ADMIN o con un plan de precio 0.
+3. **Cobro:**
+   - Se cobra el precio fijado al vender la membresía (`price_at_purchase`), no el precio actual del plan.
+   - El monto mostrado al usuario debe coincidir con el calculado por el backend.
+4. **Fechas al pagar:**
+   - Si el cliente tiene una vigente, la nueva empieza el día siguiente a su vencimiento (incluye los días congelados).
+   - Si no tiene vigente, empieza en la fecha pedida al vender, siempre que todavía sea futura.
+   - En cualquier otro caso empieza el día del pago. Si la fecha pedida ya pasó, el asistente lo avisa.
+5. **No hay pagos con fecha atrasada:** el pago queda con la fecha y hora reales de su registro.
+6. **Comprobante:**
+   - Es un PDF interno, no una factura DIAN, en papel carta. El tamaño es configurable (`app.receipts.paper-size`) para agregar la tirilla de 80 mm después.
+   - El consecutivo es único y continuo, de 6 dígitos y con prefijo por defecto `EF-`.
+   - El número inicial es configurable (por defecto 1) y se bloquea después del primer comprobante.
+   - Si cambia el prefijo, la numeración sigue.
+7. **Datos del encabezado:**
+   - Nombre comercial, titular o razón social, NIT (texto libre con su dígito de verificación), matrícula mercantil, dirección, ciudad, teléfono, correo y logo.
+   - Se guardan en la base y los edita el ADMIN desde "Datos del comprobante".
+   - Ningún dato real del gimnasio va en el código, en las migraciones ni en las pruebas.
+   - El logo es PNG o JPG de hasta 500 KB.
+8. **Pagos anteriores al sistema:** el pago registrado antes de la fase 5 no lleva comprobante.
+9. **Auditoría:** se registran en `audit_logs` el cobro, el descuento, la anulación, la activación de la membresía y los cambios de configuración.
+
+### Interpretaciones de la fase 5 (a confirmar con el dueño)
+
+- **Quién cobra:** recepción y ADMIN pueden cobrar e inscribir. Solo ADMIN aplica descuentos, anula pagos y edita los datos del comprobante.
+- **Logo en reimpresiones:** el comprobante guarda una copia de todo lo impreso, salvo el logo. Una reimpresión usa el logo vigente en ese momento.
+- **Caja:** los pagos todavía no generan movimientos de caja. La fase 6 decidirá cómo calcular el efectivo esperado a partir de los pagos.
+
 ---
 
 ## Pendientes de definir
 
-- Prefijo del consecutivo de comprobantes (sección 6.2).
+- Ninguno por ahora. (El prefijo del consecutivo se definió en la fase 5: `EF-`, editable.)
