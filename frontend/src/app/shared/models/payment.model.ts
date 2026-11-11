@@ -33,6 +33,8 @@ export interface Payment {
   clientId: number;
   clientName: string;
   clientDocument: string;
+  /** Para el enlace de WhatsApp. Null si el cliente no tiene teléfono. */
+  clientPhone?: string | null;
   planName: string;
   membershipStartDate: string;
   membershipEndDate: string;

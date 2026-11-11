@@ -258,7 +258,7 @@ public class PaymentService {
         Membership m = p.getMembership();
         Client c = m.getClient();
         return new PaymentResponse(p.getId(), m.getId(), c.getId(), c.getFirstName() + " " + c.getLastName(),
-                c.getDocumentNumber(), m.getPlanName(), m.getStartDate(), m.getEndDate(),
+                c.getDocumentNumber(), c.getPhone(), m.getPlanName(), m.getStartDate(), m.getEndDate(),
                 MembershipRules.resolve(m, LocalDate.now(clock)), p.getListPrice(), p.getDiscountAmount(),
                 p.getDiscountReason(), p.getAmount(), p.getMethod(), p.getReference(), p.getNotes(),
                 p.getStatus(), p.getPaidAt(), p.getVoidedAt(), p.getVoidReason(), receiptNumber);

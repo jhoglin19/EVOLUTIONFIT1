@@ -108,6 +108,7 @@ class PaymentServiceTest {
         c.setDocumentNumber("1001");
         c.setFirstName("Ana");
         c.setLastName("Pérez");
+        c.setPhone("300 000 0000");
         Plan plan = new Plan();
         plan.setId(2L);
         Membership m = new Membership();
@@ -164,6 +165,7 @@ class PaymentServiceTest {
         assertThat(content.getValue().clientName()).isEqualTo("Ana Pérez");
 
         assertThat(response.receiptNumber()).isEqualTo("EF-000001");
+        assertThat(response.clientPhone()).isEqualTo("300 000 0000"); // para el enlace de WhatsApp
         assertThat(response.membershipStatus()).isEqualTo(MembershipStatus.ACTIVE);
         verify(auditService).record(eq("PAYMENT"), eq(100L), eq(AuditService.ACTION_CREATE), isNull(), any(), eq(8L));
         verify(auditService, never()).record(any(), any(), eq(AuditService.ACTION_DISCOUNT), any(), any(), any());

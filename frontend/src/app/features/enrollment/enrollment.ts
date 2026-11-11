@@ -27,7 +27,8 @@ import {
 } from '../../shared/models/payment.model';
 import { Plan } from '../../shared/models/plan.model';
 import { planEndDate, todayInGym } from '../../shared/utils/dates';
-import { openPdf } from '../../shared/utils/pdf';
+import { downloadPdf } from '../../shared/utils/pdf';
+import { receiptWhatsappUrl } from '../../shared/utils/whatsapp';
 import { newRequestId } from '../../shared/utils/request-id';
 import { ClientsService } from '../clients/clients.service';
 import { MembershipsService } from '../memberships/memberships.service';
@@ -379,9 +380,14 @@ export class Enrollment {
     });
   }
 
-  showReceipt(payment: Payment): void {
+  /** Enlace wa.me al teléfono del cliente, o null si no tiene teléfono (el botón no se muestra). */
+  whatsappUrl(payment: Payment): string | null {
+    return receiptWhatsappUrl(payment);
+  }
+
+  downloadReceipt(payment: Payment): void {
     this.paymentsApi.receipt(payment.id).subscribe({
-      next: (blob) => openPdf(blob, `${payment.receiptNumber ?? 'comprobante'}.pdf`),
+      next: (blob) => downloadPdf(blob, `${payment.receiptNumber ?? 'comprobante'}.pdf`),
       error: (err) => this.error.set(errorMessage(err)),
     });
   }

@@ -41,6 +41,7 @@ const PAYMENT: Payment = {
   clientId: 1,
   clientName: 'Ana Pérez',
   clientDocument: '1001',
+  clientPhone: '+57 300 123 4567',
   planName: 'Mensual',
   membershipStartDate: '2026-11-01',
   membershipEndDate: '2026-11-30',
@@ -99,6 +100,10 @@ describe('ClientDetail', () => {
     expect(el.textContent).toContain('Registrar sin cobrar');
     expect(el.textContent).toContain('Congelar');
     expect(el.textContent).toContain('EF-000001');
+    expect(el.querySelector('[aria-label="Descargar PDF"]')).not.toBeNull();
+    expect(el.querySelector<HTMLAnchorElement>('a[aria-label="Abrir WhatsApp"]')!.href).toContain(
+      'https://wa.me/573001234567?text=',
+    );
     expect(el.textContent).not.toContain('Anular');
     expect(el.querySelector('[aria-label="Anular pago"]')).toBeNull();
     expect(el.textContent).not.toContain('Membresía migrada');

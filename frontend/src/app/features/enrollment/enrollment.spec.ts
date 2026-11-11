@@ -24,7 +24,20 @@ const CLIENT: Client = {
   active: true,
   createdAt: null,
 };
-const PAID = { id: 9, clientId: 1, receiptNumber: 'EF-000001' } as Payment;
+const PAID = {
+  id: 9,
+  clientId: 1,
+  clientName: 'Ana Pérez',
+  clientPhone: '300 123 4567',
+  planName: 'Mensual',
+  amount: 90000,
+  method: 'CASH',
+  status: 'COMPLETED',
+  membershipStatus: 'ACTIVE',
+  membershipStartDate: '2026-11-10',
+  membershipEndDate: '2026-12-09',
+  receiptNumber: 'EF-000001',
+} as Payment;
 
 function setup(role: string, query: Record<string, string> = {}) {
   const payments = {
@@ -158,5 +171,28 @@ describe('Enrollment', () => {
     expect(el.textContent).toContain('ya pasó: la membresía empezará hoy');
     c.confirm();
     expect(payments.pay).toHaveBeenCalledWith(20, expect.objectContaining({ expectedAmount: 90000 }));
+  });
+
+  it('al terminar ofrece descargar el PDF y abrir WhatsApp, sin imprimir', () => {
+    const { c, fixture, el } = setup('RECEPTIONIST', { clientId: '1' });
+    c.planForm.controls.planId.setValue(2);
+    c.confirm();
+    fixture.detectChanges();
+    expect(el.textContent).toContain('Descargar PDF');
+    expect(el.textContent).not.toContain('mprimir');
+    const link = el.querySelector<HTMLAnchorElement>('.done a[href^="https://wa.me/"]')!;
+    expect(link.textContent).toContain('Abrir WhatsApp');
+    expect(link.href.startsWith('https://wa.me/573001234567?text=')).toBe(true);
+  });
+
+  it('si el cliente no tiene teléfono no se muestra WhatsApp', () => {
+    const { c, fixture, el, payments } = setup('RECEPTIONIST', { clientId: '1' });
+    payments.enroll.mockReturnValue(of({ ...PAID, clientPhone: null }));
+    c.planForm.controls.planId.setValue(2);
+    c.confirm();
+    fixture.detectChanges();
+    expect(el.textContent).toContain('Descargar PDF');
+    expect(el.textContent).not.toContain('Abrir WhatsApp');
+    expect(el.textContent).toContain('no tiene teléfono');
   });
 });

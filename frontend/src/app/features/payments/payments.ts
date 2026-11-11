@@ -27,7 +27,8 @@ import {
   PaymentStatus,
   methodLabel,
 } from '../../shared/models/payment.model';
-import { openPdf } from '../../shared/utils/pdf';
+import { downloadPdf } from '../../shared/utils/pdf';
+import { receiptWhatsappUrl } from '../../shared/utils/whatsapp';
 import { PaymentsService } from './payments.service';
 
 @Component({
@@ -120,9 +121,14 @@ export class Payments {
 
   receipt(payment: Payment): void {
     this.api.receipt(payment.id).subscribe({
-      next: (blob) => openPdf(blob, `${payment.receiptNumber}.pdf`),
+      next: (blob) => downloadPdf(blob, `${payment.receiptNumber}.pdf`),
       error: (err) => this.notify(errorMessage(err)),
     });
+  }
+
+  /** Solo pagos vigentes con comprobante y cliente con teléfono. */
+  whatsappUrl(payment: Payment): string | null {
+    return payment.status === 'COMPLETED' ? receiptWhatsappUrl(payment) : null;
   }
 
   voidPayment(payment: Payment): void {

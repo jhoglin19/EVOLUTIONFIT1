@@ -121,10 +121,16 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
    - En cualquier otro caso empieza el día del pago. Si la fecha pedida ya pasó, el asistente lo avisa.
 5. **No hay pagos con fecha atrasada:** el pago queda con la fecha y hora reales de su registro.
 6. **Comprobante:**
-   - Es un PDF interno, no una factura DIAN, en papel carta. El tamaño es configurable (`app.receipts.paper-size`) para agregar la tirilla de 80 mm después.
+   - Es un PDF interno, no una factura DIAN.
    - El consecutivo es único y continuo, de 6 dígitos y con prefijo por defecto `EF-`.
    - El número inicial es configurable (por defecto 1) y se bloquea después del primer comprobante.
    - Si cambia el prefijo, la numeración sigue.
+   - **Formato:** A5 vertical con letra legible en el celular. El tamaño es configurable (`app.receipts.paper-size`); carta sigue disponible.
+   - **Entrega por WhatsApp, a mano:** no hay impresora. Recepción descarga el PDF ("Descargar PDF") y lo adjunta.
+     - El botón "Abrir WhatsApp" abre `wa.me` con el teléfono del cliente y un mensaje precargado.
+     - Si el número no trae indicativo, se agrega el +57.
+     - Si el cliente no tiene teléfono, el botón no aparece.
+     - No hay envío automático.
 7. **Datos del encabezado:**
    - Nombre comercial, titular o razón social, NIT (texto libre con su dígito de verificación), matrícula mercantil, dirección, ciudad, teléfono, correo y logo.
    - Se guardan en la base y los edita el ADMIN desde "Datos del comprobante".

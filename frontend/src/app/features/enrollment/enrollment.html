@@ -37,11 +37,22 @@
       <p>
         Total {{ paid.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }} · {{ methodName(paid.method) }}
       </p>
+      @if (whatsappUrl(paid)) {
+        <p class="sub">Descarga el PDF, abre WhatsApp y adjúntalo al chat del cliente.</p>
+      } @else {
+        <p class="sub">El cliente no tiene teléfono registrado: entrégale el PDF por otro medio.</p>
+      }
       <div class="actions">
-        <button mat-flat-button type="button" (click)="showReceipt(paid)">
-          <mat-icon>receipt_long</mat-icon>
-          Ver o imprimir comprobante
+        <button mat-flat-button type="button" (click)="downloadReceipt(paid)">
+          <mat-icon>download</mat-icon>
+          Descargar PDF
         </button>
+        @if (whatsappUrl(paid); as url) {
+          <a mat-stroked-button [href]="url" target="_blank" rel="noopener">
+            <mat-icon>chat</mat-icon>
+            Abrir WhatsApp
+          </a>
+        }
         <a mat-stroked-button [routerLink]="['/clients', paid.clientId]">Ir a la ficha</a>
         <button mat-button type="button" (click)="restart(stepper)">Nueva inscripción</button>
       </div>

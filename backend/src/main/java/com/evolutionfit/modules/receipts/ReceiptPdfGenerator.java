@@ -31,7 +31,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Arma el PDF del comprobante interno a partir de la copia guardada al emitir. No consulta la base.
- * El tamaño de papel es un parámetro para poder agregar la tirilla de 80 mm más adelante.
+ * Diseñado para A5 vertical y lectura en el celular (se envía por WhatsApp): una sola columna, letra
+ * de 11–12 pt en el cuerpo y márgenes pequeños. El tamaño de papel es un parámetro.
  */
 @Component
 public class ReceiptPdfGenerator {
@@ -41,6 +42,8 @@ public class ReceiptPdfGenerator {
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a", ES_CO);
     private static final Color MUTED = new Color(90, 90, 90);
     private static final Color LINE = new Color(200, 200, 200);
+    /** Interlineado de 1,2 veces el tamaño de letra (el de OpenPDF por defecto es 1,5). */
+    private static final float LEADING = 1.2f;
 
     /** Anulación del pago, para marcar el comprobante. */
     public record VoidMark(LocalDateTime voidedAt, String reason) {
@@ -53,10 +56,11 @@ public class ReceiptPdfGenerator {
      */
     public byte[] generate(ReceiptSnapshot receipt, byte[] logo, VoidMark voided, boolean preview, PaperSize paper) {
         Rectangle size = switch (paper) {
+            case A5 -> PageSize.A5;
             case LETTER -> PageSize.LETTER;
         };
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Document doc = new Document(size, 54, 54, 54, 54);
+        Document doc = new Document(size, 30, 30, 30, 30);
         PdfWriter writer = PdfWriter.getInstance(doc, out);
         doc.addTitle("Comprobante " + receipt.receiptNumber());
         doc.addCreator("EvolutionFit");
@@ -68,14 +72,14 @@ public class ReceiptPdfGenerator {
         doc.add(detailTable(receipt.content()));
         doc.add(paymentTable(receipt.content()));
         if (voided != null) {
-            Paragraph p = new Paragraph("ANULADO el " + voided.voidedAt().format(DATE_TIME) + " · Motivo: "
-                    + voided.reason(), font(10, Font.BOLD, new Color(180, 0, 0)));
-            p.setSpacingBefore(12);
+            Paragraph p = para("ANULADO el " + voided.voidedAt().format(DATE_TIME) + " · Motivo: "
+                    + voided.reason(), font(11, Font.BOLD, new Color(180, 0, 0)));
+            p.setSpacingBefore(8);
             doc.add(p);
         }
-        Paragraph footer = new Paragraph("Documento interno de soporte de pago. No es factura electrónica de venta.",
-                font(8, Font.ITALIC, MUTED));
-        footer.setSpacingBefore(24);
+        Paragraph footer = para("Documento interno de soporte de pago. No es factura electrónica de venta.",
+                font(9, Font.ITALIC, MUTED));
+        footer.setSpacingBefore(12);
         footer.setAlignment(Element.ALIGN_CENTER);
         doc.add(footer);
 
@@ -95,12 +99,12 @@ public class ReceiptPdfGenerator {
         if (logo != null) {
             try {
                 image = Image.getInstance(logo);
-                image.scaleToFit(120, 70);
+                image.scaleToFit(90, 60);
             } catch (Exception e) {
                 image = null; // un logo dañado no impide emitir el comprobante
             }
         }
-        PdfPTable table = new PdfPTable(image != null ? new float[] {1.2f, 3f} : new float[] {1f});
+        PdfPTable table = new PdfPTable(image != null ? new float[] {1f, 2.6f} : new float[] {1f});
         table.setWidthPercentage(100);
         if (image != null) {
             PdfPCell cell = new PdfPCell(image, false);
@@ -111,7 +115,7 @@ public class ReceiptPdfGenerator {
         PdfPCell info = new PdfPCell();
         info.setBorder(Rectangle.NO_BORDER);
         if (b.tradeName() != null) {
-            info.addElement(new Paragraph(b.tradeName(), font(14, Font.BOLD, Color.BLACK)));
+            info.addElement(para(b.tradeName(), font(15, Font.BOLD, Color.BLACK)));
         }
         List<String> lines = new ArrayList<>();
         addIf(lines, b.legalName(), "");
@@ -121,29 +125,27 @@ public class ReceiptPdfGenerator {
         lines.add(join(" · ", b.phone(), b.email()));
         for (String line : lines) {
             if (!line.isBlank()) {
-                info.addElement(new Paragraph(line, font(9, Font.NORMAL, MUTED)));
+                info.addElement(para(line, font(10, Font.NORMAL, MUTED)));
             }
         }
         table.addCell(info);
-        table.setSpacingAfter(16);
+        table.setSpacingAfter(8);
         return table;
     }
 
+    /** Título, número y fecha apilados: en A5 no caben bien lado a lado. */
     private PdfPTable title(ReceiptSnapshot r) {
-        PdfPTable t = new PdfPTable(new float[] {3f, 2f});
+        PdfPTable t = new PdfPTable(1);
         t.setWidthPercentage(100);
-        PdfPCell left = new PdfPCell(new Phrase("COMPROBANTE INTERNO DE PAGO", font(13, Font.BOLD, Color.BLACK)));
-        PdfPCell right = new PdfPCell();
-        right.addElement(rightAligned("No. " + r.receiptNumber(), font(13, Font.BOLD, Color.BLACK)));
-        right.addElement(rightAligned("Fecha de emisión: " + r.issuedAt().format(DATE_TIME), font(9, Font.NORMAL, MUTED)));
-        for (PdfPCell c : List.of(left, right)) {
-            c.setBorder(Rectangle.BOTTOM);
-            c.setBorderColor(LINE);
-            c.setPaddingBottom(8);
-            c.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            t.addCell(c);
-        }
-        t.setSpacingAfter(12);
+        PdfPCell cell = new PdfPCell();
+        cell.addElement(para("COMPROBANTE INTERNO DE PAGO", font(12, Font.BOLD, MUTED)));
+        cell.addElement(para("No. " + r.receiptNumber(), font(16, Font.BOLD, Color.BLACK)));
+        cell.addElement(para("Fecha de emisión: " + r.issuedAt().format(DATE_TIME), font(11, Font.NORMAL, MUTED)));
+        cell.setBorder(Rectangle.BOTTOM);
+        cell.setBorderColor(LINE);
+        cell.setPaddingBottom(6);
+        t.addCell(cell);
+        t.setSpacingAfter(8);
         return t;
     }
 
@@ -151,12 +153,12 @@ public class ReceiptPdfGenerator {
         PdfPTable t = twoColumns();
         row(t, "Cliente", c.clientName());
         row(t, "Documento", join(" ", c.clientDocumentType(), c.clientDocument()));
-        t.setSpacingAfter(12);
+        t.setSpacingAfter(8);
         return t;
     }
 
     private PdfPTable detailTable(ReceiptContent c) {
-        PdfPTable t = new PdfPTable(new float[] {4f, 1.5f});
+        PdfPTable t = new PdfPTable(new float[] {2.6f, 1.4f});
         t.setWidthPercentage(100);
         headCell(t, "Concepto", Element.ALIGN_LEFT);
         headCell(t, "Valor", Element.ALIGN_RIGHT);
@@ -166,9 +168,9 @@ public class ReceiptPdfGenerator {
             bodyCell(t, "Descuento: " + c.discountReason(), Element.ALIGN_LEFT, Font.NORMAL);
             bodyCell(t, "- " + money(c.discountAmount()), Element.ALIGN_RIGHT, Font.NORMAL);
         }
-        bodyCell(t, "Total pagado", Element.ALIGN_LEFT, Font.BOLD);
-        bodyCell(t, money(c.amount()), Element.ALIGN_RIGHT, Font.BOLD);
-        t.setSpacingAfter(12);
+        totalCell(t, "Total pagado", Element.ALIGN_LEFT);
+        totalCell(t, money(c.amount()), Element.ALIGN_RIGHT);
+        t.setSpacingAfter(8);
         return t;
     }
 
@@ -198,7 +200,7 @@ public class ReceiptPdfGenerator {
         over.setGState(state);
         over.beginText();
         over.setColorFill(color);
-        over.setFontAndSize(helveticaBold(), 80);
+        over.setFontAndSize(helveticaBold(), Math.min(80f, size.getWidth() * 0.16f));
         over.showTextAligned(Element.ALIGN_CENTER, text, size.getWidth() / 2, size.getHeight() / 2, 35);
         over.endText();
         over.restoreState();
@@ -213,41 +215,55 @@ public class ReceiptPdfGenerator {
     }
 
     private static PdfPTable twoColumns() {
-        PdfPTable t = new PdfPTable(new float[] {1.5f, 4f});
+        PdfPTable t = new PdfPTable(new float[] {1.3f, 2.7f});
         t.setWidthPercentage(100);
         return t;
     }
 
     private static void row(PdfPTable t, String label, String value) {
-        PdfPCell l = new PdfPCell(new Phrase(label, font(9, Font.BOLD, MUTED)));
-        PdfPCell v = new PdfPCell(new Phrase(value == null ? "" : value, font(10, Font.NORMAL, Color.BLACK)));
+        PdfPCell l = new PdfPCell(new Phrase(label, font(10, Font.BOLD, MUTED)));
+        PdfPCell v = new PdfPCell(new Phrase(value == null ? "" : value, font(12, Font.NORMAL, Color.BLACK)));
         for (PdfPCell c : List.of(l, v)) {
             c.setBorder(Rectangle.NO_BORDER);
-            c.setPaddingBottom(4);
+            c.setLeading(0, LEADING);
+            c.setPaddingTop(1);
+            c.setPaddingBottom(3);
             t.addCell(c);
         }
     }
 
     private static void headCell(PdfPTable t, String text, int align) {
-        PdfPCell c = new PdfPCell(new Phrase(text, font(9, Font.BOLD, Color.BLACK)));
+        PdfPCell c = new PdfPCell(new Phrase(text, font(10, Font.BOLD, Color.BLACK)));
         c.setHorizontalAlignment(align);
         c.setBackgroundColor(new Color(240, 240, 240));
         c.setBorderColor(LINE);
-        c.setPadding(6);
+        c.setLeading(0, LEADING);
+        c.setPadding(5);
         t.addCell(c);
     }
 
     private static void bodyCell(PdfPTable t, String text, int align, int style) {
-        PdfPCell c = new PdfPCell(new Phrase(text, font(10, style, Color.BLACK)));
+        PdfPCell c = new PdfPCell(new Phrase(text, font(12, style, Color.BLACK)));
         c.setHorizontalAlignment(align);
+        c.setLeading(0, LEADING);
         c.setBorderColor(LINE);
-        c.setPadding(6);
+        c.setPadding(5);
         t.addCell(c);
     }
 
-    private static Paragraph rightAligned(String text, Font font) {
+    private static void totalCell(PdfPTable t, String text, int align) {
+        PdfPCell c = new PdfPCell(new Phrase(text, font(14, Font.BOLD, Color.BLACK)));
+        c.setHorizontalAlignment(align);
+        c.setLeading(0, LEADING);
+        c.setBorderColor(LINE);
+        c.setBackgroundColor(new Color(245, 245, 245));
+        c.setPadding(7);
+        t.addCell(c);
+    }
+
+    private static Paragraph para(String text, Font font) {
         Paragraph p = new Paragraph(text, font);
-        p.setAlignment(Element.ALIGN_RIGHT);
+        p.setLeading(0, LEADING);
         return p;
     }
 

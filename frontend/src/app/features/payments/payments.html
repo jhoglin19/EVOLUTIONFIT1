@@ -105,9 +105,14 @@
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let p">
           @if (p.receiptNumber) {
-            <button mat-icon-button type="button" (click)="receipt(p)" aria-label="Ver comprobante" matTooltip="Comprobante">
-              <mat-icon>receipt_long</mat-icon>
+            <button mat-icon-button type="button" (click)="receipt(p)" aria-label="Descargar PDF" matTooltip="Descargar PDF">
+              <mat-icon>download</mat-icon>
             </button>
+          }
+          @if (whatsappUrl(p); as url) {
+            <a mat-icon-button [href]="url" target="_blank" rel="noopener" aria-label="Abrir WhatsApp" matTooltip="Abrir WhatsApp">
+              <mat-icon>chat</mat-icon>
+            </a>
           }
           @if (isAdmin && p.status === 'COMPLETED') {
             <button mat-icon-button type="button" (click)="voidPayment(p)" aria-label="Anular pago" matTooltip="Anular">

@@ -62,8 +62,8 @@ app:
     expiry-warning-days: ${MEMBERSHIP_EXPIRY_WARNING_DAYS:5}
     max-freeze-days: ${MEMBERSHIP_MAX_FREEZE_DAYS:30}
   receipts:
-    # Tamaño del comprobante PDF. Por ahora solo LETTER (carta); la tirilla de 80 mm se agregará después.
-    paper-size: ${RECEIPT_PAPER_SIZE:LETTER}
+    # Tamaño del comprobante PDF: A5 (vertical, para enviarlo por WhatsApp y leerlo en el celular) o LETTER.
+    paper-size: ${RECEIPT_PAPER_SIZE:A5}
   bootstrap-admin:
     # Solo se usa si la tabla users está vacía. Con la contraseña vacía no se crea ningún administrador.
     username: ${BOOTSTRAP_ADMIN_USERNAME:admin}

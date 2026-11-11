@@ -13,7 +13,10 @@ const PAYMENT = {
   clientId: 1,
   clientName: 'Ana Pérez',
   clientDocument: '1001',
+  clientPhone: '300 123 4567',
   planName: 'Mensual',
+  membershipStartDate: '2026-11-10',
+  membershipEndDate: '2026-12-09',
   amount: 80000,
   discountAmount: 10000,
   method: 'CASH',
@@ -22,9 +25,9 @@ const PAYMENT = {
   receiptNumber: 'EF-000001',
 } as Payment;
 
-function setup(role: string, reason?: string) {
+function setup(role: string, reason?: string, rows: Payment[] = [PAYMENT]) {
   const api = {
-    list: vi.fn(() => of({ content: [PAYMENT], page: 0, size: 20, totalElements: 1, totalPages: 1 })),
+    list: vi.fn(() => of({ content: rows, page: 0, size: 20, totalElements: rows.length, totalPages: 1 })),
     voidPayment: vi.fn(() => of(PAYMENT)),
     receipt: vi.fn(),
   };
@@ -47,7 +50,8 @@ describe('Payments', () => {
     expect(el.textContent).toContain('EF-000001');
     expect(el.textContent).toContain('Efectivo');
     expect(el.textContent).toContain('Descuento');
-    expect(el.querySelector('[aria-label="Ver comprobante"]')).not.toBeNull();
+    expect(el.querySelector('[aria-label="Descargar PDF"]')).not.toBeNull();
+    expect(el.textContent).not.toContain('Imprimir');
     expect(el.querySelector('[aria-label="Anular pago"]')).toBeNull();
   });
 
@@ -56,5 +60,22 @@ describe('Payments', () => {
     expect(el.querySelector('[aria-label="Anular pago"]')).not.toBeNull();
     c.voidPayment(PAYMENT);
     expect(api.voidPayment).toHaveBeenCalledWith(7, 'Error');
+  });
+
+  it('WhatsApp abre wa.me al teléfono del cliente con +57 y el mensaje', () => {
+    const { el } = setup('RECEPTIONIST');
+    const link = el.querySelector<HTMLAnchorElement>('a[aria-label="Abrir WhatsApp"]')!;
+    expect(link.href.startsWith('https://wa.me/573001234567?text=')).toBe(true);
+    expect(decodeURIComponent(link.href)).toContain('comprobante EF-000001');
+    expect(link.target).toBe('_blank');
+  });
+
+  it('sin teléfono o con el pago anulado no se muestra WhatsApp', () => {
+    const { el } = setup('RECEPTIONIST', undefined, [
+      { ...PAYMENT, id: 8, clientPhone: null },
+      { ...PAYMENT, id: 9, status: 'VOIDED' },
+    ]);
+    expect(el.querySelectorAll('[aria-label="Descargar PDF"]').length).toBe(2);
+    expect(el.querySelector('[aria-label="Abrir WhatsApp"]')).toBeNull();
   });
 });
