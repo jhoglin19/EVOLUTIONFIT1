@@ -205,7 +205,7 @@
                 <td>{{ p.planName }}</td>
                 <td>{{ methodName(p.method) }}</td>
                 <td>{{ p.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-                <td><span class="chip" [class.voided]="p.status === 'VOIDED'">{{ statusName[p.status] }}</span></td>
+                <td><span class="chip" [class.ok]="p.status === 'COMPLETED'" [class.pending]="p.status === 'PENDING'" [class.voided]="p.status === 'VOIDED'">{{ statusName[p.status] }}</span></td>
               </tr>
             } @empty {
               <tr class="empty"><td colspan="6">Todavía no hay pagos hoy.</td></tr>

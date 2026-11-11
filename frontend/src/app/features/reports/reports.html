@@ -135,7 +135,7 @@
                     <td>{{ row.planName }}</td>
                     <td>{{ row.state === 'EXPIRED' ? 'Vencida' : 'Vigente' }}</td>
                     <td>
-                      <span class="chip" [class.voided]="row.renewal === 'NOT_RENEWED'">{{ renewalLabel[row.renewal] }}</span>
+                      <span class="chip" [class.ok]="row.renewal === 'RENEWED'" [class.pending]="row.renewal === 'PENDING_PAYMENT'" [class.voided]="row.renewal === 'NOT_RENEWED'">{{ renewalLabel[row.renewal] }}</span>
                       @if (row.renewedAt) {
                         <div class="sub">{{ row.renewedAt | date: 'd MMM y' }}</div>
                       }
@@ -169,7 +169,7 @@
                 @for (row of r.rows; track row.membershipId) {
                   <tr>
                     <td>{{ row.at | date: 'd MMM y, h:mm a' }}</td>
-                    <td><span class="chip" [class.NO_ACTIVITY]="row.type === 'MIGRATED'">{{ row.type === 'NEW' ? 'Nuevo' : 'Migrado' }}</span></td>
+                    <td><span class="chip" [class.ok]="row.type === 'NEW'" [class.NO_ACTIVITY]="row.type === 'MIGRATED'">{{ row.type === 'NEW' ? 'Nuevo' : 'Migrado' }}</span></td>
                     <td>
                       <a [routerLink]="['/clients', row.clientId]">{{ row.clientName }}</a>
                       <div class="sub">{{ row.clientDocument }}{{ row.clientActive ? '' : ' · Inactivo' }}</div>
@@ -276,7 +276,7 @@
                     <td>{{ row.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
                     <td class="reason">{{ row.discountReason }}</td>
                     <td>{{ row.discountedBy ?? '—' }}</td>
-                    <td><span class="chip" [class.voided]="row.status === 'VOIDED'">{{ statusLabel[row.status] }}</span></td>
+                    <td><span class="chip" [class.ok]="row.status === 'COMPLETED'" [class.voided]="row.status === 'VOIDED'">{{ statusLabel[row.status] }}</span></td>
                   </tr>
                 } @empty {
                   <tr class="empty"><td colspan="8">Sin descuentos en el periodo.</td></tr>

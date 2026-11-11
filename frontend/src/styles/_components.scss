@@ -1,0 +1,316 @@
+@use '@angular/material' as mat;
+
+// Componentes compartidos (docs/DISENO_VISUAL.md, secciones 3 y 5). Se configuran con los overrides de Material
+// (tokens) y, donde Material no tiene token, con reglas puntuales. Las pantallas no repiten estos estilos.
+
+html {
+  // ---- Botones: primario (mat-flat-button), secundario (mat-stroked-button) y de texto (mat-button) ----
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--ef-orange),
+      filled-label-text-color: var(--ef-on-orange),
+      filled-container-height: 44px,
+      filled-container-shape: var(--ef-radius-control),
+      filled-label-text-weight: 600,
+      filled-horizontal-padding: 20px,
+      filled-disabled-container-color: var(--ef-orange),
+      filled-disabled-label-text-color: var(--ef-on-orange),
+      outlined-outline-color: var(--ef-border-strong),
+      outlined-label-text-color: var(--ef-text),
+      outlined-container-height: 44px,
+      outlined-container-shape: var(--ef-radius-control),
+      outlined-label-text-weight: 600,
+      outlined-horizontal-padding: 18px,
+      outlined-disabled-outline-color: var(--ef-border-strong),
+      outlined-disabled-label-text-color: var(--ef-text),
+      text-label-text-color: var(--ef-orange-light),
+      text-container-height: 44px,
+      text-container-shape: var(--ef-radius-control),
+      text-label-text-weight: 600,
+      text-disabled-label-text-color: var(--ef-orange-light),
+    )
+  );
+
+  @include mat.icon-button-overrides(
+    (
+      icon-color: var(--ef-text-3),
+      state-layer-color: var(--ef-text),
+      disabled-icon-color: var(--ef-text-3),
+    )
+  );
+
+  // ---- Campos de texto: borde --ef-field-border (contraste 3:1), foco naranja, errores en rojo ----
+  @include mat.form-field-overrides(
+    (
+      container-height: 48px,
+      container-vertical-padding: 12px,
+      outlined-container-shape: var(--ef-radius-control),
+      outlined-outline-color: var(--ef-field-border),
+      outlined-hover-outline-color: var(--ef-text-3),
+      outlined-focus-outline-color: var(--ef-orange),
+      outlined-label-text-color: var(--ef-text-3),
+      outlined-hover-label-text-color: var(--ef-text-2),
+      outlined-focus-label-text-color: var(--ef-orange-light),
+      outlined-input-text-color: var(--ef-text),
+      outlined-input-text-placeholder-color: var(--ef-muted),
+      outlined-caret-color: var(--ef-orange),
+      outlined-error-outline-color: var(--ef-danger),
+      outlined-error-hover-outline-color: var(--ef-danger),
+      outlined-error-focus-outline-color: var(--ef-danger),
+      outlined-error-label-text-color: var(--ef-danger),
+      outlined-error-focus-label-text-color: var(--ef-danger),
+      outlined-error-hover-label-text-color: var(--ef-danger),
+      outlined-error-caret-color: var(--ef-danger),
+      outlined-disabled-outline-color: var(--ef-border-strong),
+      outlined-disabled-label-text-color: var(--ef-muted),
+      outlined-disabled-input-text-color: var(--ef-muted),
+      error-text-color: var(--ef-danger),
+      enabled-select-arrow-color: var(--ef-text-3),
+    )
+  );
+
+  // ---- Listas desplegables y sus opciones ----
+  @include mat.select-overrides(
+    (
+      panel-background-color: var(--ef-surface),
+      enabled-trigger-text-color: var(--ef-text),
+      enabled-arrow-color: var(--ef-text-3),
+      focused-arrow-color: var(--ef-orange),
+      invalid-arrow-color: var(--ef-danger),
+    )
+  );
+
+  @include mat.option-overrides(
+    (
+      label-text-color: var(--ef-text-2),
+      selected-state-label-text-color: var(--ef-orange-light),
+      selected-state-layer-color: var(--ef-orange-tint),
+      hover-state-layer-color: var(--ef-hover),
+      focus-state-layer-color: var(--ef-hover),
+    )
+  );
+
+  // ---- Tablas: sin bordes verticales, separadores horizontales, encabezado de 11 px en mayúsculas ----
+  @include mat.table-overrides(
+    (
+      background-color: var(--ef-surface),
+      header-container-height: 44px,
+      header-headline-color: var(--ef-muted),
+      header-headline-size: 11px,
+      header-headline-weight: 600,
+      row-item-container-height: 52px,
+      row-item-label-text-color: var(--ef-text-2),
+      row-item-label-text-size: 14px,
+      row-item-outline-color: var(--ef-border),
+      footer-container-height: 48px,
+    )
+  );
+
+  @include mat.paginator-overrides(
+    (
+      container-background-color: var(--ef-surface),
+      container-text-color: var(--ef-text-3),
+      container-text-size: 13px,
+      enabled-icon-color: var(--ef-text-2),
+      disabled-icon-color: var(--ef-border-strong),
+    )
+  );
+
+  // ---- Diálogos, menús, avisos y ayudas ----
+  @include mat.dialog-overrides(
+    (
+      container-color: var(--ef-surface),
+      container-shape: var(--ef-radius-card),
+      subhead-color: var(--ef-text),
+      supporting-text-color: var(--ef-text-2),
+    )
+  );
+
+  @include mat.menu-overrides(
+    (
+      container-color: var(--ef-surface),
+      container-shape: var(--ef-radius-control),
+      item-label-text-color: var(--ef-text-2),
+      item-icon-color: var(--ef-text-3),
+      item-hover-state-layer-color: var(--ef-hover),
+      item-focus-state-layer-color: var(--ef-hover),
+      divider-color: var(--ef-border),
+    )
+  );
+
+  @include mat.snack-bar-overrides(
+    (
+      container-color: var(--ef-surface-2),
+      supporting-text-color: var(--ef-text),
+      button-color: var(--ef-orange-light),
+      container-shape: var(--ef-radius-control),
+    )
+  );
+
+  @include mat.tooltip-overrides(
+    (
+      container-color: var(--ef-surface-2),
+      supporting-text-color: var(--ef-text),
+      container-shape: var(--ef-radius-small),
+    )
+  );
+
+  // ---- Pestañas, pasos del asistente y barras de progreso ----
+  @include mat.tabs-overrides(
+    (
+      active-indicator-color: var(--ef-orange),
+      active-focus-indicator-color: var(--ef-orange),
+      active-hover-indicator-color: var(--ef-orange),
+      active-label-text-color: var(--ef-orange-light),
+      active-focus-label-text-color: var(--ef-orange-light),
+      active-hover-label-text-color: var(--ef-orange-light),
+      inactive-label-text-color: var(--ef-text-3),
+      inactive-hover-label-text-color: var(--ef-text),
+      inactive-focus-label-text-color: var(--ef-text),
+      divider-color: var(--ef-border),
+    )
+  );
+
+  @include mat.stepper-overrides(
+    (
+      container-color: transparent,
+      line-color: var(--ef-border),
+      header-label-text-color: var(--ef-text-3),
+      header-selected-state-label-text-color: var(--ef-text),
+      header-icon-background-color: var(--ef-surface-2),
+      header-icon-foreground-color: var(--ef-text-3),
+      header-selected-state-icon-background-color: var(--ef-orange),
+      header-selected-state-icon-foreground-color: var(--ef-on-orange),
+      header-done-state-icon-background-color: var(--ef-orange),
+      header-done-state-icon-foreground-color: var(--ef-on-orange),
+      header-edit-state-icon-background-color: var(--ef-orange),
+      header-edit-state-icon-foreground-color: var(--ef-on-orange),
+      header-hover-state-layer-color: var(--ef-hover),
+      header-focus-state-layer-color: var(--ef-hover),
+    )
+  );
+
+  @include mat.progress-bar-overrides(
+    (
+      active-indicator-color: var(--ef-orange),
+      track-color: var(--ef-orange-tint),
+    )
+  );
+}
+
+// ---- Reglas sin token en Material ----
+
+// Botones deshabilitados: opacidad reducida y sin cursor de clic (sección 5). También los "disabledInteractive",
+// que siguen recibiendo el foco para mostrar su explicación.
+.mat-mdc-button-base:disabled,
+.mat-mdc-button-base.mat-mdc-button-disabled,
+.mat-mdc-button-base.mat-mdc-button-disabled-interactive {
+  opacity: 0.45;
+  cursor: default;
+}
+
+// Botón pequeño (36 px, radio 8 px), para acciones dentro de filas o tarjetas.
+.mat-mdc-button-base.ef-small {
+  --mat-button-filled-container-height: 36px;
+  --mat-button-outlined-container-height: 36px;
+  --mat-button-text-container-height: 36px;
+  --mat-button-filled-container-shape: var(--ef-radius-small);
+  --mat-button-outlined-container-shape: var(--ef-radius-small);
+  --mat-button-text-container-shape: var(--ef-radius-small);
+}
+
+// Campo con borde: fondo #0F0F10 (Material no tiene token de fondo para la variante outline).
+.mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-text-field-wrapper {
+  background: var(--ef-field);
+  border-radius: var(--ef-radius-control);
+}
+
+.mat-mdc-form-field-hint {
+  color: var(--ef-text-3);
+}
+
+// Tablas de Material: encabezado en mayúsculas espaciadas, fila resaltada al pasar el cursor.
+.mat-mdc-header-cell {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.mat-mdc-row:hover .mat-mdc-cell {
+  background: var(--ef-hover);
+}
+
+// Paneles flotantes con borde, como las tarjetas (sin sombras fuertes).
+.mat-mdc-dialog-surface,
+.mat-mdc-select-panel,
+.mat-mdc-menu-panel,
+.mat-mdc-autocomplete-panel {
+  border: 1px solid var(--ef-border);
+}
+
+.mat-mdc-dialog-surface {
+  box-shadow: 0 24px 64px rgb(0 0 0 / 55%);
+}
+
+.mat-mdc-dialog-container .mat-mdc-dialog-title {
+  font-family: var(--ef-font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ef-text);
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border: 1px solid var(--ef-border-strong);
+}
+
+// ---- Chips de estado (sección 5): siempre con texto, nunca solo color ----
+// Un solo estilo para todas las pantallas. El color sale de la clase que ya ponen las plantillas:
+//   verde   .on .active .ok .COUNTED
+//   naranja .pending .PENDING_COUNT .admin            (pendiente / por vencer / rol destacado)
+//   rojo    .voided .expired .cancelled .PENDING_REVIEW
+//   azul    .frozen .scheduled
+//   gris    sin clase, .NO_ACTIVITY, .REVIEWED        (Inactivo y otros; texto --ef-text-3 por contraste)
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: var(--ef-radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: var(--ef-neutral-tint);
+  color: var(--ef-text-3);
+
+  &.on,
+  &.active,
+  &.ok,
+  &.COUNTED {
+    background: var(--ef-success-tint);
+    color: var(--ef-success);
+  }
+
+  &.pending,
+  &.PENDING_COUNT,
+  &.admin {
+    background: var(--ef-orange-tint);
+    color: var(--ef-orange-light);
+  }
+
+  &.voided,
+  &.expired,
+  &.cancelled,
+  &.PENDING_REVIEW {
+    background: var(--ef-danger-tint);
+    color: var(--ef-danger);
+  }
+
+  &.frozen,
+  &.scheduled {
+    background: var(--ef-info-tint);
+    color: var(--ef-info);
+  }
+}

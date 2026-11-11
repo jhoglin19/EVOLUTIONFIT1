@@ -118,33 +118,6 @@ table {
   color: var(--mat-sys-error);
 }
 
-.chip {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  white-space: nowrap;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-
-  &.voided,
-  &.PENDING_REVIEW {
-    background: var(--mat-sys-error-container);
-    color: var(--mat-sys-on-error-container);
-  }
-
-  &.PENDING_COUNT {
-    background: var(--mat-sys-tertiary-container);
-    color: var(--mat-sys-on-tertiary-container);
-  }
-
-  &.NO_ACTIVITY,
-  &.REVIEWED {
-    background: var(--mat-sys-surface-container-high);
-    color: var(--mat-sys-on-surface);
-  }
-}
-
 .filters {
   display: flex;
   flex-wrap: wrap;
