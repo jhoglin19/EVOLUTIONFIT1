@@ -59,6 +59,7 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
   - Fase 6: caja (backend, frontend y migración V5). Cierre automático a las 10 p.m. de Bogotá que se pone al día al arrancar, retiros, arqueo ajustado por los movimientos posteriores al corte, revisión del ADMIN y reporte mensual. Probada de punta a punta por API contra una copia del respaldo; falta probarla en el navegador.
   - Fase 7: panel de inicio, alertas de vencimiento (Vencimientos, con "Recordar por WhatsApp" manual) y reportes del ADMIN con CSV (backend, frontend y migración V7, solo índices). Reglas en docs/REGLAS_NEGOCIO.md, sección 11. Probada de punta a punta por API contra una copia del respaldo; falta probarla en el navegador.
 - Pendiente:
+  - Salida a producción: seguir docs/PUESTA_EN_MARCHA.md (tiene marcadas las decisiones que faltan). Respaldos: scripts/backup.sh y scripts/restore.sh, procedimiento en docs/RESPALDOS.md; antes de cada migración, `scripts/backup.sh --label pre_V<n>` y verificarlo con `scripts/restore.sh`.
   - Cargar los datos reales del gimnasio desde "Datos del comprobante" (nunca en el código).
   - Puesta en marcha: definir un procedimiento seguro para borrar los datos de prueba y reiniciar el consecutivo de comprobantes a 1 (docs/REGLAS_NEGOCIO.md, sección 10); no está implementado. Luego, el ADMIN fija la fecha de inicio de la caja.
   - Confirmar con el dueño qué se hace con el efectivo sobrante después del arqueo (hoy rige el valor por defecto).

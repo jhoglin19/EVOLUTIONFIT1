@@ -31,8 +31,8 @@ Arquitectura de tres capas (Angular → API REST Spring Boot → MySQL), como mo
 | 7 | Panel de inicio, alertas de vencimiento y reportes | Hecho |
 | 8 | Control de acceso (incluye el hardware) | Pendiente |
 
-Pendientes de la puesta en marcha: ver la sección "Pendientes de definir" de
-[docs/REGLAS_NEGOCIO.md](docs/REGLAS_NEGOCIO.md).
+Salida a producción: [docs/PUESTA_EN_MARCHA.md](docs/PUESTA_EN_MARCHA.md) (checklist, con las decisiones
+pendientes marcadas) y la sección "Pendientes de definir" de [docs/REGLAS_NEGOCIO.md](docs/REGLAS_NEGOCIO.md).
 
 ## Requisitos
 
