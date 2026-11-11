@@ -297,7 +297,11 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 3. **Con historial no se borra:** el backend responde que solo se puede desactivar y dice cuánto historial tiene.
 4. **El borrado es permanente** y queda en `audit_logs` (`CLIENT` / `DELETE`), con quién lo hizo y una copia de los datos borrados: documento, nombre, celular, correo, estado y fecha de registro.
 5. **Sin carreras:** el cliente se bloquea mientras se revisa su historial, así una inscripción simultánea no puede quedar huérfana. La base de datos también lo impide con su llave foránea.
-6. El botón solo aparece si la ficha no muestra membresías ni pagos. El backend vuelve a revisar todo, incluidos los accesos, y es quien decide.
+6. **Dónde está:** en la ficha del cliente, en la barra de acciones del encabezado, después de "Registrar sin cobrar".
+   - El ADMIN siempre lo ve. Recepción nunca.
+   - Si la ficha muestra membresías o pagos, el botón aparece deshabilitado y debajo se explica por qué: "tiene historial…, solo se puede desactivar".
+   - El backend vuelve a revisar todo, incluidos los accesos, y es quien decide.
+   - Un cliente inscrito con el asistente siempre tiene historial, porque el asistente registra la membresía y el pago. Solo se puede eliminar un cliente creado desde "Clientes" que nunca se inscribió.
 
 ### Ninguna acción falla en silencio
 

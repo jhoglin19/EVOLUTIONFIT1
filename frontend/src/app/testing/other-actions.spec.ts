@@ -208,16 +208,38 @@ describe('eliminar cliente (ADMIN)', () => {
     expect(TestBed.inject(Router).url).toBe('/clients/5');
   });
 
-  it('con historial o para recepción no aparece el botón', async () => {
+  it('el ADMIN ve el botón en la ficha; con historial aparece deshabilitado y dice por qué', async () => {
     app = await startApp('ADMIN', '/clients/5');
     const m = membership({ id: 10, clientId: 5, status: 'CANCELLED', cancellationReason: 'x' });
-    await app.respond({ ...empty, 'GET /api/clients/5/memberships': [m] });
-    expect(app.page().querySelector('[data-delete-client]')).toBeNull();
-    TestBed.resetTestingModule();
-    overlay()?.replaceChildren();
+    await app.respond({ ...empty, 'GET /api/clients/5/memberships': [m], 'GET /api/clients/5/payments': [PAYMENT] });
 
+    const actions = app.page().querySelector('.page-header .actions')!;
+    const btn = actions.querySelector<HTMLButtonElement>('[data-delete-client]');
+    expect(btn).not.toBeNull(); // en la barra de acciones del encabezado de la ficha
+    expect(btn!.textContent).toContain('Eliminar cliente');
+    expect(btn!.getAttribute('aria-disabled')).toBe('true');
+    expect(app.page().querySelector('[data-delete-reason]')?.textContent).toContain(
+      'tiene historial (1 membresía(s), 1 pago(s))',
+    );
+
+    btn!.click(); // deshabilitado: no abre el diálogo
+    await app.settle();
+    expect(overlay()?.textContent ?? '').not.toContain('Se borra para siempre');
+  });
+
+  it('el ADMIN ve el botón habilitado en un cliente sin historial', async () => {
+    app = await startApp('ADMIN', '/clients/5');
+    await app.respond(empty);
+    const btn = app.page().querySelector<HTMLButtonElement>('.page-header .actions [data-delete-client]');
+    expect(btn).not.toBeNull();
+    expect(btn!.getAttribute('aria-disabled')).not.toBe('true');
+    expect(app.page().querySelector('[data-delete-reason]')).toBeNull();
+  });
+
+  it('recepción no ve el botón, con o sin historial', async () => {
     app = await startApp('RECEPTIONIST', '/clients/5');
     await app.respond(empty);
     expect(app.page().querySelector('[data-delete-client]')).toBeNull();
+    expect(app.page().querySelector('[data-delete-reason]')).toBeNull();
   });
 });

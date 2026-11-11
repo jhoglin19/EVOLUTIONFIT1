@@ -134,3 +134,10 @@ table {
 .danger {
   color: var(--mat-sys-error);
 }
+
+.delete-reason {
+  margin: -8px 0 16px;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: right;
+}

@@ -105,16 +105,30 @@ export class ClientDetail {
       });
   }
 
+  /** El ADMIN siempre ve "Eliminar cliente" en la ficha; recepción nunca. */
+  showDelete(): boolean {
+    return this.isAdmin && !!this.client();
+  }
+
   /**
-   * Eliminar solo si nunca tuvo membresías ni pagos (el backend también revisa los accesos y es quien decide).
-   * Con historial, el cliente solo se desactiva.
+   * Por qué no se puede eliminar, o null si se puede: solo sin membresías ni pagos (el backend también revisa
+   * los accesos y es quien decide). Con historial, el cliente solo se desactiva.
    */
-  canDelete(): boolean {
-    return this.isAdmin && !!this.client() && this.history().length === 0 && this.payments().length === 0;
+  deleteBlockedReason(): string | null {
+    const memberships = this.history().length;
+    const payments = this.payments().length;
+    if (memberships === 0 && payments === 0) {
+      return null;
+    }
+    return `No se puede eliminar: tiene historial (${memberships} membresía(s), ${payments} pago(s)). ` +
+      'Solo se puede desactivar, desde Clientes.';
   }
 
   deleteClient(): void {
-    const c = this.client()!;
+    const c = this.client();
+    if (!c || !this.showDelete() || this.deleteBlockedReason()) {
+      return;
+    }
     this.dialog
       .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
         data: {

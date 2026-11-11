@@ -45,14 +45,28 @@
           <mat-icon>add_card</mat-icon>
           Registrar sin cobrar
         </button>
-        @if (canDelete()) {
-          <button mat-stroked-button type="button" class="danger" (click)="deleteClient()" data-delete-client>
+        @if (showDelete()) {
+          <button
+            mat-stroked-button
+            type="button"
+            class="danger"
+            data-delete-client
+            [disabled]="!!deleteBlockedReason()"
+            disabledInteractive
+            [matTooltip]="deleteBlockedReason() ?? ''"
+            aria-describedby="delete-reason"
+            (click)="deleteClient()"
+          >
             <mat-icon>delete_forever</mat-icon>
             Eliminar cliente
           </button>
         }
       </div>
     </div>
+
+    @if (showDelete() && deleteBlockedReason(); as reason) {
+      <p class="delete-reason" id="delete-reason" data-delete-reason>{{ reason }}</p>
+    }
 
     <div class="cards">
       <section class="card" aria-labelledby="current-title">
