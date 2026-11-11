@@ -70,8 +70,8 @@ import { methodLabel } from '../../../shared/models/payment.model';
       max-width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      border: 1px solid var(--mat-sys-outline-variant);
-      border-radius: 12px;
+      border: 1px solid var(--ef-border);
+      border-radius: var(--ef-radius-card);
       background: var(--ef-surface);
     }
     table {
@@ -80,34 +80,48 @@ import { methodLabel } from '../../../shared/models/payment.model';
     }
     th,
     td {
-      padding: 10px 16px;
+      padding: 12px 16px;
       text-align: left;
-      border-bottom: 1px solid var(--mat-sys-outline-variant);
+      border-bottom: 1px solid var(--ef-border);
       white-space: nowrap;
     }
+    /* Cifras alineadas a la derecha y con dígitos del mismo ancho, para compararlas en columna. */
+    th:not(:first-child),
+    td:not(:first-child) {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
     thead th {
-      font-weight: 500;
-      color: var(--mat-sys-on-surface-variant);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ef-muted);
+    }
+    tbody td {
+      color: var(--ef-text-2);
     }
     tfoot th,
     tfoot td {
       font-weight: 600;
-      background: var(--mat-sys-surface-container);
+      color: var(--ef-text);
+      background: var(--ef-surface-2);
     }
     tfoot tr.all th,
     tfoot tr.all td {
       border-bottom: 0;
-      background: var(--mat-sys-primary-container);
-      color: var(--mat-sys-on-primary-container);
+      background: var(--ef-orange-tint);
+      color: var(--ef-orange-light);
+      font-weight: 700;
     }
     .empty {
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--ef-text-3);
     }
     .hint {
       overflow-wrap: anywhere;
       margin: 8px 0 16px;
-      font-size: 0.8rem;
-      color: var(--mat-sys-on-surface-variant);
+      font-size: 12px;
+      color: var(--ef-text-3);
     }
   `,
 })

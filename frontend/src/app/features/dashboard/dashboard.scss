@@ -1,4 +1,40 @@
-@use '../cash/cash';
+// Inicio (docs/DISENO_VISUAL.md, secciones 3 y 6.1): tarjetas de cifras, caja de hoy, ingresos, alertas y pagos.
+// No importa cash.scss: solo define lo que esta pantalla usa (presupuesto de estilos por componente).
+
+.alert,
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.alert {
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 12px 10px 16px;
+  border-radius: var(--ef-radius-control);
+  background: var(--ef-danger-tint);
+  color: var(--ef-danger);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-surface);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.empty td {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--ef-text-3);
+}
 
 .header-actions {
   display: flex;
@@ -6,57 +42,170 @@
   gap: 8px;
 }
 
-a.card {
-  color: inherit;
-  text-decoration: none;
-
-  &:hover {
-    border-color: var(--mat-sys-primary);
-  }
-}
-
-.card {
-  small {
-    font-size: 0.78rem;
-    color: var(--mat-sys-on-surface-variant);
-  }
-
-  &.warn {
-    background: var(--mat-sys-tertiary-container);
-    color: var(--mat-sys-on-tertiary-container);
-
-    span,
-    small {
-      color: inherit;
-    }
-  }
-}
-
-.cards.small {
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
-  gap: 16px 24px;
-  margin-bottom: 16px;
-}
-
 section {
   min-width: 0;
-  margin-bottom: 8px;
+  margin-bottom: 28px;
+}
+
+// Títulos de sección (título de tarjeta: 26 px, Barlow Condensed).
+h2 {
+  margin: 0 0 14px;
+  font-family: var(--ef-font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ef-text);
 }
 
 h3 {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
+  margin: 0 0 10px;
+  font-family: var(--ef-font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ef-text-2);
+}
+
+// ---- Tarjetas de cifras ----
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 22px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-surface);
+
+  span {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ef-text-3);
+  }
+
+  // Cifra clave (KPI): 56 px, peso 800.
+  b {
+    font-family: var(--ef-font-display);
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    color: var(--ef-text);
+  }
+
+  small {
+    font-size: 12px;
+    color: var(--ef-muted);
+  }
+
+  // "Por vencer": tarjeta destacada con borde naranja y halo; la cifra en naranja.
+  &.warn[data-card='expiring'] {
+    border-color: var(--ef-orange);
+    box-shadow: 0 0 0 3px rgb(255 122 26 / 12%);
+
+    b {
+      color: var(--ef-orange);
+    }
+  }
+
+  // Vencidas recientes sin renovar: la cifra en rojo.
+  &.warn[data-card='expired'] b {
+    color: var(--ef-danger);
+  }
+}
+
+a.card {
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 120ms ease;
+
+  &:hover {
+    border-color: var(--ef-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ef-orange);
+    outline-offset: 2px;
+  }
+}
+
+// Tarjetas pequeñas de Ingresos (anulaciones, descuentos, reportes).
+.cards.small {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin: 16px 0 0;
+
+  b {
+    font-size: 30px;
+    font-weight: 700;
+  }
+}
+
+// ---- Caja de hoy ----
+.notice {
+  gap: 12px;
+  margin-bottom: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-surface);
+  color: var(--ef-text-2);
+  font-size: 15px;
+
+  b {
+    color: var(--ef-text);
+  }
+
+  // Arqueo pendiente: la tarjeta a la que hay que mirar.
+  &.pending {
+    border-color: var(--ef-orange);
+    box-shadow: 0 0 0 3px rgb(255 122 26 / 12%);
+    background: var(--ef-surface);
+    color: var(--ef-text);
+  }
 }
 
 .cash-actions {
   display: flex;
   gap: 4px;
+}
+
+// ---- Ingresos: "Hoy" y "Este mes" lado a lado solo si caben; si no, uno debajo del otro (no se cortan) ----
+[data-income] .grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 620px), 1fr));
+}
+
+.hint {
+  margin: -4px 0 16px;
+  font-size: 13px;
+  color: var(--ef-text-3);
+}
+
+// ---- Por vencer y vencidas recientes, en tarjetas ----
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 20px 24px;
+  margin-bottom: 8px;
+}
+
+.grid > section[aria-label] {
+  margin-bottom: 20px;
+  padding: 20px 22px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-surface);
+
+  .hint {
+    margin: 0;
+  }
 }
 
 .alert-row {
@@ -65,22 +214,62 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 8px 16px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--ef-border);
+
+  &:last-of-type {
+    border-bottom: 0;
+  }
 
   a {
-    color: var(--mat-sys-primary);
+    color: var(--ef-orange-light);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
+  }
+
+  .sub {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--ef-text-3);
   }
 
   .pending {
-    color: var(--mat-sys-tertiary);
+    color: var(--ef-orange-light);
+  }
+}
+
+// ---- Pagos de hoy ----
+.methods {
+  th,
+  td {
+    text-align: left;
+    border-bottom: 1px solid var(--ef-border);
+  }
+
+  tr:last-child td {
+    border-bottom: 0;
+  }
+
+  th {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ef-muted);
+  }
+
+  th,
+  td {
+    padding: 14px 18px;
+  }
+
+  tbody tr:not(.empty):hover td {
+    background: var(--ef-hover);
   }
 }
 
 tr.voided td {
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ef-muted);
   text-decoration: line-through;
 }
 
@@ -89,6 +278,7 @@ tr.voided td:last-child {
 }
 
 td a {
-  color: var(--mat-sys-primary);
+  color: var(--ef-orange-light);
   text-decoration: none;
+  font-weight: 500;
 }
