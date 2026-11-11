@@ -1,3 +1,4 @@
+// Estructura general (docs/DISENO_VISUAL.md, sección 4): barra lateral fija de 264 px y contenido.
 :host {
   display: block;
   height: 100vh;
@@ -5,14 +6,25 @@
 
 .shell {
   height: 100%;
-  background: var(--mat-sys-surface-container-lowest);
-  --mat-sidenav-container-width: 260px;
+  background: var(--ef-bg);
+  --mat-sidenav-container-width: var(--ef-sidebar-width);
   --mat-sidenav-container-shape: 0;
-  --mat-sidenav-container-background-color: #1c1b1f;
-  --mat-sidenav-container-text-color: #fff;
-  --mat-sidenav-container-divider-color: transparent;
+  --mat-sidenav-container-background-color: var(--ef-sidebar);
+  --mat-sidenav-container-text-color: var(--ef-text-2);
+  --mat-sidenav-container-divider-color: var(--ef-border);
+  --mat-sidenav-content-background-color: var(--ef-bg);
+}
+
+mat-sidenav {
+  border-right: 1px solid var(--ef-border);
+}
+
+mat-sidenav-content {
+  position: relative;
+  // Ancho que la cabecera de cada página deja libre para el bloque del usuario (misma fila).
+  --ef-user-block-width: 260px;
 }
 
 main {
-  min-height: calc(100vh - 64px);
+  min-height: 100vh;
 }

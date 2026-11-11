@@ -14,6 +14,7 @@
 //
 // Opciones: --headed (navegador visible); E2E_SIMULATE_NEXT_DAY=1 adelanta el reloj al día siguiente a las
 // 8:00 a.m. antes de cargar datos (lo mismo que pasa si se ejecuta después de las 8:00 p.m.).
+// E2E_CAPTURAS=1 (con E2E_ETAPA=<nombre>) guarda capturas de cada pantalla en e2e/capturas/<nombre>/.
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync } from 'node:fs';
@@ -228,12 +229,24 @@ async function main() {
     env: { ...testEnv, E2E_PHASE: 'flujos' },
     stdio: 'inherit',
   });
+  // Capturas opcionales (E2E_CAPTURAS=1): después de los flujos, para tener datos, y antes de la caja, que adelanta
+  // el reloj. Se guardan en e2e/capturas/<E2E_ETAPA>/ (ignorada por git).
+  let shots = { status: 0 };
+  if (process.env.E2E_CAPTURAS === '1') {
+    const etapa = process.env.E2E_ETAPA || 'sin-etapa';
+    log(`Capturas de pantalla en e2e/capturas/${etapa}/...`);
+    shots = spawnSync('npx', ['playwright', 'test', '--project=capturas', ...extra], {
+      cwd: E2E,
+      env: { ...testEnv, E2E_PHASE: 'capturas', E2E_ETAPA: etapa },
+      stdio: 'inherit',
+    });
+  }
   const cash = spawnSync('npx', ['playwright', 'test', '--project=caja', ...extra], {
     cwd: E2E,
     env: { ...testEnv, E2E_PHASE: 'caja' },
     stdio: 'inherit',
   });
-  return flows.status === 0 && cash.status === 0;
+  return flows.status === 0 && shots.status === 0 && cash.status === 0;
 }
 
 let ok = false;

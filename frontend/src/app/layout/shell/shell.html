@@ -3,7 +3,7 @@
     <app-sidebar (navigated)="closeOnMobile(drawer)" />
   </mat-sidenav>
 
-  <mat-sidenav-content>
+  <mat-sidenav-content [class.ef-user-row]="!mobile()">
     <app-header [showMenuButton]="mobile()" (menuToggle)="drawer.toggle()" />
     <main>
       <router-outlet />

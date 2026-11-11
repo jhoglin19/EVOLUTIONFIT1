@@ -3,14 +3,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { AuthService } from '../../core/services/auth.service';
 import { roleLabel } from '../../shared/utils/role-label';
 
 @Component({
   selector: 'app-header',
-  imports: [MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule, MatDividerModule],
+  imports: [MatButtonModule, MatIconModule, MatMenuModule, MatDividerModule],
+  host: { '[class.floating]': '!showMenuButton()' },
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

@@ -1,10 +1,34 @@
-mat-toolbar {
+// Bloque del usuario (iniciales, nombre y rol). En escritorio flota arriba a la derecha, en la misma fila que la
+// cabecera de la página (docs/DISENO_VISUAL.md, sección 4); en pantallas angostas es una barra con el botón de menú.
+:host {
+  display: block;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:host(.floating) .bar {
+  position: absolute;
+  top: calc(var(--ef-page-top) - 2px);
+  right: var(--ef-page-side);
+  z-index: 3;
+}
+
+:host(:not(.floating)) .bar {
   position: sticky;
   top: 0;
-  z-index: 2;
-  height: 64px;
-  background: var(--mat-sys-surface);
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  z-index: 3;
+  height: 60px;
+  padding: 0 12px;
+  background: var(--ef-sidebar);
+  border-bottom: 1px solid var(--ef-border);
+}
+
+.menu-button {
+  color: var(--ef-text-2);
 }
 
 .spacer {
@@ -12,20 +36,44 @@ mat-toolbar {
 }
 
 .user-button {
-  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 10px 0 6px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-control);
+  background: var(--ef-surface);
+  color: var(--ef-text);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ef-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ef-orange);
+    outline-offset: 2px;
+  }
+
+  mat-icon {
+    color: var(--ef-text-3);
+  }
 }
 
 .avatar {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  margin-right: 10px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-  font-size: 0.8rem;
+  background: var(--ef-orange-tint);
+  color: var(--ef-orange-light);
+  font-family: var(--ef-font-display);
+  font-size: 15px;
   font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -33,25 +81,30 @@ mat-toolbar {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  line-height: 1.2;
+  line-height: 1.25;
   text-align: left;
 }
 
 .name {
-  font-size: 0.9rem;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .role {
-  font-size: 0.72rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  color: var(--ef-text-3);
 }
 
 .menu-info {
   display: flex;
   flex-direction: column;
   padding: 12px 16px;
-  font-size: 0.85rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  color: var(--ef-text-3);
+
+  strong {
+    color: var(--ef-text);
+  }
 }
 
 @media (max-width: 600px) {

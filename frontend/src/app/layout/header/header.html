@@ -1,20 +1,19 @@
-<mat-toolbar>
+<div class="bar">
   @if (showMenuButton()) {
-    <button mat-icon-button type="button" (click)="menuToggle.emit()" aria-label="Abrir menú">
+    <button mat-icon-button type="button" class="menu-button" (click)="menuToggle.emit()" aria-label="Abrir menú">
       <mat-icon>menu</mat-icon>
     </button>
+    <span class="spacer"></span>
   }
 
-  <span class="spacer"></span>
-
   @if (user(); as u) {
-    <button mat-button type="button" [matMenuTriggerFor]="userMenu" class="user-button">
+    <button type="button" [matMenuTriggerFor]="userMenu" class="user-button">
       <span class="avatar" aria-hidden="true">{{ u.firstName.charAt(0) }}{{ u.lastName.charAt(0) }}</span>
       <span class="who">
         <span class="name">{{ u.firstName }} {{ u.lastName }}</span>
         <span class="role">{{ roleLabel(u.role) }}</span>
       </span>
-      <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+      <mat-icon>arrow_drop_down</mat-icon>
     </button>
 
     <mat-menu #userMenu="matMenu" xPosition="before">
@@ -31,4 +30,4 @@
       </button>
     </mat-menu>
   }
-</mat-toolbar>
+</div>

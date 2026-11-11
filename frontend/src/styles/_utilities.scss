@@ -1,0 +1,84 @@
+// Base y utilidades compartidas por las pantallas (docs/DISENO_VISUAL.md, secciones 2 a 4).
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ef-font);
+  font-size: 14px;
+  line-height: 1.45;
+  background: var(--ef-bg);
+  color: var(--ef-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--ef-orange-light);
+}
+
+// Página: márgenes de 32 px arriba y 40 px a los lados.
+.page {
+  padding: var(--ef-page-top) var(--ef-page-side) 40px;
+  max-width: 1600px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+// Cabecera de página: título grande a la izquierda; acción principal a la derecha. El bloque del usuario se ubica
+// en la misma fila (lo pone el shell, .ef-user-row) y la cabecera le reserva el espacio.
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+  min-height: 56px;
+
+  h1 {
+    margin: 0;
+    font-family: var(--ef-font-display);
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ef-text);
+  }
+
+  p {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--ef-text-3);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+.ef-user-row .page-header {
+  padding-right: var(--ef-user-block-width, 0);
+}
+
+// Títulos de sección y de tarjeta.
+h2,
+h3 {
+  font-family: var(--ef-font-display);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 32px;
+  }
+}

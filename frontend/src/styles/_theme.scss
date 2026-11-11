@@ -1,0 +1,101 @@
+@use '@angular/material' as mat;
+
+// Tema oscuro de Angular Material (M3). mat.theme genera la base; theme-overrides apunta los tokens del sistema
+// (--mat-sys-*) a los del diseño, así todo componente o pantalla que use --mat-sys-* queda con los colores exactos.
+html {
+  color-scheme: dark;
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$orange-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: (
+        plain-family: var(--ef-font),
+        brand-family: var(--ef-font-display),
+        bold-weight: 600,
+        medium-weight: 500,
+        regular-weight: 400,
+      ),
+      density: 0,
+    )
+  );
+
+  @include mat.theme-overrides(
+    (
+      primary: var(--ef-orange),
+      on-primary: var(--ef-on-orange),
+      primary-container: var(--ef-orange-tint),
+      on-primary-container: var(--ef-orange-light),
+      secondary-container: var(--ef-orange-tint),
+      on-secondary-container: var(--ef-orange-light),
+      secondary: var(--ef-text-3),
+      on-secondary: var(--ef-bg),
+      tertiary: var(--ef-info),
+      on-tertiary: var(--ef-on-orange),
+      tertiary-container: var(--ef-info-tint),
+      on-tertiary-container: var(--ef-info),
+      background: var(--ef-bg),
+      on-background: var(--ef-text),
+      surface: var(--ef-bg),
+      on-surface: var(--ef-text),
+      surface-variant: var(--ef-surface-2),
+      on-surface-variant: var(--ef-text-3),
+      surface-container-lowest: var(--ef-bg),
+      surface-container-low: var(--ef-sidebar),
+      surface-container: var(--ef-surface),
+      surface-container-high: var(--ef-surface),
+      surface-container-highest: var(--ef-surface-2),
+      surface-bright: var(--ef-surface-2),
+      surface-dim: var(--ef-bg),
+      // Sin tinte naranja en las superficies elevadas: el diseño usa bordes, no tonos.
+      surface-tint: transparent,
+      outline: var(--ef-field-border),
+      outline-variant: var(--ef-border),
+      error: var(--ef-danger),
+      on-error: var(--ef-on-orange),
+      error-container: var(--ef-danger-tint),
+      on-error-container: var(--ef-danger),
+      inverse-surface: var(--ef-text),
+      inverse-on-surface: var(--ef-bg),
+      inverse-primary: var(--ef-orange),
+    )
+  );
+}
+
+// Diálogos: el tema M3 los limita a 560 px y el contenido ancho (tablas del cierre) se cortaba.
+// Tope más amplio, nunca más ancho que la pantalla; cada diálogo fija su ancho con --dialog-width.
+html {
+  @include mat.dialog-overrides(
+    (
+      container-max-width: min(960px, calc(100vw - 32px)),
+      container-small-max-width: calc(100vw - 32px),
+    )
+  );
+}
+
+.mat-mdc-dialog-content {
+  // Ancho del contenido = el pedido por el diálogo, sin pasar del panel (menos el relleno de 24 px por lado).
+  width: min(var(--dialog-width, 480px), calc(100vw - 80px));
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+// Íconos: la fuente viene empaquetada (@fontsource/material-icons, angular.json). Estas reglas son las que antes
+// traía la hoja de Google para la clase que usa <mat-icon>.
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}

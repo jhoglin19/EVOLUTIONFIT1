@@ -27,7 +27,9 @@ export default defineConfig({
   },
   projects: [
     // La caja adelanta el reloj a las 10:01 p.m.: va en su propia ejecución, después de los demás flujos.
-    { name: 'flujos', testIgnore: /07-cash/ },
+    { name: 'flujos', testIgnore: [/07-cash/, /capturas/] },
     { name: 'caja', testMatch: /07-cash/ },
+    // Opcional (E2E_CAPTURAS=1): capturas de cada pantalla para revisar el diseño. No verifica nada funcional.
+    { name: 'capturas', testMatch: /capturas/ },
   ],
 });

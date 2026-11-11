@@ -1,0 +1,51 @@
+// Tokens del diseño visual (docs/DISENO_VISUAL.md, sección 1). Fuente única de colores, tipografías y medidas:
+// las pantallas usan estas variables (o los tokens --mat-sys-* que el tema apunta a ellas), nunca colores sueltos.
+:root {
+  // Fondos
+  --ef-bg: #0b0b0c;
+  --ef-sidebar: #0f0f10;
+  --ef-surface: #151517;
+  --ef-surface-2: #1c1c1f;
+  --ef-hover: #18181b;
+  --ef-field: #0f0f10;
+
+  // Bordes
+  --ef-border: #232326;
+  --ef-border-strong: #3a3a40;
+  // Borde de campos de texto: #3A3A40 no llega a 3:1 (WCAG 1.4.11) sobre los fondos; #67676D da 3,03 a 3,41:1.
+  --ef-field-border: #67676d;
+
+  // Texto
+  --ef-text: #f5f5f4;
+  --ef-text-2: #d4d4d8;
+  --ef-text-3: #a3a3ab;
+  --ef-muted: #8b8b94;
+
+  // Acento y estados
+  --ef-orange: #ff7a1a;
+  --ef-orange-light: #ff8f3f;
+  --ef-orange-tint: rgb(255 122 26 / 14%);
+  --ef-on-orange: #0b0b0c;
+  --ef-success: #4ade80;
+  --ef-danger: #f87171;
+  --ef-info: #60a5fa;
+  // Tintes de estado (fondo de avisos y chips): el color al 14 % sobre la superficie.
+  --ef-success-tint: rgb(74 222 128 / 14%);
+  --ef-danger-tint: rgb(248 113 113 / 14%);
+  --ef-info-tint: rgb(96 165 250 / 14%);
+  --ef-neutral-tint: rgb(139 139 148 / 14%);
+
+  // Tipografía
+  --ef-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ef-font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+
+  // Forma y espacio (sección 3)
+  --ef-radius-card: 16px;
+  --ef-radius-control: 10px;
+  --ef-radius-small: 8px;
+  --ef-radius-pill: 99px;
+  --ef-page-top: 32px;
+  --ef-page-side: 40px;
+  --ef-gap: 24px;
+  --ef-sidebar-width: 264px;
+}
