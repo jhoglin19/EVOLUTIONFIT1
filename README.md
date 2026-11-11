@@ -180,6 +180,16 @@ docker-compose.yml       MySQL (y el backend opcional con --profile full)
 .env.example             plantilla de variables (copiar a .env)
 ```
 
+## Respaldos
+
+```bash
+scripts/backup.sh                       # respaldo comprimido en ~/evolutionfit-backups, con suma SHA-256
+scripts/restore.sh <archivo>            # lo verifica en una MySQL temporal, sin tocar la base real
+```
+
+Procedimiento completo, restauración de emergencia, frecuencia y dónde guardar las copias:
+[docs/RESPALDOS.md](docs/RESPALDOS.md).
+
 ## Seguridad
 
 - Contraseñas con BCrypt; el login acepta usuario o correo.
