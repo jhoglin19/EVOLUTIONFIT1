@@ -48,6 +48,22 @@ El personal (administrador y recepción) también necesita entrar al gimnasio. H
 - La salida y las emergencias no deben depender de este sistema. El gimnasio debe conservar su método físico de apertura (llave, botón de salida o similar) funcionando si el sistema se cae.
 - No modificar el firmware del ESP8266 sin haber hecho antes una copia completa de su memoria flash y sin aprobación explícita.
 
+### 4.1 Requisito de diseño: puente de salida (decisión del dueño, por confirmar en el diagnóstico)
+
+El backend de producción corre en un servidor en la nube (VPS), no en el gimnasio (REGLAS_NEGOCIO.md, sección 13).
+Por eso:
+
+- Un **programa puente** en el computador del gimnasio habla con el controlador de la puerta (USB/COM) y **se
+  conecta de salida** al servidor por HTTPS.
+- **El servidor nunca se conecta al gimnasio:** no se abren puertos en el router del gimnasio, ni hay VPN ni
+  acceso remoto hacia ese computador.
+- **Falla cerrada:** si se cae el internet del gimnasio o el servidor, o el puente pierde la conexión, la puerta
+  **no abre**. Quedan el **botón manual de recepción** y la **llave física**.
+- El puente se autentica con su propia credencial de dispositivo (sección 4); nunca con el usuario de una
+  persona.
+- **Estado:** requisito de diseño confirmado por el dueño. Se valida en el diagnóstico de la etapa 1 (sección 9),
+  junto con las incógnitas de la sección 5, antes de programar.
+
 ## 5. Incógnitas que hay que resolver antes de programar
 
 1. **¿Cómo llega lo digitado al sistema?** El dueño indica que el teclado está conectado al computador. Hipótesis más probable: teclado USB que escribe en la ventana activa. Verificar. Consecuencias si es así: (a) el sistema no distingue si tecleó el cliente en la puerta o recepción en el mismo teclado; (b) si la ventana de EvolutionFit pierde el foco, la cédula se escribe en otro lado; (c) la pantalla de acceso debe mantener siempre el cursor en el campo de documento.
@@ -57,6 +73,7 @@ El personal (administrador y recepción) también necesita entrar al gimnasio. H
 3. **¿Cómo se comunica el software actual con la placa?** Puerto COM, velocidad, formato de los comandos y respuestas. No inventar comandos.
 4. **¿Hay sensor de puerta** que confirme que realmente abrió? Si no, solo se puede registrar "orden enviada" y "respuesta del controlador", no "apertura confirmada".
 5. **¿Dónde corre el backend?** Un cable USB/COM solo es accesible desde el computador al que está conectado. Si el backend no corre en ese computador, hará falta un pequeño servicio puente en él.
+   - **Respondida por el dueño:** el backend corre en un VPS, así que hace falta el puente de salida de la sección 4.1. Por confirmar en el diagnóstico: cómo se comunica, cómo se recupera si se cae la conexión y si el botón manual de recepción pasa por el puente o es independiente.
 6. **¿Qué software usa hoy el gimnasio** y qué mantiene ocupado el puerto COM? Dos programas no pueden abrir el mismo puerto a la vez.
 7. **¿Tiempo de apertura del relé y comportamiento del buzzer** actuales?
 
