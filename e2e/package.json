@@ -1,0 +1,14 @@
+{
+  "name": "evolutionfit-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Pruebas de punta a punta con Playwright: navegador real, backend real con perfil e2e y MySQL de pruebas en localhost:3308.",
+  "scripts": {
+    "e2e": "node scripts/run-e2e.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3"
+  }
+}

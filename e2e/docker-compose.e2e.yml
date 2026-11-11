@@ -1,0 +1,24 @@
+# MySQL SOLO para las pruebas de punta a punta. Independiente de la base de desarrollo (3306):
+# otro proyecto, otro contenedor, puerto 3308 solo en localhost y datos en memoria (tmpfs): al apagarla no
+# queda nada. Las contraseñas las genera scripts/run-e2e.mjs en cada ejecución; no hay .env.
+name: evolutionfit-e2e
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: evolutionfit-e2e-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${E2E_DB_ROOT_PASSWORD:?lo genera scripts/run-e2e.mjs}
+      MYSQL_DATABASE: evolution_fit_e2e
+      MYSQL_USER: evolution_e2e
+      MYSQL_PASSWORD: ${E2E_DB_PASSWORD:?lo genera scripts/run-e2e.mjs}
+      TZ: America/Bogota
+    command: --default-time-zone=-05:00
+    ports:
+      - "127.0.0.1:3308:3306"
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 2s
+      timeout: 5s
+      retries: 60

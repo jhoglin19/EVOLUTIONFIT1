@@ -28,6 +28,27 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
 - Antes de programar una fase: mostrar el plan y esperar mi aprobación.
 - Cada fase termina con pruebas unitarias de las reglas críticas. No dar una fase por terminada hasta que pasen ./mvnw test (en backend/) y npm test -- --watch=false, y compile ng build (en frontend/).
 - Hacer commit al terminar cada fase. NUNCA hacer push sin que yo lo pida.
+- Pruebas de punta a punta (Playwright, carpeta e2e/): ejecutarlas antes de cerrar una fase y después de cualquier cambio en pantallas o formularios.
+  - Instalación, una sola vez: `cd e2e && npm install && npx playwright install chromium`.
+  - Ejecución, con Docker encendido: `cd e2e && npm run e2e`. Para ver el navegador: `npm run e2e -- --headed`.
+  - Reporte: `e2e/playwright-report/flujos` y `e2e/playwright-report/caja`.
+  - Usan la interfaz real (navegador, backend y base reales); nada está simulado.
+  - `scripts/run-e2e.mjs`:
+    - Levanta una MySQL de pruebas en localhost:3308, con datos en memoria y contraseñas aleatorias que no se guardan.
+    - Compila y arranca el backend en el 8082 con el perfil `e2e`.
+    - Sirve el frontend en el 4300.
+    - Carga los datos iniciales por la API.
+    - Corre los flujos y después la caja (que adelanta el reloj).
+    - Al terminar, siempre borra todo.
+  - Con `E2E_SIMULATE_NEXT_DAY=1` el reloj empieza a las 8:00 a.m. del día siguiente (lo mismo que pasa si se ejecuta después de las 8:00 p.m.).
+  - **El perfil `e2e` solo funciona con la base `evolution_fit_e2e` en localhost:3308.**
+    - E2eGuard impide que el backend arranque si el perfil está activo y no se cumple todo: `APP_E2E_ENABLED=true`, `e2e` como único perfil y esa base. Rechaza la de desarrollo (3306) y la 3307.
+    - Nunca activarlo contra otra base ni en producción.
+    - El backend de pruebas corre desde e2e/.run/ con un entorno armado desde cero, así que nunca lee el `.env` real.
+    - No crear e2e/.env: si existe, el orquestador se detiene.
+  - El reloj de pruebas (E2eClock) solo avanza.
+    - Caja, arqueo, cierre automático y vencimientos usan ese reloj.
+    - Algunos contadores de reportes y del panel usan `created_at`, que es la hora real; no se verifican con el reloj adelantado.
 
 ## Estado
 - Hecho:
