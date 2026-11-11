@@ -1,1 +1,30 @@
 @use '../cash';
+
+// Caja del día (docs/DISENO_VISUAL.md, sección 6.2): el efectivo esperado es la cifra clave.
+.cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.6fr);
+  align-items: stretch;
+}
+
+.card.expected {
+  justify-content: center;
+
+  b {
+    font-size: 44px;
+    font-weight: 800;
+  }
+}
+
+.closed {
+  color: var(--ef-danger);
+}
+
+.notice.pending b {
+  color: var(--ef-orange-light);
+}
+
+@media (max-width: 1180px) {
+  .cards {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  }
+}

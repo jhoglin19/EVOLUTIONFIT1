@@ -1,85 +1,100 @@
-// Estilos compartidos de las pantallas de caja.
+// Estilos compartidos de Caja, Cierres de caja, Reporte mensual y Reportes (docs/DISENO_VISUAL.md).
+// Se importa en cada pantalla: mantenerlo corto (presupuesto de estilos por componente).
 .alert,
 .notice {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 8px 12px;
   margin-bottom: 16px;
-  padding: 8px 8px 8px 16px;
-  border-radius: 8px;
+  padding: 14px 16px 14px 20px;
+  border-radius: var(--ef-radius-card);
 }
 
 .alert {
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  background: var(--ef-danger-tint);
+  color: var(--ef-danger);
 }
 
 .notice {
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
+  border: 1px solid var(--ef-border);
+  background: var(--ef-surface);
+  color: var(--ef-text-2);
 
+  b {
+    color: var(--ef-text);
+  }
+
+  // Lo que hay que atender (arqueo pendiente): tarjeta destacada.
   &.pending {
-    background: var(--mat-sys-tertiary-container);
-    color: var(--mat-sys-on-tertiary-container);
+    border-color: var(--ef-orange);
+    box-shadow: 0 0 0 3px rgb(255 122 26 / 12%);
   }
 }
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 16px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
   background: var(--ef-surface);
 
   span {
-    font-size: 0.8rem;
-    color: var(--mat-sys-on-surface-variant);
+    font-size: 13px;
+    color: var(--ef-text-3);
   }
 
   b {
-    font-size: 1.2rem;
+    font-family: var(--ef-font-display);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ef-text);
   }
 
+  // La cifra a la que hay que mirar (efectivo esperado): borde naranja, halo y cifra en naranja.
   &.expected {
-    background: var(--mat-sys-primary-container);
-    color: var(--mat-sys-on-primary-container);
+    border-color: var(--ef-orange);
+    box-shadow: 0 0 0 3px rgb(255 122 26 / 12%);
 
-    span {
-      color: inherit;
+    b {
+      color: var(--ef-orange);
     }
   }
 
   &.bad {
-    background: var(--mat-sys-error-container);
-    color: var(--mat-sys-on-error-container);
+    border-color: var(--ef-danger);
 
-    span {
-      color: inherit;
+    b {
+      color: var(--ef-danger);
     }
   }
 }
 
 h2 {
-  margin: 8px 0 12px;
-  font-size: 1.1rem;
+  margin: 28px 0 14px;
+  font-family: var(--ef-font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .table-wrap {
   overflow-x: auto;
   margin-bottom: 16px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
   background: var(--ef-surface);
 }
 
@@ -93,14 +108,17 @@ table {
 .plain {
   th,
   td {
-    padding: 10px 16px;
+    padding: 12px 16px;
     text-align: left;
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    border-bottom: 1px solid var(--ef-border);
   }
 
   th {
-    font-weight: 500;
-    color: var(--mat-sys-on-surface-variant);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ef-muted);
   }
 
   tr:last-child td {
@@ -110,12 +128,12 @@ table {
 
 .hint,
 .sub {
-  font-size: 0.8rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  color: var(--ef-text-3);
 }
 
 .negative {
-  color: var(--mat-sys-error);
+  color: var(--ef-danger);
 }
 
 .filters {
@@ -131,5 +149,5 @@ table {
 .empty td {
   padding: 32px 16px;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ef-text-3);
 }
