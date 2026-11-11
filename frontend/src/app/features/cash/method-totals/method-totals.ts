@@ -72,7 +72,7 @@ import { methodLabel } from '../../../shared/models/payment.model';
       -webkit-overflow-scrolling: touch;
       border: 1px solid var(--mat-sys-outline-variant);
       border-radius: 12px;
-      background: var(--mat-sys-surface);
+      background: var(--ef-surface);
     }
     table {
       width: 100%;
