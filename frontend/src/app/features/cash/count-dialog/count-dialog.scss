@@ -1,7 +1,7 @@
 mat-dialog-content {
   display: flex;
   flex-direction: column;
-  min-width: min(480px, 85vw);
+  --dialog-width: 520px;
 }
 
 .figures {
@@ -57,6 +57,17 @@ mat-dialog-content {
     display: flex;
     justify-content: space-between;
     gap: 12px;
+    min-width: 0;
+
+    span {
+      min-width: 0;
+    }
+
+    b {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
     padding: 2px 0;
   }
 }

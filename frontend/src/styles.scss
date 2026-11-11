@@ -19,6 +19,24 @@ body {
   height: 100%;
 }
 
+// Diálogos: el tema M3 los limita a 560 px y el contenido ancho (tablas del cierre) se cortaba.
+// Tope más amplio, nunca más ancho que la pantalla; cada diálogo fija su ancho con --dialog-width.
+html {
+  @include mat.dialog-overrides(
+    (
+      container-max-width: min(960px, calc(100vw - 32px)),
+      container-small-max-width: calc(100vw - 32px),
+    )
+  );
+}
+
+.mat-mdc-dialog-content {
+  // Ancho del contenido = el pedido por el diálogo, sin pasar del panel (menos el relleno de 24 px por lado).
+  width: min(var(--dialog-width, 480px), calc(100vw - 80px));
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 body {
   margin: 0;
   font-family: Roboto, 'Helvetica Neue', sans-serif;

@@ -48,5 +48,9 @@ describe('ClosingDetailDialog', () => {
     expect(el.textContent).toContain('lo cobrado en ese día de caja');
     expect(el.textContent).toContain('Efectivo esperado (en el cajón)');
     expect(el.textContent).toMatch(/225[.,]000/);
+    // La tabla va dentro de un contenedor con scroll horizontal: en pantallas angostas no se corta "Neto".
+    const wrap = el.querySelector<HTMLElement>('app-method-totals .table-wrap')!;
+    expect(wrap.querySelector('th:last-child')!.textContent).toContain('Neto');
+    expect(getComputedStyle(wrap).overflowX).toBe('auto');
   });
 });

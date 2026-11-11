@@ -59,8 +59,15 @@ import { methodLabel } from '../../../shared/models/payment.model';
     </p>
   `,
   styles: `
+    :host {
+      display: block;
+      max-width: 100%;
+      min-width: 0;
+    }
     .table-wrap {
+      max-width: 100%;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       border: 1px solid var(--mat-sys-outline-variant);
       border-radius: 12px;
       background: var(--mat-sys-surface);
@@ -95,6 +102,7 @@ import { methodLabel } from '../../../shared/models/payment.model';
       color: var(--mat-sys-on-surface-variant);
     }
     .hint {
+      overflow-wrap: anywhere;
       margin: 8px 0 16px;
       font-size: 0.8rem;
       color: var(--mat-sys-on-surface-variant);

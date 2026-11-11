@@ -1,5 +1,5 @@
 mat-dialog-content {
-  min-width: min(560px, 85vw);
+  --dialog-width: 760px;
 }
 
 h3 {
@@ -53,6 +53,17 @@ ul {
     display: flex;
     justify-content: space-between;
     gap: 12px;
+    min-width: 0;
+
+    span {
+      min-width: 0;
+    }
+
+    b {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
     padding: 3px 0;
     border-bottom: 1px solid var(--mat-sys-outline-variant);
   }

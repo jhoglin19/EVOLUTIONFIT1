@@ -78,7 +78,7 @@ export interface WithdrawalDialogData {
     mat-dialog-content {
       display: flex;
       flex-direction: column;
-      min-width: min(420px, 80vw);
+      --dialog-width: 420px;
     }
     .hint {
       color: var(--mat-sys-on-surface-variant);

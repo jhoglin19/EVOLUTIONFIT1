@@ -38,7 +38,7 @@ export interface ReasonDialogData {
     mat-dialog-content {
       display: flex;
       flex-direction: column;
-      min-width: min(440px, 80vw);
+      --dialog-width: 440px;
     }
   `,
 })

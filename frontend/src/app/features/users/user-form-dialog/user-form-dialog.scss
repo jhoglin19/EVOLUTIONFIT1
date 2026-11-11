@@ -1,7 +1,7 @@
 mat-dialog-content {
   display: flex;
   flex-direction: column;
-  min-width: min(480px, 80vw);
+  --dialog-width: 480px;
   padding-top: 8px !important;
 }
 
