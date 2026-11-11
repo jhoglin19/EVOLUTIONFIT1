@@ -62,6 +62,11 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
     - El ADMIN puede marcar una fecha concreta como abierta o cerrada.
     - En caja, un día cerrado se muestra como "Gimnasio cerrado" y no exige arqueo. Si aun así tuvo movimientos en efectivo, se trata como un día normal.
     - Los cierres ya guardados no cambian.
+12. **Efectivo sobrante después del arqueo** (confirmado por el dueño):
+    - Es el efectivo que queda en el cajón por encima de la base: lo cobrado en efectivo en el día.
+    - **Cuenta dentro del total general recaudado** (sección 10, punto 8) y **no requiere tratamiento especial**: no se registra como retiro ni como otro movimiento.
+    - El dueño lo saca fuera del sistema. El día siguiente arranca otra vez con la base y nada se arrastra.
+    - Las diferencias del arqueo (lo contado frente al esperado) no cambian: se registran con nota, las revisa el ADMIN (sección 10, puntos 5 y 6) y no modifican el total recaudado.
 
 ## 5. Control de acceso
 
@@ -215,18 +220,15 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 
 ### Interpretaciones de la fase 6 (a confirmar con el dueño)
 
-- **Efectivo sobrante (por confirmar):** después del arqueo, el dueño retira todo lo que pase de la base, fuera del sistema. El día siguiente arranca otra vez con la base y la diferencia no se arrastra.
 - **Arqueo atrasado:** el ajuste incluye todo lo que entró o salió desde el corte hasta el momento de contar. Si se cuenta varios días tarde, el ajuste cubre esos días. Lo recomendable es contar antes de abrir el día siguiente.
 - **Anulación de un pago de un día ya cerrado:** se descuenta hoy, aunque el efectivo esperado quede negativo (por ejemplo, la devolución de una anualidad pagada ayer). Mientras quede negativo no se pueden registrar retiros.
 - **Pago guardado justo en el corte:** si un pago empieza a las 9:59 p.m. y termina de guardarse después del cierre, cuenta para el día siguiente; nunca se pierde ni se cuenta dos veces.
 
-### Pendiente de la puesta en marcha (no implementado)
+### Puesta en marcha: datos de prueba y consecutivo
 
-- **Antes de la puesta en marcha se borran los datos de prueba y se reinicia el consecutivo** (decisión del dueño). La numeración de comprobantes vuelve a empezar en 1.
-- **Procedimiento seguro para borrar los datos de prueba antes de operar con datos reales:**
-  - Qué se borra: clientes, membresías, congelaciones, pagos, comprobantes, retiros, cierres y totales de caja. También se reinician el consecutivo de comprobantes (a 1) y la fecha de inicio de la caja.
-  - Debe hacerse con respaldo previo, sobre una base sin uso real, con confirmación explícita y dejando constancia.
-  - Hasta tenerlo, no se borran datos a mano.
+- **Producción arranca sin datos de prueba y con el consecutivo en 1** (decisión del dueño).
+- Se cumple con una **base nueva en el servidor de producción** (sección 13): se crea vacía con las migraciones y la V4 deja el consecutivo en 1. No hay que borrar nada.
+- La base de desarrollo no se limpia ni se borra: queda como archivo. No se implementa un procedimiento de borrado.
 
 ---
 
@@ -310,7 +312,22 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 
 ---
 
+## 13. Decisiones de la puesta en marcha (confirmadas por el dueño)
+
+1. **Producción en la nube, como el sistema anterior:**
+   - Un servidor virtual (VPS, mínimo 4 GB de RAM) con Docker corre MySQL, el backend y el frontend.
+   - Un proxy inverso con HTTPS sirve todo en **un único dominio**: no hay Vercel ni CORS entre dominios.
+   - El computador del gimnasio es lento: solo se usa como navegador. El internet del gimnasio es estable.
+   - Procedimiento: [PUESTA_EN_MARCHA.md](PUESTA_EN_MARCHA.md).
+2. **Puerta (fase 8):** un programa puente en el computador del gimnasio se conecta de salida al servidor; el servidor nunca entra a la red del gimnasio.
+   - Sin internet o sin servidor, la puerta **falla cerrada**. Quedan el botón manual de recepción y la llave física.
+   - Requisito de diseño anotado en [HARDWARE_CONTROL_ACCESO.md](HARDWARE_CONTROL_ACCESO.md); se confirma en el diagnóstico de la fase 8.
+3. **Clientes del sistema anterior:** de 80 a 100, cargados **a mano** con el flujo de membresía migrada (sección 8, punto 7), sin pagos y sin importación por CSV. Procedimiento y tiempo estimado en [PUESTA_EN_MARCHA.md](PUESTA_EN_MARCHA.md).
+4. **Respaldos:** diario automático a las 10:30 p.m. en el servidor, cifrado y copiado fuera del servidor; copia mensual en un disco externo guardado fuera del gimnasio; las copias del proveedor como capa extra; prueba de restauración mensual. Procedimiento en [RESPALDOS.md](RESPALDOS.md).
+5. **Efectivo sobrante después del arqueo:** sección 4, punto 12.
+
+---
+
 ## Pendientes de definir
 
-- **Caja (por confirmar con el dueño):** ¿qué se hace con el efectivo que sobra después del arqueo? Hoy rige el valor por defecto de la sección 10.
-- **Puesta en marcha:** falta implementar el procedimiento seguro para borrar los datos de prueba y reiniciar el consecutivo (sección 10).
+- **Puerta (fase 8):** confirmar en el diagnóstico el diseño del puente (sección 13, punto 2).
