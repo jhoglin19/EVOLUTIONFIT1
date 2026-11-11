@@ -1,4 +1,4 @@
-import { advanceClock, expect, expectNoReload, login, open, paidClient, syncBrowserClock, test, TODAY } from '../support/app';
+import { advanceClock, expect, expectNoReload, login, open, openDialog, paidClient, syncBrowserClock, test, TODAY } from '../support/app';
 
 /**
  * Caja y arqueo. Es la única prueba que adelanta el reloj (a las 10:01 p.m. del día de pruebas), por eso se
@@ -12,8 +12,7 @@ test('recepción registra un retiro de efectivo', async ({ page }) => {
   await paidClient(); // asegura efectivo en la caja del día
   await login(page, 'RECEPTIONIST');
   await open(page, '/cash');
-  await page.getByRole('button', { name: 'Registrar retiro' }).click();
-  const dialog = page.getByRole('dialog');
+  const dialog = await openDialog(page, page.getByRole('button', { name: 'Registrar retiro' }));
   await dialog.getByLabel('Monto').fill('5000');
   await dialog.getByLabel('Concepto').fill('Servilletas (prueba e2e)');
   await dialog.getByRole('button', { name: 'Registrar retiro' }).click();
@@ -29,8 +28,7 @@ test('a las 10:01 p.m. el día se cierra y recepción registra el arqueo', async
   await open(page, '/cash');
   await expect(page.getByText(/Arqueo pendiente del/)).toBeVisible();
 
-  await page.getByRole('button', { name: 'Registrar arqueo' }).click();
-  const dialog = page.getByRole('dialog');
+  const dialog = await openDialog(page, page.getByRole('button', { name: 'Registrar arqueo' }));
   const expectedRow = dialog.locator('div').filter({ has: page.getByText('Debe haber en la caja', { exact: true }) }).last();
   const expected = money((await expectedRow.locator('dd').textContent()) ?? '');
   expect(expected).toBeGreaterThan(0);
@@ -51,8 +49,7 @@ test('el ADMIN revisa la diferencia del arqueo', async ({ page }) => {
   const row = page.getByRole('row').filter({ hasText: 'Diferencia por revisar' });
   await expect(row).toBeVisible();
 
-  await row.getByRole('button', { name: 'Revisar diferencia' }).click();
-  const dialog = page.getByRole('dialog');
+  const dialog = await openDialog(page, row.getByRole('button', { name: 'Revisar diferencia' }));
   await dialog.getByLabel('Motivo').fill('Se revisó con recepción (prueba e2e)');
   await dialog.getByRole('button', { name: 'Marcar revisada' }).click();
   await expect(dialog).toBeHidden();

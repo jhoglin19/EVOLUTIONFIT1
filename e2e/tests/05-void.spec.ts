@@ -1,4 +1,4 @@
-import { expect, expectNoReload, login, open, paidClient, test } from '../support/app';
+import { expect, expectNoReload, login, open, openDialog, paidClient, test } from '../support/app';
 
 test.beforeEach(async ({ page }) => login(page, 'ADMIN'));
 
@@ -9,8 +9,7 @@ test('el ADMIN anula un pago con motivo y queda anulado', async ({ page }) => {
   const row = page.getByRole('row').filter({ hasText: `${client.first} ${client.last}` });
   await expect(row).toContainText('Pagado');
 
-  await row.getByRole('button', { name: 'Anular pago' }).click();
-  const dialog = page.getByRole('dialog');
+  const dialog = await openDialog(page, row.getByRole('button', { name: 'Anular pago' }));
   await dialog.getByLabel('Motivo').fill('Pago duplicado (prueba e2e)');
   await dialog.getByRole('button', { name: 'Anular pago' }).click();
   await expect(dialog).toBeHidden();
@@ -24,8 +23,7 @@ test('el ADMIN anula una membresía con motivo y la ficha la muestra anulada', a
   await open(page, `/clients/${client.id}`);
   await expect(page.getByRole('heading', { name: `${client.first} ${client.last}` })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Anular membresía' }).first().click();
-  const dialog = page.getByRole('dialog');
+  const dialog = await openDialog(page, page.getByRole('button', { name: 'Anular membresía' }).first());
   await expect(dialog).toContainText('Anular membresía');
   await dialog.getByLabel('Motivo').fill('Cambio de plan (prueba e2e)');
   await dialog.getByRole('button', { name: 'Anular', exact: true }).click();

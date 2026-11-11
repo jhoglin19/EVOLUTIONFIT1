@@ -1,4 +1,4 @@
-import { expect, expectNoReload, login, open, test, uniqueDoc, uniqueName, uniquePhone } from '../support/app';
+import { expect, expectNoReload, login, open, openDialog, test, uniqueDoc, uniqueName, uniquePhone } from '../support/app';
 
 test('recepción crea un cliente con el formulario y lo encuentra en la lista', async ({ page }) => {
   const doc = uniqueDoc();
@@ -6,8 +6,7 @@ test('recepción crea un cliente con el formulario y lo encuentra en la lista', 
   await login(page, 'RECEPTIONIST');
   await open(page, '/clients');
 
-  await page.getByRole('button', { name: 'Nuevo cliente' }).click();
-  const dialog = page.getByRole('dialog');
+  const dialog = await openDialog(page, page.getByRole('button', { name: 'Nuevo cliente' }));
   await dialog.getByLabel('Número de documento').fill(doc);
   await dialog.getByLabel('Nombres').fill(first);
   await dialog.getByLabel('Apellidos').fill(last);

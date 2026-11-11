@@ -1,4 +1,4 @@
-import { apiStatus, existingClient, expect, login, open, paidClient, test } from '../support/app';
+import { apiStatus, existingClient, expect, login, open, openDialog, paidClient, test } from '../support/app';
 
 test.beforeEach(async ({ page }) => login(page, 'ADMIN'));
 
@@ -7,9 +7,9 @@ test('un cliente sin historial se elimina después de confirmar', async ({ page 
   await open(page, `/clients/${client.id}`);
   const button = page.getByRole('button', { name: 'Eliminar cliente' });
   await expect(button).toBeEnabled();
-  await button.click();
-
-  const dialog = page.getByRole('dialog');
+  // Diálogo sin campos: su foco inicial es el primer botón (Cancelar).
+  const dialog = await openDialog(page, button);
+  await expect(dialog.getByRole('button', { name: 'Cancelar' })).toBeFocused();
   await expect(dialog).toContainText('Se borra para siempre');
   await dialog.getByRole('button', { name: 'Eliminar', exact: true }).click();
 

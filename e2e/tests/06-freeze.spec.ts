@@ -1,4 +1,4 @@
-import { addDays, expect, expectNoReload, login, open, paidClient, shown, test, TODAY } from '../support/app';
+import { addDays, expect, expectNoReload, login, open, openDialog, paidClient, shown, test, TODAY } from '../support/app';
 
 test('recepción congela 7 días y el vencimiento se corre 7 días', async ({ page }) => {
   const client = await paidClient();
@@ -7,8 +7,7 @@ test('recepción congela 7 días y el vencimiento se corre 7 días', async ({ pa
   const current = page.locator('section.card').filter({ hasText: 'Membresía vigente' });
   await expect(current).toContainText(shown(addDays(TODAY, 29)));
 
-  await current.getByRole('button', { name: 'Congelar' }).click();
-  const dialog = page.getByRole('dialog');
+  const dialog = await openDialog(page, current.getByRole('button', { name: 'Congelar' }));
   // El inicio por defecto es "hoy" según el navegador, igualado al reloj de pruebas.
   await expect(dialog.getByLabel('Inicio')).toHaveValue(TODAY);
   await dialog.getByLabel('Días', { exact: true }).fill('7');

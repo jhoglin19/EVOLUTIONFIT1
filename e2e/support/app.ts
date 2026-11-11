@@ -186,6 +186,52 @@ export function visibleButton(scope: Page | Locator, name: string): Locator {
   return scope.getByRole('button', { name, exact: true }).filter({ visible: true });
 }
 
+/**
+ * Abre un diálogo con un clic y espera a que termine de abrir antes de devolverlo.
+ *
+ * Angular Material mueve el foco al primer elemento enfocable del diálogo cuando termina la animación de
+ * apertura (150 ms, `delayFocusTrap`). Si la prueba escribe antes, el foco puede saltar a mitad de un `fill` y
+ * el texto termina en otro campo (pasó con el retiro de caja: "Servilletas (prueba e2e)" acabó como "5000e2"
+ * en Monto). Por eso no basta con que el diálogo sea visible: hay que esperar el foco inicial.
+ *
+ * - `content` (por defecto, `autoFocus: 'first-tabbable'`): el foco debe estar en un campo o botón DENTRO del
+ *   diálogo, distinto del contenedor (`mat-dialog-container`, tabindex -1). En un diálogo con campos es el
+ *   primer campo; en uno sin campos (por ejemplo, la confirmación de eliminar) es su primer botón.
+ * - `container` (`autoFocus: false`): el foco debe estar en el propio contenedor, que es adonde lo mueve Material
+ *   al terminar de abrir; antes de eso el foco sigue en el botón que abrió el diálogo, fuera de él.
+ */
+export async function openDialog(
+  page: Page,
+  trigger: Locator,
+  initialFocus: 'content' | 'container' = 'content',
+): Promise<Locator> {
+  await trigger.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await expect
+    .poll(
+      () =>
+        dialog.evaluate((container, mode) => {
+          const active = document.activeElement;
+          if (!active || !container.contains(active)) {
+            return `foco fuera del diálogo (${active?.tagName ?? 'ninguno'})`;
+          }
+          if (mode === 'container') {
+            return active === container ? 'listo' : `foco en ${active.tagName}, se esperaba el contenedor`;
+          }
+          if (active === container) {
+            return 'foco en el contenedor del diálogo (todavía abriendo)';
+          }
+          const focusable =
+            'input, textarea, select, button, a[href], [role="combobox"], [contenteditable="true"], [tabindex]:not([tabindex="-1"])';
+          return active.matches(focusable) ? 'listo' : `foco en ${active.tagName}, que no es un campo ni un botón`;
+        }, initialFocus),
+      { message: 'el diálogo no terminó de abrir: su foco inicial no llegó' },
+    )
+    .toBe('listo');
+  return dialog;
+}
+
 /** Elige una opción de un mat-select por su etiqueta. */
 export async function choose(page: Page, label: string, option: string | RegExp): Promise<void> {
   await page.getByRole('combobox', { name: label }).click();
