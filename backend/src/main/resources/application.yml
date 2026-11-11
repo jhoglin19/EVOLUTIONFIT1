@@ -73,6 +73,10 @@ app:
   reports:
     # Días máximos de un rango de fechas en los reportes del ADMIN (366: un año completo).
     max-range-days: ${REPORTS_MAX_RANGE_DAYS:366}
+  e2e:
+    # Solo pruebas de punta a punta (carpeta e2e/). Además del perfil e2e, E2eGuard exige este valor en true y
+    # la base de pruebas jdbc:mysql://localhost:3308/evolution_fit_e2e; si no, el backend no arranca.
+    enabled: ${APP_E2E_ENABLED:false}
   bootstrap-admin:
     # Solo se usa si la tabla users está vacía. Con la contraseña vacía no se crea ningún administrador.
     username: ${BOOTSTRAP_ADMIN_USERNAME:admin}
