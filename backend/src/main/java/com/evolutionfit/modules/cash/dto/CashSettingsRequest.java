@@ -18,5 +18,7 @@ public record CashSettingsRequest(
         BigDecimal openingBase,
         LocalDate startDate,
         @NotEmpty(message = "Selecciona al menos un día de apertura")
-        Set<DayOfWeek> openDays) {
+        Set<DayOfWeek> openDays,
+        /** null: no cambia. */
+        Boolean closedOnHolidays) {
 }

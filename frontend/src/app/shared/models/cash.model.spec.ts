@@ -1,5 +1,5 @@
 import { NOV_10 } from '../../features/cash/cash.fixtures';
-import { summarizeMethods } from './cash.model';
+import { closingStatusLabel, summarizeMethods } from './cash.model';
 
 describe('summarizeMethods', () => {
   it('suma efectivo, otros métodos y el total general con los datos actuales', () => {
@@ -26,5 +26,17 @@ describe('summarizeMethods', () => {
       { method: 'CARD', receivedCount: 1, receivedAmount: 0.2, voidedCount: 0, voidedAmount: 0 },
     ]).other.net).toBe(0.3);
     expect(summarizeMethods([]).all).toEqual({ count: 0, received: 0, voided: 0, net: 0 });
+  });
+});
+
+describe('closingStatusLabel', () => {
+  it('un día cerrado sin movimientos se muestra como "Gimnasio cerrado"', () => {
+    expect(closingStatusLabel({ status: 'NO_ACTIVITY', wasOpenDay: false })).toBe('Gimnasio cerrado');
+    expect(closingStatusLabel({ status: 'NO_ACTIVITY', wasOpenDay: true })).toBe('Sin movimientos');
+  });
+
+  it('un día cerrado con movimientos conserva el estado de un día normal', () => {
+    expect(closingStatusLabel({ status: 'PENDING_COUNT', wasOpenDay: false })).toBe('Pendiente de arqueo');
+    expect(closingStatusLabel({ status: 'COUNTED', wasOpenDay: false })).toBe('Cuadrado');
   });
 });

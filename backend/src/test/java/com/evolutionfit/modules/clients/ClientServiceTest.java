@@ -45,7 +45,7 @@ class ClientServiceTest {
     }
 
     private static ClientRequest request(String type, String number) {
-        return new ClientRequest(type, number, " Ana ", " Gómez ", " ", "", null, "  ", null);
+        return new ClientRequest(type, number, " Ana ", " Gómez ", " ", "+57 300 123-4567", null, "  ", null);
     }
 
     private static Client existing(Long id, boolean active) {
@@ -74,9 +74,40 @@ class ClientServiceTest {
         assertThat(response.firstName()).isEqualTo("Ana");
         assertThat(response.lastName()).isEqualTo("Gómez");
         assertThat(response.email()).isNull();
-        assertThat(response.phone()).isNull();
+        assertThat(response.phone()).isEqualTo("3001234567"); // formato del sistema: 10 dígitos
         assertThat(response.address()).isNull();
         assertThat(response.active()).isTrue();
+    }
+
+    @Test
+    void theMobileIsRequiredWhenRegisteringAClient() {
+        when(clientRepository.existsByDocumentNumber("1234567")).thenReturn(false);
+        ClientRequest withoutPhone = new ClientRequest("CC", "1234567", "Ana", "Gómez", null, " ", null, null, null);
+
+        assertThatThrownBy(() -> service.create(withoutPhone)).isInstanceOf(BusinessException.class)
+                .hasMessage("El celular es obligatorio");
+        verify(clientRepository, never()).save(any());
+    }
+
+    @Test
+    void aLandlineOrAShortNumberIsRejected() {
+        when(clientRepository.existsByDocumentNumber("1234567")).thenReturn(false);
+        ClientRequest landline = new ClientRequest("CC", "1234567", "Ana", "Gómez", null, "601 555 1234", null, null, null);
+
+        assertThatThrownBy(() -> service.create(landline)).isInstanceOf(BusinessException.class)
+                .hasMessageContaining("10 dígitos");
+    }
+
+    @Test
+    void anExistingClientWithoutPhoneMustAddItWhenEdited() {
+        Client old = existing(1L, true); // cliente registrado antes de la regla, sin teléfono
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(old));
+        when(clientRepository.existsByDocumentNumberAndIdNot("1234567", 1L)).thenReturn(false);
+        saveReturnsArgument();
+        ClientRequest stillWithout = new ClientRequest("CC", "1234567", "Ana", "Gómez", null, null, null, null, null);
+
+        assertThatThrownBy(() -> service.update(1L, stillWithout)).hasMessage("El celular es obligatorio");
+        assertThat(service.update(1L, request("CC", "1234567")).phone()).isEqualTo("3001234567");
     }
 
     @Test

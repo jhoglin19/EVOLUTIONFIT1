@@ -45,6 +45,7 @@ public class CashService {
     private final CashLedgerRepository ledgerRepository;
     private final CashClosingService closingService;
     private final CashCalendar calendar;
+    private final GymCalendar gymCalendar;
     private final AuditService auditService;
     private final Clock clock;
     private final TransactionTemplate tx;
@@ -52,14 +53,15 @@ public class CashService {
 
     public CashService(CashSettingsRepository settingsRepository, CashClosingRepository closingRepository,
                        CashMovementRepository movementRepository, CashLedgerRepository ledgerRepository,
-                       CashClosingService closingService, CashCalendar calendar, AuditService auditService,
-                       Clock clock, PlatformTransactionManager transactionManager) {
+                       CashClosingService closingService, CashCalendar calendar, GymCalendar gymCalendar,
+                       AuditService auditService, Clock clock, PlatformTransactionManager transactionManager) {
         this.settingsRepository = settingsRepository;
         this.closingRepository = closingRepository;
         this.movementRepository = movementRepository;
         this.ledgerRepository = ledgerRepository;
         this.closingService = closingService;
         this.calendar = calendar;
+        this.gymCalendar = gymCalendar;
         this.auditService = auditService;
         this.clock = clock;
         this.tx = new TransactionTemplate(transactionManager);
@@ -78,16 +80,17 @@ public class CashService {
             Long pendingReviews = isAdmin(user) ? closingRepository.countByStatus(CashClosingStatus.PENDING_REVIEW) : null;
             LocalDateTime now = LocalDateTime.now(clock);
             if (!started(settings, now)) {
-                return new CashTodayResponse(false, settings.getStartDate(), null, null, null, false, null, List.of(),
+                return new CashTodayResponse(false, settings.getStartDate(), null, null, null, false, null, null, List.of(),
                         pendingCounts, pendingReviews);
             }
             LocalDateTime cashStart = calendar.cashStart(settings.getStartDate());
             Optional<CashClosing> last = closingRepository.findTopByOrderByCashDateDesc();
             LocalDate cashDate = max(calendar.cashDayOf(now), settings.getStartDate());
             CashLedger ledger = ledgerRepository.open(cashStart);
+            GymCalendar.DayInfo day = gymCalendar.day(cashDate, settings);
             return new CashTodayResponse(true, settings.getStartDate(), cashDate,
                     last.map(CashClosing::getWindowEnd).orElse(cashStart), calendar.cutoff(cashDate),
-                    settings.isOpenOn(cashDate), CashCalculator.summarize(settings.getOpeningBase(), ledger),
+                    day.open(), day.closedReason(), CashCalculator.summarize(settings.getOpeningBase(), ledger),
                     CashCalculator.movements(ledger), pendingCounts, pendingReviews);
         });
     }
@@ -184,6 +187,9 @@ public class CashService {
             }
             s.setOpeningBase(request.openingBase());
             s.setOpenDaySet(new TreeSet<>(request.openDays()));
+            if (request.closedOnHolidays() != null) {
+                s.setClosedOnHolidays(request.closedOnHolidays());
+            }
             s.setUpdatedBy(adminId);
             CashSettings saved = settingsRepository.saveAndFlush(s);
             auditService.record(SETTINGS_ENTITY, (long) CashSettings.SINGLE_ID, AuditService.ACTION_UPDATE, before,
@@ -220,7 +226,7 @@ public class CashService {
 
     private CashSettingsResponse toResponse(CashSettings s) {
         return new CashSettingsResponse(s.getOpeningBase(), s.getStartDate(), closingRepository.count() > 0,
-                List.copyOf(new TreeSet<DayOfWeek>(s.openDaySet())), calendar.closingTime());
+                List.copyOf(new TreeSet<DayOfWeek>(s.openDaySet())), s.isClosedOnHolidays(), calendar.closingTime());
     }
 
     private WithdrawalResponse toResponse(CashMovement m) {
@@ -254,6 +260,7 @@ public class CashService {
         m.put("openingBase", s.getOpeningBase());
         m.put("startDate", s.getStartDate() == null ? null : s.getStartDate().toString());
         m.put("openDays", s.getOpenDays());
+        m.put("closedOnHolidays", s.isClosedOnHolidays());
         return m;
     }
 }

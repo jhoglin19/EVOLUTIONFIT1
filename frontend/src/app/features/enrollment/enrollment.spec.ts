@@ -167,6 +167,8 @@ describe('Enrollment', () => {
     c.search.setValue('2002');
     c.findClient();
     c.clientForm.patchValue({ firstName: 'Luis', lastName: 'Gómez' });
+    expect(c.clientForm.controls.phone.hasError('required')).toBe(true);
+    c.clientForm.patchValue({ phone: '+57 311 514 8477' });
     c.planForm.controls.planId.setValue(2);
     c.paymentForm.patchValue({ method: 'NEQUI', reference: ' 987 ' });
 
@@ -178,6 +180,7 @@ describe('Enrollment', () => {
       documentNumber: '2002',
       firstName: 'Luis',
       lastName: 'Gómez',
+      phone: '3115148477',
     });
     expect(request.planId).toBe(2);
     expect(request.payment).toMatchObject({

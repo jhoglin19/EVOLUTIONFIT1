@@ -9,9 +9,9 @@
   @if (detail(); as d) {
     @let c = d.closing;
     <p class="sub">
-      {{ statusLabels[c.status] }} · periodo {{ c.windowStart | date: 'd MMM h:mm a' }} – {{ c.windowEnd | date: 'd MMM h:mm a' }}
+      {{ statusName(c) }} · periodo {{ c.windowStart | date: 'd MMM h:mm a' }} – {{ c.windowEnd | date: 'd MMM h:mm a' }}
       · cerrado {{ c.closedAt | date: 'd MMM h:mm a' }}{{ c.closingMode === 'CATCH_UP' ? ' (puesto al día)' : '' }}
-      {{ c.wasOpenDay ? '' : '· día marcado como cerrado' }}
+      {{ c.wasOpenDay || c.status === 'NO_ACTIVITY' ? '' : '· gimnasio cerrado (con movimientos)' }}
     </p>
 
     <h3>Efectivo congelado al corte</h3>

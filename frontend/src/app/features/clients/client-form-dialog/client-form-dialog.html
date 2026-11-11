@@ -58,10 +58,12 @@
 
     <div class="row">
       <mat-form-field appearance="outline">
-        <mat-label>Teléfono (opcional)</mat-label>
-        <input matInput formControlName="phone" autocomplete="off" />
-        @if (form.controls.phone.hasError('pattern')) {
-          <mat-error>Entre 7 y 30 caracteres: dígitos, +, paréntesis, guion o espacios</mat-error>
+        <mat-label>Celular</mat-label>
+        <input matInput type="tel" inputmode="tel" formControlName="phone" autocomplete="off" placeholder="300 123 4567" />
+        @if (form.controls.phone.hasError('required')) {
+          <mat-error>El celular es obligatorio</mat-error>
+        } @else if (form.controls.phone.hasError('mobile')) {
+          <mat-error>{{ mobileError }}</mat-error>
         }
       </mat-form-field>
 

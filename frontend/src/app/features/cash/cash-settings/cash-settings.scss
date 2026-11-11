@@ -35,3 +35,86 @@ fieldset {
   display: flex;
   justify-content: flex-end;
 }
+
+.calendar {
+  max-width: 760px;
+  margin-top: 32px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  .year {
+    width: 120px;
+  }
+}
+
+.exception {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 12px;
+  margin: 12px 0;
+
+  mat-form-field {
+    flex: 0 1 170px;
+  }
+
+  .note {
+    flex: 1 1 200px;
+  }
+
+  button {
+    margin-top: 8px;
+  }
+}
+
+.days {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    > div {
+      display: flex;
+      flex: 1 1 260px;
+      flex-direction: column;
+    }
+  }
+
+  .state {
+    min-width: 70px;
+    font-weight: 500;
+    color: var(--mat-sys-error);
+  }
+
+  li.open .state {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.sub {
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+}

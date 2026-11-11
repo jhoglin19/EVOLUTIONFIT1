@@ -38,8 +38,9 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
   - Fase 6: caja (backend, frontend y migración V5). Cierre automático a las 10 p.m. de Bogotá que se pone al día al arrancar, retiros, arqueo ajustado por los movimientos posteriores al corte, revisión del ADMIN y reporte mensual. Probada de punta a punta por API contra una copia del respaldo; falta probarla en el navegador.
 - Pendiente:
   - Cargar los datos reales del gimnasio desde "Datos del comprobante" (nunca en el código).
-  - Puesta en marcha: definir un procedimiento seguro para borrar los datos de prueba (docs/REGLAS_NEGOCIO.md, sección 10); no está implementado. Luego, el ADMIN fija la fecha de inicio de la caja.
-  - Confirmar con el dueño la base fija, el efectivo sobrante y los días que abre (hoy rigen valores por defecto).
+  - Puesta en marcha: definir un procedimiento seguro para borrar los datos de prueba y reiniciar el consecutivo de comprobantes a 1 (docs/REGLAS_NEGOCIO.md, sección 10); no está implementado. Luego, el ADMIN fija la fecha de inicio de la caja.
+  - Confirmar con el dueño qué se hace con el efectivo sobrante después del arqueo (hoy rige el valor por defecto).
+- Ajustes posteriores a la fase 6: celular colombiano obligatorio en clientes, días de atención (lunes a sábado, festivos de Colombia calculados en ColombianHolidays, excepciones del ADMIN; migración V6).
   - Siguiente: control de acceso (incluye el hardware de la fase 8). Luego, notificaciones/dashboard/reportes.
 - Caja: los ingresos se leen de payments (no hay movimientos INCOME); cash_movements guarda solo retiros. Un cierre solo marca filas sin marcar (cash_closing_id); nunca recalcular ni editar un cierre.
-- Pruebas con MySQL real: V3MigrationTest, V4MigrationTest, V5MigrationTest, MembershipConcurrencyTest, PaymentConcurrencyTest, CashClosingMySqlTest y CashConcurrencyTest usan Testcontainers. Con Docker apagado se omiten (aparecen como Skipped), así que hay que revisarlo antes de dar una fase por terminada.
+- Pruebas con MySQL real: V3MigrationTest, V4MigrationTest, V5MigrationTest, V6MigrationTest, MembershipConcurrencyTest, PaymentConcurrencyTest, CashClosingMySqlTest y CashConcurrencyTest usan Testcontainers. Con Docker apagado se omiten (aparecen como Skipped), así que hay que revisarlo antes de dar una fase por terminada.

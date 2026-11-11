@@ -47,14 +47,14 @@
               @if (c.closingMode === 'CATCH_UP') {
                 <div class="sub">Cerrado al ponerse al día</div>
               }
-              @if (!c.wasOpenDay) {
-                <div class="sub">Gimnasio cerrado</div>
+              @if (!c.wasOpenDay && c.status !== 'NO_ACTIVITY') {
+                <div class="sub">Gimnasio cerrado (con movimientos)</div>
               }
             </td>
           </ng-container>
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
-            <td mat-cell *matCellDef="let c"><span class="chip" [class]="c.status">{{ statusName(c.status) }}</span></td>
+            <td mat-cell *matCellDef="let c"><span class="chip" [class]="c.status">{{ statusName(c) }}</span></td>
           </ng-container>
           <ng-container matColumnDef="expected">
             <th mat-header-cell *matHeaderCellDef>Esperado</th>

@@ -41,6 +41,18 @@ describe('CashService', () => {
     expect(http.expectOne((r) => r.url === '/api/cash/reports/monthly').request.params.get('month')).toBe('2026-11');
   });
 
+  it('consulta el calendario y marca o quita excepciones por fecha', () => {
+    const { api, http } = setup();
+    api.calendar(2026).subscribe();
+    expect(http.expectOne((r) => r.url === '/api/cash/calendar').request.params.get('year')).toBe('2026');
+    api.setDay('2026-12-08', true, 'Horario especial').subscribe();
+    const put = http.expectOne('/api/cash/calendar/2026-12-08');
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual({ open: true, note: 'Horario especial' });
+    api.clearDay('2026-12-08').subscribe();
+    expect(http.expectOne('/api/cash/calendar/2026-12-08').request.method).toBe('DELETE');
+  });
+
   it('solo envía los filtros con valor', () => {
     const { api, http } = setup();
     api.closings({ from: '2026-11-01', to: null, status: 'PENDING_REVIEW' }, 0, 31).subscribe();

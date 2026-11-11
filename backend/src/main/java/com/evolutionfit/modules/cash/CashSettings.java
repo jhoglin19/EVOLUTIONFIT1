@@ -20,7 +20,7 @@ import lombok.Setter;
 
 /**
  * Configuración de caja (una fila, id = 1, creada por V5). start_date NULL: la caja no ha empezado.
- * Base fija y días que abre: valores por defecto "por confirmar" con el dueño.
+ * Base fija de $50.000 y lunes a sábado (respuestas del dueño); festivos de Colombia cerrados.
  */
 @Entity
 @Table(name = "cash_settings")
@@ -44,6 +44,10 @@ public class CashSettings {
     @Column(name = "open_days", nullable = false, length = 40)
     private String openDays;
 
+    /** Cerrado en los festivos de Colombia (ColombianHolidays). */
+    @Column(name = "closed_on_holidays", nullable = false)
+    private boolean closedOnHolidays = true;
+
     @Column(name = "updated_by")
     private Long updatedBy;
 
@@ -63,7 +67,8 @@ public class CashSettings {
         this.openDays = days.stream().sorted().map(d -> d.name().substring(0, 3)).collect(Collectors.joining(","));
     }
 
-    public boolean isOpenOn(LocalDate day) {
+    /** Solo el día de la semana. Para saber si abre una fecha, usar GymCalendar (festivos y excepciones). */
+    public boolean isOpenWeekday(LocalDate day) {
         return openDaySet().contains(day.getDayOfWeek());
     }
 

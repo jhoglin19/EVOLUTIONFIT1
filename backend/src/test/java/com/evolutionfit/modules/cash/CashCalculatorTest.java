@@ -131,8 +131,8 @@ class CashCalculatorTest {
         CashSettings s = new CashSettings();
         s.setOpenDaySet(EnumSet.of(DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.SATURDAY));
         assertThat(s.getOpenDays()).isEqualTo("MON,SAT,SUN");
-        assertThat(s.isOpenOn(LocalDate.of(2026, 11, 9))).isTrue();   // lunes
-        assertThat(s.isOpenOn(LocalDate.of(2026, 11, 10))).isFalse(); // martes
+        assertThat(s.isOpenWeekday(LocalDate.of(2026, 11, 9))).isTrue();   // lunes
+        assertThat(s.isOpenWeekday(LocalDate.of(2026, 11, 10))).isFalse(); // martes
         s.setOpenDays("MON,TUE,WED,THU,FRI,SAT,SUN");
         assertThat(s.openDaySet()).hasSize(7);
     }

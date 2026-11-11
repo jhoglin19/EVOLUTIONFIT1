@@ -8,5 +8,6 @@ import java.util.List;
 
 /** startDateLocked: ya hay cierres y la fecha de inicio no se puede cambiar. */
 public record CashSettingsResponse(BigDecimal openingBase, LocalDate startDate, boolean startDateLocked,
-                                   List<DayOfWeek> openDays, LocalTime closingTime) {
+                                   List<DayOfWeek> openDays, boolean closedOnHolidays,
+                                   LocalTime closingTime) {
 }

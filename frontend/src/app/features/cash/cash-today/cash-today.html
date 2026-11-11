@@ -7,7 +7,7 @@
           Día de caja {{ today()!.cashDate | date: 'EEEE d MMM y' }} · cierre automático a las
           {{ today()!.cutoffAt | date: 'h:mm a' }}
           @if (!today()!.openDay) {
-            · <b>día marcado como cerrado</b>
+            · <b class="closed">Gimnasio cerrado</b>{{ today()!.closedReason ? ' (' + today()!.closedReason + ')' : '' }}
           }
         </p>
       } @else {
@@ -29,6 +29,15 @@
     <div class="alert" role="alert">
       {{ error() }}
       <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  @if (today()?.started && !today()!.openDay) {
+    <div class="notice" role="status">
+      <div>
+        <b>Gimnasio cerrado</b>{{ today()!.closedReason ? ': ' + today()!.closedReason : '' }}. No hay arqueo obligatorio si no hay
+        movimientos en efectivo; si se registra alguno, el día se cuadra como un día normal.
+      </div>
     </div>
   }
 

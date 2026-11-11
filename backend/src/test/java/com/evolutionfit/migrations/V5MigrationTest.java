@@ -57,7 +57,7 @@ class V5MigrationTest {
                     values (1,1,'INCOME',90000,'Pago mensual de prueba','2026-11-08 23:07:22')""");
         }
 
-        flyway(null).migrate();
+        flyway("5").migrate(); // solo V5: V6 cambia los días de atención (lo verifica V6MigrationTest)
 
         try (Connection c = connection(); Statement s = c.createStatement()) {
             ResultSet m = s.executeQuery("select * from cash_movements where id = 1");

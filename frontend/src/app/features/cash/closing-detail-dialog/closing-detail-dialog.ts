@@ -6,7 +6,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { errorMessage } from '../../../core/utils/error-message';
 import {
-  CLOSING_STATUS_LABELS,
+  closingStatusLabel,
   CashClosingDetail,
   CashMovement,
   MOVEMENT_LABELS,
@@ -29,7 +29,7 @@ export class ClosingDetailDialog {
 
   readonly detail = signal<CashClosingDetail | null>(null);
   readonly error = signal<string | null>(null);
-  readonly statusLabels = CLOSING_STATUS_LABELS;
+  readonly statusName = closingStatusLabel;
   readonly methodName = methodLabel;
 
   constructor() {

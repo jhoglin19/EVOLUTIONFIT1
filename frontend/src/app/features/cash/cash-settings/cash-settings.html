@@ -4,7 +4,7 @@
       <h1>Configuración de caja</h1>
       <p>
         Cierre automático diario a las {{ settings()?.closingTime?.slice(0, 5) ?? '22:00' }} (hora de Bogotá).
-        Base fija y días de apertura: valores por defecto, por confirmar con el dueño.
+        Base fija de $50.000; abre de lunes a sábado y cierra domingos y festivos de Colombia.
       </p>
     </div>
   </div>
@@ -40,7 +40,11 @@
       @for (d of days; track d.value) {
         <mat-checkbox [checked]="openDays().has(d.value)" (change)="toggleDay(d.value, $event.checked)">{{ d.label }}</mat-checkbox>
       }
-      <p class="hint">Los días cerrados igual tienen cierre (sin arqueo si no hubo movimientos en efectivo).</p>
+      <mat-checkbox formControlName="closedOnHolidays">Cerrado en los festivos de Colombia</mat-checkbox>
+      <p class="hint">
+        Los días cerrados igual tienen cierre: sin movimientos en efectivo no exigen arqueo; si tuvieron movimientos, se
+        cuadran como un día normal. Los cierres ya guardados no cambian.
+      </p>
     </fieldset>
 
     @if (error()) {
@@ -51,4 +55,74 @@
       <button mat-flat-button type="submit" [disabled]="saving() || !settings()">Guardar</button>
     </div>
   </form>
+
+  <section class="calendar" aria-label="Calendario de atención">
+    <div class="calendar-header">
+      <h2>Festivos y excepciones</h2>
+      <mat-form-field appearance="outline" class="year">
+        <mat-label>Año</mat-label>
+        <mat-select [formControl]="year">
+          @for (y of years; track y) {
+            <mat-option [value]="y">{{ y }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <p class="hint">
+      Festivos calculados por ley (fijos, trasladados al lunes y de Semana Santa). Puedes abrir o cerrar una fecha
+      concreta; un día que ya tiene cierre de caja no se puede cambiar.
+    </p>
+
+    @if (calendarError()) {
+      <p class="error" role="alert">{{ calendarError() }}</p>
+    }
+
+    <form class="exception" [formGroup]="exception" (ngSubmit)="saveException()" novalidate>
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha</mat-label>
+        <input matInput type="date" formControlName="date" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Ese día</mat-label>
+        <mat-select formControlName="open">
+          <mat-option [value]="true">Abre</mat-option>
+          <mat-option [value]="false">Cierra</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="note">
+        <mat-label>Nota (opcional)</mat-label>
+        <input matInput formControlName="note" maxlength="255" />
+      </mat-form-field>
+      <button mat-stroked-button type="submit">Guardar excepción</button>
+    </form>
+
+    @if (calendar(); as c) {
+      <ul class="days">
+        @for (d of c.days; track d.date) {
+          <li [class.open]="d.open">
+            <div>
+              <b>{{ d.date | date: 'EEE d MMM y' }}</b>
+              <span class="sub">
+                {{ d.holiday ?? 'Excepción' }}
+                @if (d.overridden) {
+                  · excepción del administrador{{ d.note ? ': ' + d.note : '' }}
+                }
+              </span>
+            </div>
+            <span class="state">{{ d.open ? 'Abierto' : 'Cerrado' }}</span>
+            @if (d.locked) {
+              <span class="sub">Ya cerrado en caja</span>
+            } @else {
+              <button mat-button type="button" (click)="toggle(d)" [attr.aria-label]="(d.open ? 'Cerrar ' : 'Abrir ') + d.date">
+                {{ d.open ? 'Cerrar este día' : 'Abrir este día' }}
+              </button>
+              @if (d.overridden) {
+                <button mat-button type="button" (click)="clear(d)" [attr.aria-label]="'Quitar excepción ' + d.date">Quitar excepción</button>
+              }
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
 </div>

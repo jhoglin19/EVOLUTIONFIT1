@@ -12,6 +12,8 @@ import {
   ClosingFilters,
   CountPreview,
   CountRequest,
+  GymCalendar,
+  CalendarDay,
   MonthlyReport,
   Withdrawal,
   WithdrawalCategory,
@@ -98,5 +100,17 @@ export class CashService {
 
   updateSettings(request: CashSettingsRequest): Observable<CashSettings> {
     return this.http.put<CashSettings>(`${this.url}/settings`, request);
+  }
+
+  calendar(year: number): Observable<GymCalendar> {
+    return this.http.get<GymCalendar>(`${this.url}/calendar`, { params: { year } });
+  }
+
+  setDay(date: string, open: boolean, note: string | null): Observable<CalendarDay> {
+    return this.http.put<CalendarDay>(`${this.url}/calendar/${date}`, { open, note });
+  }
+
+  clearDay(date: string): Observable<CalendarDay> {
+    return this.http.delete<CalendarDay>(`${this.url}/calendar/${date}`);
   }
 }

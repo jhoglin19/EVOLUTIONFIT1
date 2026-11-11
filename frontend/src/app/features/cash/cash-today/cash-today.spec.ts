@@ -103,6 +103,13 @@ describe('CashTodayPage', () => {
     expect(api.voidWithdrawal).toHaveBeenCalledWith(4, 'Error');
   });
 
+  it('un domingo o festivo muestra "Gimnasio cerrado" con el motivo', () => {
+    const { el } = setup('RECEPTIONIST', { ...TODAY, openDay: false, closedReason: 'Festivo: Independencia de Cartagena' });
+    expect(el.textContent).toContain('Gimnasio cerrado');
+    expect(el.textContent).toContain('Festivo: Independencia de Cartagena');
+    expect(el.textContent).toContain('No hay arqueo obligatorio');
+  });
+
   it('sin fecha de inicio avisa que la caja no ha empezado', () => {
     const { el } = setup('RECEPTIONIST', { ...TODAY, started: false, startDate: null, summary: null, movements: [] });
     expect(el.textContent).toContain('La caja todavía no ha empezado');

@@ -131,4 +131,19 @@ class PaymentControllerSecurityTest {
                 .andExpect(jsonPath("$.fieldErrors.expectedAmount").exists());
         verifyNoInteractions(commands);
     }
+
+    @Test
+    void theWizardRequiresAMobileOnlyForANewClient() throws Exception {
+        String newClientWithoutPhone = """
+                {"client":{"documentType":"CC","documentNumber":"1001","firstName":"Ana","lastName":"Pérez"},"planId":2,
+                 "payment":{"requestId":"3f1c2a9e-1b2c-4d5e-8f90-123456789abc","method":"CASH","expectedAmount":90000}}
+                """;
+        mvc.perform(json(post("/api/enrollments"), newClientWithoutPhone).with(receptionist()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors['client.phone']").value("El celular es obligatorio"));
+        verifyNoInteractions(commands);
+
+        // Un cliente existente (aunque no tenga teléfono) se inscribe por su id, sin enviar sus datos.
+        mvc.perform(json(post("/api/enrollments"), ENROLLMENT).with(receptionist())).andExpect(status().isCreated());
+    }
 }

@@ -2,6 +2,8 @@ package com.evolutionfit.modules.clients.dto;
 
 import java.time.LocalDate;
 
+import com.evolutionfit.common.validation.ColombianMobile;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
@@ -29,8 +31,9 @@ public record ClientRequest(
         @Size(max = 150, message = "El correo no puede superar 150 caracteres")
         String email,
 
-        @Pattern(regexp = "^$|^[0-9+()\\s-]{7,30}$",
-                message = "El teléfono debe tener entre 7 y 30 caracteres: dígitos, +, paréntesis, guion o espacios")
+        /** Obligatorio al crear y al editar (los clientes antiguos sin teléfono lo completan al editarlos). */
+        @NotBlank(message = "El celular es obligatorio")
+        @ColombianMobile
         String phone,
 
         @PastOrPresent(message = "La fecha de nacimiento no puede ser futura")

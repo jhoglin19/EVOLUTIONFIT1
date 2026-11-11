@@ -45,7 +45,7 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
 Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por ahora" y "recepción ve su turno").
 
 1. **Un solo recepcionista y una sola caja.** Hay **un solo cierre por día**.
-2. **Base de $50.000 cada día.** La base está incluida en el efectivo esperado.
+2. **Base fija de $50.000 todos los días** (confirmado por el dueño). La base está incluida en el efectivo esperado.
 3. **Solo se cuadra el efectivo.** Transferencias, Nequi, Daviplata y tarjeta aparecen en el cierre solo como informe del día.
 4. **Retiros de efectivo** para gastos del gimnasio (servilletas y cosas varias):
    - Se registran con **monto** y **concepto obligatorio**, y una **categoría** (por ejemplo: insumos, aseo, otros).
@@ -58,6 +58,10 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 8. **Un pago anulado se descuenta el día en que se anula**, no el día en que se pagó. **Los días ya cerrados nunca cambian.**
 9. **Reporte mensual:** es solo un informe. Suma los cierres diarios del mes, con totales por método de pago.
 10. **Permisos:** recepción solo ve el día en curso y su arqueo pendiente. El ADMIN ve y revisa todo.
+11. **Días de atención** (confirmado por el dueño): el gimnasio **abre de lunes a sábado**. **Domingos y festivos de Colombia está cerrado.**
+    - El ADMIN puede marcar una fecha concreta como abierta o cerrada.
+    - En caja, un día cerrado se muestra como "Gimnasio cerrado" y no exige arqueo. Si aun así tuvo movimientos en efectivo, se trata como un día normal.
+    - Los cierres ya guardados no cambian.
 
 ## 5. Control de acceso
 
@@ -72,13 +76,17 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 ## 6. Comprobantes y avisos
 
 1. El comprobante es un **PDF interno**, **no es factura electrónica DIAN**.
-2. **Consecutivo continuo.** El **prefijo está pendiente** de definir (debe quedar configurable).
+2. **Consecutivo continuo.** La **numeración empieza en 1** (confirmado por el dueño). El prefijo es `EF-` y es configurable.
 3. Los **avisos son solo dentro del sistema** (sin correo, SMS ni WhatsApp).
 
 ## 7. Clientes
 
 1. Los clientes **no se borran, se desactivan**.
 2. Se **migrarán poco a poco** desde otro sistema, **sin importación masiva**.
+3. **El celular es obligatorio al registrar un cliente**, también en el asistente de inscripción:
+   - Es un celular colombiano de 10 dígitos que empieza por 3.
+   - Se acepta con el indicativo +57 y con espacios, guiones o paréntesis, pero se guarda solo con los 10 dígitos (por ejemplo, `3001234567`), como ya lo hacía el sistema.
+   - Los clientes registrados antes sin teléfono siguen funcionando (se pueden inscribir y cobrar); el celular se les exige cuando se editan sus datos.
 
 ---
 
@@ -193,19 +201,30 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 9. **Permisos:** recepción ve el día en curso, registra retiros y sus arqueos pendientes. El ADMIN además ve el historial, todos los retiros, el detalle de cada cierre, el reporte mensual y la configuración.
 10. **Auditoría (`audit_logs`):** cierres (hechos por el sistema), retiros y sus anulaciones, arqueos, revisiones, reaperturas y cambios de configuración.
 
+11. **Calendario de atención** (sección 4, punto 11):
+    - Los días que abre se configuran en `cash_settings.open_days` (V6: lunes a sábado).
+    - Los festivos de Colombia se calculan por ley, sin cargarlos a mano:
+      - Fijos: 1 de enero, 1 de mayo, 20 de julio, 7 de agosto, 8 y 25 de diciembre.
+      - Trasladados al lunes siguiente (Ley Emiliani): 6 de enero, 19 de marzo, 29 de junio, 15 de agosto, 12 de octubre, 1 y 11 de noviembre, y desde 2026 el 9 de julio (Nuestra Señora del Rosario de Chiquinquirá, Ley 2578 de 2026).
+      - Según la Semana Santa: Jueves y Viernes Santo, Ascensión, Corpus Christi y Sagrado Corazón.
+      - Las pruebas verifican 2026 y 2027 contra el calendario oficial (19 festivos cada año).
+    - Se puede desactivar el cierre en festivos (`closed_on_holidays`).
+    - **Excepciones del ADMIN** (`gym_calendar_overrides`): abrir un festivo o domingo, o cerrar un día normal, con nota opcional. Prevalecen sobre la regla general. No se pueden poner ni quitar en un día que ya tiene cierre de caja.
+    - Al cerrar la caja, el cierre guarda si ese día abría (`was_open_day`); cambios posteriores del calendario no lo tocan.
+    - Quedan en `audit_logs` (`GYM_CALENDAR`).
+
 ### Interpretaciones de la fase 6 (a confirmar con el dueño)
 
-- **Base fija (por confirmar):** $50.000 todos los días. El ADMIN la cambia en "Configuración de caja" y aplica a los días que aún no se cierran.
 - **Efectivo sobrante (por confirmar):** después del arqueo, el dueño retira todo lo que pase de la base, fuera del sistema. El día siguiente arranca otra vez con la base y la diferencia no se arrastra.
-- **Días que abre (por confirmar):** todos los días. Configurable; un día marcado como cerrado igual tiene cierre.
 - **Arqueo atrasado:** el ajuste incluye todo lo que entró o salió desde el corte hasta el momento de contar. Si se cuenta varios días tarde, el ajuste cubre esos días. Lo recomendable es contar antes de abrir el día siguiente.
 - **Anulación de un pago de un día ya cerrado:** se descuenta hoy, aunque el efectivo esperado quede negativo (por ejemplo, la devolución de una anualidad pagada ayer). Mientras quede negativo no se pueden registrar retiros.
 - **Pago guardado justo en el corte:** si un pago empieza a las 9:59 p.m. y termina de guardarse después del cierre, cuenta para el día siguiente; nunca se pierde ni se cuenta dos veces.
 
 ### Pendiente de la puesta en marcha (no implementado)
 
+- **Antes de la puesta en marcha se borran los datos de prueba y se reinicia el consecutivo** (decisión del dueño). La numeración de comprobantes vuelve a empezar en 1.
 - **Procedimiento seguro para borrar los datos de prueba antes de operar con datos reales:**
-  - Qué se borra: clientes, membresías, congelaciones, pagos, comprobantes, retiros, cierres y totales de caja. También se reinician los consecutivos (comprobantes) y la fecha de inicio de la caja.
+  - Qué se borra: clientes, membresías, congelaciones, pagos, comprobantes, retiros, cierres y totales de caja. También se reinician el consecutivo de comprobantes (a 1) y la fecha de inicio de la caja.
   - Debe hacerse con respaldo previo, sobre una base sin uso real, con confirmación explícita y dejando constancia.
   - Hasta tenerlo, no se borran datos a mano.
 
@@ -213,9 +232,5 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 
 ## Pendientes de definir
 
-- El prefijo del consecutivo ya se definió en la fase 5: `EF-`, editable.
-- **Caja (por confirmar con el dueño; hoy rigen los valores por defecto de la sección 10):**
-  - ¿La base de $50.000 es fija todos los días?
-  - ¿Qué se hace con el efectivo que sobra después del arqueo?
-  - ¿El gimnasio abre todos los días?
-- **Puesta en marcha:** procedimiento seguro para borrar los datos de prueba (sección 10).
+- **Caja (por confirmar con el dueño):** ¿qué se hace con el efectivo que sobra después del arqueo? Hoy rige el valor por defecto de la sección 10.
+- **Puesta en marcha:** falta implementar el procedimiento seguro para borrar los datos de prueba y reiniciar el consecutivo (sección 10).

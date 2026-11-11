@@ -25,6 +25,7 @@ import {
   WITHDRAWAL_CATEGORIES,
   Withdrawal,
   WithdrawalCategory,
+  closingStatusLabel,
 } from '../../../shared/models/cash.model';
 import { todayInGym } from '../../../shared/utils/dates';
 import { CashService } from '../cash.service';
@@ -119,8 +120,8 @@ export class CashClosingsPage {
     });
   }
 
-  statusName(status: CashClosingStatus): string {
-    return CLOSING_STATUS_LABELS[status];
+  statusName(c: CashClosing): string {
+    return closingStatusLabel(c);
   }
 
   onPage(event: PageEvent): void {

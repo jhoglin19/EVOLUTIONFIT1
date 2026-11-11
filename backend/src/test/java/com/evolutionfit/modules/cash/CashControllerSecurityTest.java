@@ -67,6 +67,8 @@ class CashControllerSecurityTest {
     @MockBean
     private CashReportService reportService;
     @MockBean
+    private GymCalendarService calendarService;
+    @MockBean
     private JwtService jwtService;
     @MockBean
     private AuthUserDetailsService userDetailsService;
@@ -115,6 +117,11 @@ class CashControllerSecurityTest {
         mvc.perform(get("/api/cash/reports/monthly?month=2026-11").with(receptionist())).andExpect(status().isForbidden());
         mvc.perform(get("/api/cash/settings").with(receptionist())).andExpect(status().isForbidden());
         mvc.perform(json(put("/api/cash/settings"), SETTINGS).with(receptionist())).andExpect(status().isForbidden());
+        mvc.perform(get("/api/cash/calendar?year=2026").with(receptionist())).andExpect(status().isForbidden());
+        mvc.perform(json(put("/api/cash/calendar/2026-12-08"), "{\"open\":true}").with(receptionist()))
+                .andExpect(status().isForbidden());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/cash/calendar/2026-12-08")
+                .with(receptionist())).andExpect(status().isForbidden());
 
         verifyNoInteractions(reportService);
         verify(cashService, org.mockito.Mockito.never()).voidWithdrawal(any(), any(), any());
@@ -133,6 +140,11 @@ class CashControllerSecurityTest {
         mvc.perform(json(post("/api/cash/closings/3/reopen-count"), REASON).with(admin())).andExpect(status().isOk());
         mvc.perform(get("/api/cash/reports/monthly?month=2026-11").with(admin())).andExpect(status().isOk());
         mvc.perform(json(put("/api/cash/settings"), SETTINGS).with(admin())).andExpect(status().isOk());
+        mvc.perform(get("/api/cash/calendar?year=2026").with(admin())).andExpect(status().isOk());
+        mvc.perform(json(put("/api/cash/calendar/2026-12-08"), "{\"open\":true,\"note\":\"Horario especial\"}")
+                .with(admin())).andExpect(status().isOk());
+        mvc.perform(json(put("/api/cash/calendar/2026-12-08"), "{}").with(admin())).andExpect(status().isBadRequest());
+        verify(calendarService).set(java.time.LocalDate.of(2026, 12, 8), true, "Horario especial", 7L);
 
         verify(countService).review(3L, "Revisado con recepción", 7L);
         verify(cashService).voidWithdrawal(1L, "Error de digitación", 7L);

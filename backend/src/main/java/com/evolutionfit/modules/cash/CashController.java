@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.evolutionfit.common.PageResponse;
+import com.evolutionfit.modules.cash.dto.CalendarDayRequest;
+import com.evolutionfit.modules.cash.dto.CalendarResponse;
 import com.evolutionfit.modules.cash.dto.CashClosingDetailResponse;
 import com.evolutionfit.modules.cash.dto.CashClosingResponse;
 import com.evolutionfit.modules.cash.dto.CashSettingsRequest;
@@ -25,6 +27,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,11 +51,14 @@ public class CashController {
     private final CashService cashService;
     private final CashCountService countService;
     private final CashReportService reportService;
+    private final GymCalendarService calendarService;
 
-    public CashController(CashService cashService, CashCountService countService, CashReportService reportService) {
+    public CashController(CashService cashService, CashCountService countService, CashReportService reportService,
+                          GymCalendarService calendarService) {
         this.cashService = cashService;
         this.countService = countService;
         this.reportService = reportService;
+        this.calendarService = calendarService;
     }
 
     @GetMapping("/today")
@@ -155,5 +161,28 @@ public class CashController {
     public CashSettingsResponse updateSettings(@Valid @RequestBody CashSettingsRequest request,
                                                @AuthenticationPrincipal AuthUserDetails current) {
         return cashService.updateSettings(request, current.getId());
+    }
+
+    // ---- calendario de atención (ADMIN) ----
+
+    @GetMapping("/calendar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public CalendarResponse calendar(@RequestParam(required = false) Integer year) {
+        return calendarService.year(year);
+    }
+
+    @PutMapping("/calendar/{day}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public CalendarResponse.Day setDay(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day,
+                                       @Valid @RequestBody CalendarDayRequest request,
+                                       @AuthenticationPrincipal AuthUserDetails current) {
+        return calendarService.set(day, request.open(), request.note(), current.getId());
+    }
+
+    @DeleteMapping("/calendar/{day}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public CalendarResponse.Day clearDay(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day,
+                                         @AuthenticationPrincipal AuthUserDetails current) {
+        return calendarService.clear(day, current.getId());
     }
 }

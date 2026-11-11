@@ -30,6 +30,7 @@ import { Plan } from '../../shared/models/plan.model';
 import { planEndDate, todayInGym } from '../../shared/utils/dates';
 import { downloadPdf } from '../../shared/utils/pdf';
 import { receiptWhatsappUrl } from '../../shared/utils/whatsapp';
+import { MOBILE_ERROR, colombianMobileValidator, normalizeColombianMobile } from '../../shared/utils/phone';
 import { newRequestId } from '../../shared/utils/request-id';
 import { ClientsService } from '../clients/clients.service';
 import { MembershipsService } from '../memberships/memberships.service';
@@ -65,6 +66,7 @@ const normalizeDocument = (value: string) => value.replace(/[\s.-]/g, '').toUppe
   styleUrl: './enrollment.scss',
 })
 export class Enrollment {
+  readonly mobileError = MOBILE_ERROR;
   private readonly route = inject(ActivatedRoute);
   private readonly clientsApi = inject(ClientsService);
   private readonly plansApi = inject(PlansService);
@@ -97,7 +99,7 @@ export class Enrollment {
     lastName: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(80)] }),
     phone: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.pattern(/^$|^[0-9+()\s-]{7,30}$/)],
+      validators: [Validators.required, colombianMobileValidator],
     }),
     email: new FormControl('', { nonNullable: true, validators: [Validators.email, Validators.maxLength(150)] }),
   });
@@ -418,7 +420,7 @@ export class Enrollment {
       firstName: f.firstName.trim(),
       lastName: f.lastName.trim(),
       email: f.email.trim() || null,
-      phone: f.phone.trim() || null,
+      phone: normalizeColombianMobile(f.phone) ?? f.phone.trim(),
       birthDate: null,
       address: null,
       notes: null,

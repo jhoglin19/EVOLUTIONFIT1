@@ -18,6 +18,7 @@ import { finalize } from 'rxjs';
 
 import { errorMessage } from '../../../core/utils/error-message';
 import { Client, DOCUMENT_TYPES } from '../../../shared/models/client.model';
+import { MOBILE_ERROR, colombianMobileValidator, normalizeColombianMobile } from '../../../shared/utils/phone';
 import { ClientsService } from '../clients.service';
 
 export interface ClientFormData {
@@ -70,6 +71,7 @@ function notFuture(control: AbstractControl<string>): ValidationErrors | null {
   styleUrl: './client-form-dialog.scss',
 })
 export class ClientFormDialog {
+  readonly mobileError = MOBILE_ERROR;
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly api = inject(ClientsService);
   private readonly dialogRef = inject(MatDialogRef<ClientFormDialog, Client>);
@@ -90,7 +92,8 @@ export class ClientFormDialog {
     firstName: [this.data.client?.firstName ?? '', [Validators.required, Validators.maxLength(80)]],
     lastName: [this.data.client?.lastName ?? '', [Validators.required, Validators.maxLength(80)]],
     email: [this.data.client?.email ?? '', [Validators.email, Validators.maxLength(150)]],
-    phone: [this.data.client?.phone ?? '', [Validators.pattern(/^[0-9+()\s-]{7,30}$/)]],
+    // Obligatorio también al editar: un cliente antiguo sin teléfono lo completa aquí.
+    phone: [this.data.client?.phone ?? '', [Validators.required, colombianMobileValidator]],
     birthDate: [this.data.client?.birthDate ?? '', [notFuture]],
     address: [this.data.client?.address ?? '', [Validators.maxLength(200)]],
     notes: [this.data.client?.notes ?? '', [Validators.maxLength(2000)]],
@@ -124,7 +127,7 @@ export class ClientFormDialog {
       firstName: value.firstName.trim(),
       lastName: value.lastName.trim(),
       email: value.email.trim() || null,
-      phone: value.phone.trim() || null,
+      phone: normalizeColombianMobile(value.phone) ?? value.phone.trim(),
       birthDate: value.birthDate || null,
       address: value.address.trim() || null,
       notes: value.notes.trim() || null,

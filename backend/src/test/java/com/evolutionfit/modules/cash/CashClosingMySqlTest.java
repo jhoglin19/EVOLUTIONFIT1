@@ -10,6 +10,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
 
+import com.evolutionfit.common.calendar.ColombianHolidays;
 import com.evolutionfit.common.exception.BusinessException;
 import com.evolutionfit.common.exception.ConflictException;
 import com.evolutionfit.common.exception.ResourceNotFoundException;
@@ -29,6 +30,9 @@ import org.junit.jupiter.api.Test;
 
 /** Cierre automático, arqueo, retiros y reporte contra MySQL real, con el reloj movido a mano. */
 class CashClosingMySqlTest extends CashMySqlTestSupport {
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private GymCalendarService gymCalendarService;
 
     @Test
     void withoutAStartDateNothingIsClosedAndTheDayIsNotStarted() {
@@ -128,7 +132,7 @@ class CashClosingMySqlTest extends CashMySqlTestSupport {
         at(start.minusDays(1).atTime(12, 0));
         PaymentResponse old = pay(PaymentMethod.CASH);
         at(start.atTime(8, 0));
-        cashService.updateSettings(new CashSettingsRequest(new BigDecimal("50000"), start, EnumSet.allOf(DayOfWeek.class)),
+        cashService.updateSettings(new CashSettingsRequest(new BigDecimal("50000"), start, EnumSet.allOf(DayOfWeek.class), null),
                 admin.getId());
         at(start.atTime(9, 0));
         paymentService.voidPayment(old.id(), "Pago de prueba", admin.getId());
@@ -264,24 +268,25 @@ class CashClosingMySqlTest extends CashMySqlTestSupport {
     void theStartDateCannotBeInThePastAndLocksAfterTheFirstClosing() {
         LocalDate start = startCash();
         CashSettingsRequest past = new CashSettingsRequest(new BigDecimal("50000"), start.minusDays(1),
-                EnumSet.allOf(DayOfWeek.class));
+                EnumSet.allOf(DayOfWeek.class), null);
         assertThatThrownBy(() -> cashService.updateSettings(past, admin.getId())).hasMessageContaining("pasado");
 
         at(start.atTime(22, 0));
         closingService.closeDueDays();
         CashSettingsRequest later = new CashSettingsRequest(new BigDecimal("60000"), start.plusDays(5),
-                EnumSet.allOf(DayOfWeek.class));
+                EnumSet.allOf(DayOfWeek.class), null);
         assertThatThrownBy(() -> cashService.updateSettings(later, admin.getId())).hasMessageContaining("ya hay cierres");
 
         // La base sí cambia, pero solo para los días que todavía no se cierran.
         cashService.updateSettings(new CashSettingsRequest(new BigDecimal("60000"), start,
-                EnumSet.of(DayOfWeek.MONDAY)), admin.getId());
+                EnumSet.of(DayOfWeek.MONDAY), null), admin.getId());
         at(start.plusDays(1).atTime(22, 0));
         closingService.closeDueDays();
         assertThat(closing(start).getOpeningBase()).isEqualByComparingTo("50000");
         CashClosing next = closing(start.plusDays(1));
         assertThat(next.getOpeningBase()).isEqualByComparingTo("60000");
-        assertThat(next.isWasOpenDay()).isEqualTo(start.plusDays(1).getDayOfWeek() == DayOfWeek.MONDAY);
+        assertThat(next.isWasOpenDay()).isEqualTo(start.plusDays(1).getDayOfWeek() == DayOfWeek.MONDAY
+                && !ColombianHolidays.isHoliday(start.plusDays(1)));
         assertThat(audits("CASH_SETTINGS", "UPDATE")).isGreaterThanOrEqualTo(2);
     }
 
@@ -309,6 +314,102 @@ class CashClosingMySqlTest extends CashMySqlTestSupport {
         assertThat(r.methods()).extracting(CashSummary.MethodTotal::method)
                 .contains(PaymentMethod.CASH, PaymentMethod.NEQUI, PaymentMethod.DAVIPLATA);
         assertThat(r.pendingCounts()).isPositive();
+    }
+
+    // ---- días de atención ----
+
+    /** La caja empieza un día y se pone al día hasta incluir el primer día cerrado (domingo o festivo). */
+    private LocalDate firstClosedDayFrom(LocalDate start) {
+        LocalDate d = start;
+        while (d.getDayOfWeek() != DayOfWeek.SUNDAY && !ColombianHolidays.isHoliday(d)) {
+            d = d.plusDays(1);
+        }
+        return d;
+    }
+
+    private void mondayToSaturday(LocalDate start) {
+        cashService.updateSettings(new CashSettingsRequest(new BigDecimal("50000"), start,
+                EnumSet.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
+                        DayOfWeek.FRIDAY, DayOfWeek.SATURDAY), true), admin.getId());
+    }
+
+    @Test
+    void aClosedDayWithoutCashMovementsIsShownClosedAndNeedsNoCount() {
+        LocalDate start = startCash();
+        mondayToSaturday(start);
+        LocalDate closedDay = firstClosedDayFrom(start.plusDays(1));
+
+        at(closedDay.atTime(10, 0));
+        CashTodayResponse today = cashService.today(reception);
+        assertThat(today.openDay()).isFalse();
+        assertThat(today.closedReason()).isIn("Domingo", "Festivo: " + ColombianHolidays.name(closedDay).orElse(""));
+
+        at(closedDay.atTime(22, 0));
+        closingService.closeDueDays();
+        CashClosing c = closing(closedDay);
+        assertThat(c.isWasOpenDay()).isFalse();
+        assertThat(c.getStatus()).isEqualTo(CashClosingStatus.NO_ACTIVITY);
+        assertThat(closing(closedDay.minusDays(1)).isWasOpenDay())
+                .isEqualTo(closedDay.minusDays(1).getDayOfWeek() != DayOfWeek.SUNDAY
+                        && !ColombianHolidays.isHoliday(closedDay.minusDays(1)));
+    }
+
+    @Test
+    void aClosedDayWithCashMovementsIsTreatedAsANormalDay() {
+        LocalDate start = startCash();
+        mondayToSaturday(start);
+        LocalDate closedDay = firstClosedDayFrom(start.plusDays(1));
+        at(closedDay.atTime(11, 0));
+        pay(PaymentMethod.CASH);
+        at(closedDay.atTime(22, 0));
+        closingService.closeDueDays();
+
+        CashClosing c = closing(closedDay);
+        assertThat(c.isWasOpenDay()).isFalse();
+        assertThat(c.getStatus()).isEqualTo(CashClosingStatus.PENDING_COUNT);
+        assertThat(c.getExpectedCash()).isEqualByComparingTo("140000");
+    }
+
+    @Test
+    void theAdminOpensOrClosesADateButSavedClosingsNeverChange() {
+        LocalDate start = startCash();
+        mondayToSaturday(start);
+        LocalDate closedDay = firstClosedDayFrom(start.plusDays(1));
+        LocalDate normalDay = closedDay.plusDays(1);
+        while (normalDay.getDayOfWeek() == DayOfWeek.SUNDAY || ColombianHolidays.isHoliday(normalDay)) {
+            normalDay = normalDay.plusDays(1);
+        }
+        gymCalendarService.set(closedDay, true, "Horario especial", admin.getId());
+        gymCalendarService.set(normalDay, false, "Mantenimiento", admin.getId());
+
+        at(normalDay.atTime(22, 0));
+        closingService.closeDueDays();
+        assertThat(closing(closedDay).isWasOpenDay()).isTrue();
+        assertThat(closing(normalDay).isWasOpenDay()).isFalse();
+
+        // Ya cerrados: no se pueden cambiar ni quitar sus excepciones.
+        LocalDate locked = normalDay;
+        assertThatThrownBy(() -> gymCalendarService.set(locked, true, null, admin.getId()))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("cierres guardados no cambian");
+        assertThatThrownBy(() -> gymCalendarService.clear(locked, admin.getId())).isInstanceOf(BusinessException.class);
+        assertThat(closing(normalDay).isWasOpenDay()).isFalse();
+        assertThat(gymCalendarService.year(normalDay.getYear()).days())
+                .anySatisfy(d -> {
+                    assertThat(d.date()).isEqualTo(locked);
+                    assertThat(d.locked()).isTrue();
+                    assertThat(d.closedReason()).isEqualTo("Cerrado por el administrador: Mantenimiento");
+                });
+        assertThat(audits("GYM_CALENDAR", "CREATE")).isGreaterThanOrEqualTo(2);
+    }
+
+    @Test
+    void theYearCalendarListsTheColombianHolidaysAsClosed() {
+        var calendar = gymCalendarService.year(2026);
+        assertThat(calendar.days()).hasSize(19).allSatisfy(d -> {
+            assertThat(d.holiday()).isNotNull();
+            assertThat(d.open()).isFalse();
+        });
+        assertThat(calendar.closedOnHolidays()).isTrue();
     }
 
     private Long stampOf(Long paymentId) {

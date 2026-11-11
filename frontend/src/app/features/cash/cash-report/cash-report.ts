@@ -9,7 +9,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { finalize } from 'rxjs';
 
 import { errorMessage } from '../../../core/utils/error-message';
-import { CLOSING_STATUS_LABELS, MonthlyReport, summarizeMethods } from '../../../shared/models/cash.model';
+import { CashClosing, MonthlyReport, closingStatusLabel, summarizeMethods } from '../../../shared/models/cash.model';
 import { todayInGym } from '../../../shared/utils/dates';
 import { CashService } from '../cash.service';
 import { MethodTotals } from '../method-totals/method-totals';
@@ -28,7 +28,7 @@ export class CashReportPage {
   readonly report = signal<MonthlyReport | null>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-  readonly statusLabels = CLOSING_STATUS_LABELS;
+  readonly statusName = (c: CashClosing) => closingStatusLabel(c);
 
   constructor() {
     this.month.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.load());

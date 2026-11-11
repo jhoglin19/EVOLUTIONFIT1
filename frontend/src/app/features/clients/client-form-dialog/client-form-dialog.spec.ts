@@ -31,7 +31,13 @@ function setup(data: ClientFormData = {}) {
 }
 
 function fill(component: ClientFormDialog, number = '1.234.567') {
-  component.form.patchValue({ documentType: 'CC', documentNumber: number, firstName: ' Ana ', lastName: 'Gómez' });
+  component.form.patchValue({
+    documentType: 'CC',
+    documentNumber: number,
+    firstName: ' Ana ',
+    lastName: 'Gómez',
+    phone: '+57 300 123 4567',
+  });
 }
 
 describe('ClientFormDialog', () => {
@@ -84,7 +90,7 @@ describe('ClientFormDialog', () => {
       firstName: 'Ana',
       lastName: 'Gómez',
       email: null,
-      phone: null,
+      phone: '3001234567',
       birthDate: null,
       address: null,
       notes: null,
@@ -92,8 +98,18 @@ describe('ClientFormDialog', () => {
     expect(close).toHaveBeenCalledWith(CLIENT);
   });
 
+  it('el celular es obligatorio: un cliente antiguo sin teléfono debe completarlo al editarlo', () => {
+    const { component, api } = setup({ client: CLIENT }); // CLIENT no tiene teléfono
+    expect(component.form.controls.phone.hasError('required')).toBe(true);
+    component.save();
+    expect(api.update).not.toHaveBeenCalled();
+
+    component.form.controls.phone.setValue('601 555 1234');
+    expect(component.form.controls.phone.hasError('mobile')).toBe(true);
+  });
+
   it('actualiza cuando recibe un cliente', () => {
-    const { component, api } = setup({ client: CLIENT });
+    const { component, api } = setup({ client: { ...CLIENT, phone: '3133132425' } });
     component.save();
     expect(api.update).toHaveBeenCalledOnce();
     expect(api.create).not.toHaveBeenCalled();

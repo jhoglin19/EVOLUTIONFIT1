@@ -175,7 +175,7 @@ class PaymentConcurrencyTest {
     void doubleClickOnTheEnrollmentWizardCreatesOneClientOnePaymentAndReturnsTheSameToAll() throws Exception {
         String document = String.valueOf(DOCUMENTS.incrementAndGet());
         EnrollmentRequest request = new EnrollmentRequest(null,
-                new ClientRequest("CC", document, "Cliente", "Ficticio", null, null, null, null, null),
+                new ClientRequest("CC", document, "Cliente", "Ficticio", null, "3001234567", null, null, null),
                 planId, null, null, cash(UUID.randomUUID().toString()));
         AtomicInteger conflicts = new AtomicInteger();
 

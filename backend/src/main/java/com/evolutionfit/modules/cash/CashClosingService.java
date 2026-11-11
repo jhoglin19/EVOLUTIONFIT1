@@ -43,17 +43,19 @@ public class CashClosingService {
     private final CashClosingRepository closingRepository;
     private final CashLedgerRepository ledgerRepository;
     private final CashCalendar calendar;
+    private final GymCalendar gymCalendar;
     private final AuditService auditService;
     private final Clock clock;
     private final TransactionTemplate tx;
 
     public CashClosingService(CashSettingsRepository settingsRepository, CashClosingRepository closingRepository,
-                              CashLedgerRepository ledgerRepository, CashCalendar calendar, AuditService auditService,
-                              Clock clock, PlatformTransactionManager transactionManager) {
+                              CashLedgerRepository ledgerRepository, CashCalendar calendar, GymCalendar gymCalendar,
+                              AuditService auditService, Clock clock, PlatformTransactionManager transactionManager) {
         this.settingsRepository = settingsRepository;
         this.closingRepository = closingRepository;
         this.ledgerRepository = ledgerRepository;
         this.calendar = calendar;
+        this.gymCalendar = gymCalendar;
         this.auditService = auditService;
         this.clock = clock;
         this.tx = new TransactionTemplate(transactionManager);
@@ -92,7 +94,7 @@ public class CashClosingService {
         c.setWindowStart(last.map(CashClosing::getWindowEnd).orElse(cashStart));
         c.setWindowEnd(cutoff);
         c.setClosingMode(now.isAfter(cutoff.plus(ON_TIME_TOLERANCE)) ? ClosingMode.CATCH_UP : ClosingMode.ON_TIME);
-        c.setWasOpenDay(settings.isOpenOn(day));
+        c.setWasOpenDay(gymCalendar.day(day, settings).open()); // se congela: cambios posteriores no lo tocan
         c.setClosedAt(now);
         apply(c, new CashSummary(settings.getOpeningBase(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
                 settings.getOpeningBase(), false, List.of()));

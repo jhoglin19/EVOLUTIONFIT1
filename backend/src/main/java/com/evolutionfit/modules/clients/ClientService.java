@@ -2,8 +2,10 @@ package com.evolutionfit.modules.clients;
 
 import java.util.Map;
 
+import com.evolutionfit.common.exception.BusinessException;
 import com.evolutionfit.common.exception.ConflictException;
 import com.evolutionfit.common.exception.ResourceNotFoundException;
+import com.evolutionfit.common.validation.ColombianPhones;
 import com.evolutionfit.modules.audit.AuditService;
 import com.evolutionfit.modules.clients.dto.ClientRequest;
 import com.evolutionfit.modules.clients.dto.ClientResponse;
@@ -105,7 +107,16 @@ public class ClientService {
         client.setFirstName(request.firstName().trim());
         client.setLastName(request.lastName().trim());
         client.setEmail(blankToNull(request.email()));
-        client.setPhone(blankToNull(request.phone()));
+        // Obligatorio al crear y al editar; se guarda en el formato del sistema (10 dígitos). El controlador
+        // ya lo valida, pero el asistente de inscripción también llega aquí.
+        if (request.phone() == null || request.phone().isBlank()) {
+            throw new BusinessException("El celular es obligatorio");
+        }
+        String phone = ColombianPhones.normalize(request.phone());
+        if (phone == null) {
+            throw new BusinessException(ColombianPhones.INVALID_MESSAGE);
+        }
+        client.setPhone(phone);
         client.setBirthDate(request.birthDate());
         client.setAddress(blankToNull(request.address()));
         client.setNotes(blankToNull(request.notes()));

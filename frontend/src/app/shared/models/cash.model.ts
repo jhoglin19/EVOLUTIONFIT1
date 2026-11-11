@@ -78,6 +78,8 @@ export interface CashToday {
   windowStart: string | null;
   cutoffAt: string | null;
   openDay: boolean;
+  /** Por qué el gimnasio está cerrado (domingo, festivo o decisión del ADMIN); null si abre. */
+  closedReason?: string | null;
   summary: CashSummary | null;
   movements: CashMovement[];
   pendingCounts: number;
@@ -161,6 +163,7 @@ export interface CashSettings {
   startDate: string | null;
   startDateLocked: boolean;
   openDays: DayOfWeek[];
+  closedOnHolidays: boolean;
   closingTime: string;
 }
 
@@ -168,6 +171,7 @@ export interface CashSettingsRequest {
   openingBase: number;
   startDate: string | null;
   openDays: DayOfWeek[];
+  closedOnHolidays: boolean | null;
 }
 
 export interface CategoryTotal {
@@ -195,6 +199,30 @@ export interface ClosingFilters {
   from: string | null;
   to: string | null;
   status: CashClosingStatus | null;
+}
+
+export interface CalendarDay {
+  date: string;
+  open: boolean;
+  closedReason: string | null;
+  holiday: string | null;
+  defaultOpen: boolean;
+  overridden: boolean;
+  note: string | null;
+  /** Ya tiene cierre de caja: no se puede cambiar. */
+  locked: boolean;
+}
+
+export interface GymCalendar {
+  year: number;
+  openDays: DayOfWeek[];
+  closedOnHolidays: boolean;
+  days: CalendarDay[];
+}
+
+/** Un día cerrado sin movimientos en efectivo se muestra como "Gimnasio cerrado" (sin arqueo obligatorio). */
+export function closingStatusLabel(c: Pick<CashClosing, 'status' | 'wasOpenDay'>): string {
+  return c.status === 'NO_ACTIVITY' && !c.wasOpenDay ? 'Gimnasio cerrado' : CLOSING_STATUS_LABELS[c.status];
 }
 
 /** Diferencia del arqueo: contado − esperado ajustado. */

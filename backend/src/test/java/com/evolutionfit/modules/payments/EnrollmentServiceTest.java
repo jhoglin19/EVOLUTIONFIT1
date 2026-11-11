@@ -32,7 +32,7 @@ class EnrollmentServiceTest {
     private final PaymentService paymentService = mock(PaymentService.class);
     private final EnrollmentService service = new EnrollmentService(clientService, membershipService, paymentService);
     private final PaymentRequest payment = PaymentServiceTest.request(PaymentMethod.CASH, null, "90000", null, null);
-    private final ClientRequest newClient = new ClientRequest("CC", "1001", "Ana", "Pérez", null, null, null, null, null);
+    private final ClientRequest newClient = new ClientRequest("CC", "1001", "Ana", "Pérez", null, "3001234567", null, null, null);
 
     @Test
     void newClientMembershipAndPaymentInOrder() {

@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -42,7 +43,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 class ClientControllerSecurityTest {
 
     private static final String VALID_BODY = """
-            {"documentType":"CC","documentNumber":"123","firstName":"Ana","lastName":"Gómez"}
+            {"documentType":"CC","documentNumber":"123","firstName":"Ana","lastName":"Gómez","phone":"+57 300 123 4567"}
             """;
 
     @Autowired
@@ -105,7 +106,22 @@ class ClientControllerSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON).content("{\"documentType\":\"NIT\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors.documentType").exists())
-                .andExpect(jsonPath("$.fieldErrors.firstName").exists());
+                .andExpect(jsonPath("$.fieldErrors.firstName").exists())
+                .andExpect(jsonPath("$.fieldErrors.phone").exists());
+    }
+
+    @Test
+    void creatingOrEditingAClientWithoutAValidMobileIsRejected() throws Exception {
+        String withoutPhone = "{\"documentType\":\"CC\",\"documentNumber\":\"123\",\"firstName\":\"Ana\",\"lastName\":\"Gómez\"}";
+        String landline = withoutPhone.replace("}", ",\"phone\":\"6015551234\"}");
+
+        mvc.perform(post("/api/clients").with(admin()).contentType(MediaType.APPLICATION_JSON).content(withoutPhone))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.phone").value("El celular es obligatorio"));
+        mvc.perform(put("/api/clients/1").with(admin()).contentType(MediaType.APPLICATION_JSON).content(landline))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.phone").exists());
+        verifyNoInteractions(clientService);
     }
 
     @Test

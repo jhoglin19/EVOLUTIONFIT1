@@ -107,8 +107,9 @@ abstract class CashMySqlTestSupport {
         jdbc.update("delete from cash_movements where movement_type = 'EXPENSE'");
         jdbc.update("delete from cash_closing_totals");
         jdbc.update("delete from cash_closings");
+        jdbc.update("delete from gym_calendar_overrides");
         jdbc.update("update cash_settings set start_date = null, opening_base = 50000, "
-                + "open_days = 'MON,TUE,WED,THU,FRI,SAT,SUN'");
+                + "open_days = 'MON,TUE,WED,THU,FRI,SAT,SUN', closed_on_holidays = 1");
         planId = planRepository.findAll().stream().filter(p -> p.getPrice().compareTo(MONTHLY) == 0).findFirst()
                 .orElseGet(() -> {
                     Plan p = new Plan();
@@ -129,7 +130,7 @@ abstract class CashMySqlTestSupport {
         LocalDate start = newStartDate();
         clock.set(start.atTime(8, 0));
         cashService.updateSettings(new CashSettingsRequest(new BigDecimal("50000"), start,
-                EnumSet.allOf(DayOfWeek.class)), admin.getId());
+                EnumSet.allOf(DayOfWeek.class), null), admin.getId());
         return start;
     }
 

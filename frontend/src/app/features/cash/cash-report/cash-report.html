@@ -75,7 +75,7 @@
           @for (d of r.days; track d.id) {
             <tr>
               <td>{{ d.cashDate | date: 'EEE d' }}</td>
-              <td><span class="chip" [class]="d.status">{{ statusLabels[d.status] }}</span></td>
+              <td><span class="chip" [class]="d.status">{{ statusName(d) }}</span></td>
               <td>{{ d.cashIncome | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
               <td>{{ d.cashVoided | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
               <td>{{ d.cashWithdrawals | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
