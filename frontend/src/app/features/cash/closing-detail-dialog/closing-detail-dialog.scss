@@ -1,0 +1,68 @@
+mat-dialog-content {
+  min-width: min(560px, 85vw);
+}
+
+h3 {
+  margin: 16px 0 4px;
+  font-size: 1rem;
+}
+
+h4 {
+  margin: 12px 0 4px;
+  font-size: 0.9rem;
+}
+
+dl {
+  margin: 0;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 2px 0;
+  }
+
+  dt {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .total {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    font-weight: 600;
+
+    dt {
+      color: inherit;
+    }
+  }
+
+  .bad {
+    color: var(--mat-sys-error);
+  }
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+.sub {
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.error {
+  color: var(--mat-sys-error);
+}

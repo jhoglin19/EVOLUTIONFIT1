@@ -1,0 +1,80 @@
+<h2 mat-dialog-title>Arqueo del {{ preview()?.closing?.cashDate | date: 'EEEE d MMM y' }}</h2>
+<form (ngSubmit)="save()" novalidate>
+  <mat-dialog-content>
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    @if (preview(); as p) {
+      <dl class="figures">
+        <div>
+          <dt>Efectivo esperado al corte ({{ p.closing.windowEnd | date: 'h:mm a' }})</dt>
+          <dd>{{ p.closing.expectedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd>
+        </div>
+        @if (p.postCutMovements.length) {
+          <div>
+            <dt>+ Efectivo que entró después del corte</dt>
+            <dd>{{ p.postCutIncome | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd>
+          </div>
+          <div>
+            <dt>− Efectivo que salió después del corte</dt>
+            <dd>{{ p.postCutOutflow | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd>
+          </div>
+        }
+        <div class="total">
+          <dt>Debe haber en la caja</dt>
+          <dd>{{ p.expectedAdjustedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd>
+        </div>
+      </dl>
+
+      @if (p.postCutMovements.length) {
+        <section class="post-cut" aria-label="Movimientos después del corte">
+          <h3>Movimientos en efectivo después del corte</h3>
+          <p class="hint">Cuentan para el día siguiente, pero ya están (o ya salieron) de la caja.</p>
+          <ul>
+            @for (m of p.postCutMovements; track m.type + m.id) {
+              <li>
+                <span>{{ m.at | date: 'h:mm a' }} · {{ movementLabel(m.type) }} · {{ m.description }}</span>
+                <b [class.negative]="m.cashEffect < 0">{{ m.cashEffect | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Efectivo contado</mat-label>
+        <input matInput type="number" min="0" step="50" [formControl]="counted" />
+        @if (counted.hasError('required')) {
+          <mat-error>Digita el efectivo contado</mat-error>
+        }
+      </mat-form-field>
+
+      @if (difference() !== null) {
+        <p class="difference" [class.ok]="difference() === 0" [class.bad]="difference() !== 0" role="status">
+          @if (difference() === 0) {
+            Cuadra: sin diferencia.
+          } @else if (difference()! > 0) {
+            Sobran {{ difference() | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}.
+          } @else {
+            Faltan {{ -difference()! | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}.
+          }
+        </p>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nota {{ difference() !== null && difference() !== 0 ? '(obligatoria con diferencia)' : '(opcional)' }}</mat-label>
+        <textarea matInput rows="2" maxlength="500" [formControl]="note"></textarea>
+        @if (note.hasError('required')) {
+          <mat-error>Explica la diferencia</mat-error>
+        }
+      </mat-form-field>
+    }
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="saving() || !preview()">Registrar arqueo</button>
+  </mat-dialog-actions>
+</form>

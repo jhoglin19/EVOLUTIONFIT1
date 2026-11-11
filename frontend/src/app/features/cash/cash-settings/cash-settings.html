@@ -1,0 +1,54 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Configuración de caja</h1>
+      <p>
+        Cierre automático diario a las {{ settings()?.closingTime?.slice(0, 5) ?? '22:00' }} (hora de Bogotá).
+        Base fija y días de apertura: valores por defecto, por confirmar con el dueño.
+      </p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <form class="form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <mat-form-field appearance="outline">
+      <mat-label>Base diaria</mat-label>
+      <input matInput type="number" min="0" step="1000" formControlName="openingBase" />
+      <mat-hint>Efectivo con el que arranca la caja cada día. Un cambio aplica a los días que aún no se cierran.</mat-hint>
+      @if (form.controls.openingBase.invalid) {
+        <mat-error>La base es obligatoria y no puede ser negativa</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Fecha de inicio de la caja</mat-label>
+      <input matInput type="date" [min]="today" formControlName="startDate" />
+      <mat-hint>
+        @if (settings()?.startDateLocked) {
+          Ya hay cierres: la fecha de inicio no se puede cambiar.
+        } @else {
+          Sin fecha, la caja no cierra nada. Cuenta desde las 10 p.m. del día anterior; lo de antes queda fuera.
+        }
+      </mat-hint>
+    </mat-form-field>
+
+    <fieldset>
+      <legend>Días que abre el gimnasio</legend>
+      @for (d of days; track d.value) {
+        <mat-checkbox [checked]="openDays().has(d.value)" (change)="toggleDay(d.value, $event.checked)">{{ d.label }}</mat-checkbox>
+      }
+      <p class="hint">Los días cerrados igual tienen cierre (sin arqueo si no hubo movimientos en efectivo).</p>
+    </fieldset>
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+
+    <div class="actions">
+      <button mat-flat-button type="submit" [disabled]="saving() || !settings()">Guardar</button>
+    </div>
+  </form>
+</div>

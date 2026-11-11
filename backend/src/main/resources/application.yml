@@ -64,6 +64,10 @@ app:
   receipts:
     # Tamaño del comprobante PDF: A5 (vertical, para enviarlo por WhatsApp y leerlo en el celular) o LETTER.
     paper-size: ${RECEIPT_PAPER_SIZE:A5}
+  cash:
+    # Hora del cierre automático diario (hora de Bogotá). La base, la fecha de inicio y los días que abre
+    # los edita el ADMIN en "Configuración de caja" (tabla cash_settings).
+    closing-time: ${CASH_CLOSING_TIME:22:00}
   bootstrap-admin:
     # Solo se usa si la tabla users está vacía. Con la contraseña vacía no se crea ningún administrador.
     username: ${BOOTSTRAP_ADMIN_USERNAME:admin}

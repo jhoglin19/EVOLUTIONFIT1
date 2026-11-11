@@ -1,0 +1,173 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Caja</h1>
+      @if (today()?.started) {
+        <p>
+          Día de caja {{ today()!.cashDate | date: 'EEEE d MMM y' }} · cierre automático a las
+          {{ today()!.cutoffAt | date: 'h:mm a' }}
+          @if (!today()!.openDay) {
+            · <b>día marcado como cerrado</b>
+          }
+        </p>
+      } @else {
+        <p>Efectivo del día, retiros y arqueo.</p>
+      }
+    </div>
+    @if (today()?.started) {
+      <button mat-flat-button type="button" (click)="withdraw()">
+        <mat-icon>outbox</mat-icon>
+        Registrar retiro
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  @for (p of pending(); track p.id) {
+    <div class="notice pending" role="status">
+      <div>
+        <b>Arqueo pendiente del {{ p.cashDate | date: 'EEEE d MMM' }}.</b>
+        Efectivo esperado al corte: {{ p.expectedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}.
+      </div>
+      <button mat-flat-button type="button" (click)="count(p)">Registrar arqueo</button>
+    </div>
+  }
+
+  @if (isAdmin && today()?.pendingReviews) {
+    <div class="notice" role="status">
+      <div>{{ today()!.pendingReviews }} arqueo(s) con diferencia por revisar.</div>
+      <a mat-button routerLink="/cash/closings">Ver cierres</a>
+    </div>
+  }
+
+  @if (today(); as t) {
+    @if (!t.started) {
+      <div class="notice" role="status">
+        <div>
+          @if (t.startDate) {
+            La caja empieza el {{ t.startDate | date: 'd MMM y' }}.
+          } @else {
+            La caja todavía no ha empezado: falta que el administrador fije la fecha de inicio.
+          }
+        </div>
+        @if (isAdmin) {
+          <a mat-button routerLink="/settings/cash">Configurar caja</a>
+        }
+      </div>
+    } @else if (t.summary; as s) {
+      <section class="cards" aria-label="Efectivo del día">
+        <div class="card">
+          <span>Base</span>
+          <b>{{ s.openingBase | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+        </div>
+        <div class="card">
+          <span>+ Pagos en efectivo</span>
+          <b>{{ s.cashIncome | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+        </div>
+        <div class="card">
+          <span>− Anulaciones en efectivo</span>
+          <b>{{ s.cashVoided | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+        </div>
+        <div class="card">
+          <span>− Retiros</span>
+          <b>{{ s.cashWithdrawals | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+        </div>
+        <div class="card expected">
+          <span>Efectivo esperado</span>
+          <b>{{ s.expectedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+        </div>
+      </section>
+
+      <h2>Informe por método de pago</h2>
+      @if (s.methods.length) {
+        <div class="table-wrap methods">
+          <table>
+            <thead>
+              <tr>
+                <th>Método</th>
+                <th>Pagos</th>
+                <th>Recibido</th>
+                <th>Anulado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of s.methods; track m.method) {
+                <tr>
+                  <td>{{ methodName(m.method) }}</td>
+                  <td>{{ m.receivedCount }}</td>
+                  <td>{{ m.receivedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                  <td>{{ m.voidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="hint">Solo se cuadra el efectivo; los demás métodos son informativos.</p>
+      } @else {
+        <p class="hint">Todavía no hay pagos en este día de caja.</p>
+      }
+
+      <h2>Movimientos</h2>
+      <div class="table-wrap">
+        <table mat-table [dataSource]="t.movements">
+          <ng-container matColumnDef="at">
+            <th mat-header-cell *matHeaderCellDef>Hora</th>
+            <td mat-cell *matCellDef="let m">{{ m.at | date: 'd MMM h:mm a' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let m">
+              {{ typeName(m.type) }}
+              @if (m.voided) {
+                <span class="chip voided">Anulado</span>
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Detalle</th>
+            <td mat-cell *matCellDef="let m">{{ detail(m) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="method">
+            <th mat-header-cell *matHeaderCellDef>Método</th>
+            <td mat-cell *matCellDef="let m">{{ methodName(m.method) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef>Valor</th>
+            <td mat-cell *matCellDef="let m">{{ m.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="cash">
+            <th mat-header-cell *matHeaderCellDef>Efectivo</th>
+            <td mat-cell *matCellDef="let m" [class.negative]="m.cashEffect < 0">
+              {{ m.cashEffect === 0 ? '—' : (m.cashEffect | currency: 'COP' : 'symbol-narrow' : '1.0-2') }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let m">
+              @if (isAdmin && m.type === 'WITHDRAWAL' && !m.voided) {
+                <button mat-icon-button type="button" (click)="voidWithdrawal(m)" aria-label="Anular retiro" matTooltip="Anular retiro">
+                  <mat-icon>block</mat-icon>
+                </button>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+          <tr class="mat-row empty" *matNoDataRow>
+            <td class="mat-cell" [attr.colspan]="columns.length">Sin movimientos en este día de caja.</td>
+          </tr>
+        </table>
+      </div>
+    }
+  }
+</div>

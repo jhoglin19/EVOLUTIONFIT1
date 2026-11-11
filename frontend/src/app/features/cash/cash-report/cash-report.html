@@ -1,0 +1,112 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Reporte mensual de caja</h1>
+      <p>Suma de los cierres diarios del mes. Solo informe.</p>
+    </div>
+    <mat-form-field appearance="outline" class="month">
+      <mat-label>Mes</mat-label>
+      <input matInput type="month" [formControl]="month" />
+    </mat-form-field>
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  @if (report(); as r) {
+    @if (r.pendingCounts || r.pendingReviews) {
+      <div class="notice" role="status">
+        {{ r.pendingCounts }} día(s) pendientes de arqueo y {{ r.pendingReviews }} diferencia(s) por revisar en este mes.
+      </div>
+    }
+    <section class="cards" aria-label="Totales del mes">
+      <div class="card"><span>Días cerrados</span><b>{{ r.closedDays }}</b></div>
+      <div class="card"><span>Pagos en efectivo</span><b>{{ r.cashIncome | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+      <div class="card"><span>Anulaciones en efectivo</span><b>{{ r.cashVoided | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+      <div class="card"><span>Retiros</span><b>{{ r.cashWithdrawals | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+      <div class="card" [class.bad]="r.countedDifference !== 0">
+        <span>Diferencias de arqueo</span><b>{{ r.countedDifference | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+      </div>
+      <div class="card expected"><span>Total recaudado (todos los métodos)</span><b>{{ totalNet(r) | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+    </section>
+
+    <div class="grid">
+      <section>
+        <h2>Por método de pago</h2>
+        <div class="table-wrap methods">
+          <table>
+            <thead>
+              <tr><th>Método</th><th>Pagos</th><th>Recibido</th><th>Anulado</th><th>Neto</th></tr>
+            </thead>
+            <tbody>
+              @for (m of r.methods; track m.method) {
+                <tr>
+                  <td>{{ methodName(m.method) }}</td>
+                  <td>{{ m.receivedCount }}</td>
+                  <td>{{ m.receivedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                  <td>{{ m.voidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                  <td>{{ m.receivedAmount - m.voidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5">Sin pagos en el mes.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h2>Retiros por categoría</h2>
+        <div class="table-wrap methods">
+          <table>
+            <thead>
+              <tr><th>Categoría</th><th>Retiros</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+              @for (c of r.withdrawalsByCategory; track c.category) {
+                <tr>
+                  <td>{{ c.label }}</td>
+                  <td>{{ c.count }}</td>
+                  <td>{{ c.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="3">Sin retiros en el mes.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <h2>Cierres del mes</h2>
+    <div class="table-wrap methods">
+      <table>
+        <thead>
+          <tr><th>Día</th><th>Estado</th><th>Efectivo</th><th>Anulado</th><th>Retiros</th><th>Esperado</th><th>Contado</th><th>Diferencia</th></tr>
+        </thead>
+        <tbody>
+          @for (d of r.days; track d.id) {
+            <tr>
+              <td>{{ d.cashDate | date: 'EEE d' }}</td>
+              <td><span class="chip" [class]="d.status">{{ statusLabels[d.status] }}</span></td>
+              <td>{{ d.cashIncome | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+              <td>{{ d.cashVoided | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+              <td>{{ d.cashWithdrawals | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+              <td>{{ d.expectedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+              <td>{{ d.countedCash === null || d.countedCash === undefined ? '—' : (d.countedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2') }}</td>
+              <td [class.negative]="(d.difference ?? 0) < 0">{{ d.difference === null || d.difference === undefined ? '—' : (d.difference | currency: 'COP' : 'symbol-narrow' : '1.0-2') }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="8">No hay cierres en este mes.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

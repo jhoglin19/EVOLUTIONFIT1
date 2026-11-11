@@ -52,6 +52,31 @@ export const routes: Routes = [
         title: 'Pagos · EvolutionFit',
       },
       {
+        path: 'cash',
+        loadComponent: () => import('./features/cash/cash-today/cash-today').then((m) => m.CashTodayPage),
+        title: 'Caja · EvolutionFit',
+      },
+      {
+        path: 'cash/closings',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () =>
+          import('./features/cash/cash-closings/cash-closings').then((m) => m.CashClosingsPage),
+        title: 'Cierres de caja · EvolutionFit',
+      },
+      {
+        path: 'cash/report',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () => import('./features/cash/cash-report/cash-report').then((m) => m.CashReportPage),
+        title: 'Reporte mensual de caja · EvolutionFit',
+      },
+      {
+        path: 'settings/cash',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () =>
+          import('./features/cash/cash-settings/cash-settings').then((m) => m.CashSettingsPage),
+        title: 'Configuración de caja · EvolutionFit',
+      },
+      {
         path: 'settings/receipt',
         canActivate: [roleGuard('ADMIN')],
         loadComponent: () =>

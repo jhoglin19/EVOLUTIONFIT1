@@ -154,14 +154,62 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 
 - **Quién cobra:** recepción y ADMIN pueden cobrar e inscribir. Solo ADMIN aplica descuentos, anula pagos y edita los datos del comprobante.
 - **Logo en reimpresiones:** el comprobante guarda una copia de todo lo impreso, salvo el logo. Una reimpresión usa el logo vigente en ese momento.
-- **Caja:** los pagos todavía no generan movimientos de caja. La fase 6 decidirá cómo calcular el efectivo esperado a partir de los pagos.
+- **Caja:** resuelto en la fase 6 (sección 10). El efectivo se calcula a partir de los pagos; los pagos no crean movimientos de caja.
+
+---
+
+## 10. Decisiones confirmadas en la fase 6 (caja)
+
+1. **La caja arranca cuando el ADMIN fija la fecha de inicio** en "Configuración de caja".
+   - Sin fecha, no hay cierres ni retiros.
+   - Cuenta desde las 10 p.m. del día anterior a esa fecha; lo anterior queda fuera de la caja.
+   - La fecha no puede estar en el pasado y se bloquea después del primer cierre.
+2. **Cierre automático** a las 10 p.m. de Bogotá (`app.cash.closing-time`):
+   - Corre al arrancar el backend y cada minuto. Si el backend estuvo apagado, cierra en orden los días que faltan, uno por uno, sin duplicar ni saltar días.
+   - Cada cierre guarda su periodo (desde el corte anterior hasta las 10 p.m.) y la base usada. Si después cambia la base, los días cerrados no se recalculan.
+   - Se crea un cierre para todos los días, también sin movimientos o con el gimnasio cerrado.
+3. **Efectivo esperado** = base + pagos en efectivo recibidos ese día (aunque luego se anulen) − anulaciones en efectivo hechas ese día − retiros.
+   - Un pago cobrado y anulado el mismo día da neto $0.
+   - Anular un pago anterior al inicio de la caja no descuenta efectivo.
+   - Los ingresos se leen de `payments`; `cash_movements` guarda solo los retiros. Cada pago, anulación y retiro queda marcado con el cierre que lo contó, así ninguno se cuenta dos veces.
+4. **Retiros:**
+   - Recepción y ADMIN los registran con monto, categoría (insumos, aseo, otros) y concepto obligatorio.
+   - No pueden dejar el efectivo esperado del día en negativo.
+   - **Solo el ADMIN los anula**, con motivo y solo antes del corte del día del retiro. El retiro anulado no se borra.
+5. **Arqueo:**
+   - **No es obligatorio en días sin movimientos de efectivo** (quedan "Sin movimientos"). El ADMIN puede registrarlo igual.
+   - El arqueo compara lo contado con el **esperado ajustado**: esperado congelado + efectivo que entró después del corte − efectivo que salió después del corte. Así un cobro a las 10:10 p.m., que cuenta para el día siguiente pero ya está en la caja, no da una falsa diferencia.
+   - El esperado congelado no cambia; el ajuste y la lista de esos movimientos se guardan aparte en el arqueo.
+   - Si entra o sale efectivo mientras el diálogo está abierto, el sistema no registra el arqueo y pide revisarlo de nuevo.
+   - Con diferencia, la nota es obligatoria.
+6. **Revisión:** solo los arqueos con diferencia quedan por revisar. El ADMIN los marca como revisados con nota obligatoria. Los que cuadran quedan listos.
+7. **Reapertura:** el ADMIN puede reabrir un arqueo (por ejemplo, un valor mal digitado) con motivo. El esperado del cierre no cambia.
+8. **Permisos:** recepción ve el día en curso, registra retiros y sus arqueos pendientes. El ADMIN además ve el historial, todos los retiros, el detalle de cada cierre, el reporte mensual y la configuración.
+9. **Auditoría (`audit_logs`):** cierres (hechos por el sistema), retiros y sus anulaciones, arqueos, revisiones, reaperturas y cambios de configuración.
+
+### Interpretaciones de la fase 6 (a confirmar con el dueño)
+
+- **Base fija (por confirmar):** $50.000 todos los días. El ADMIN la cambia en "Configuración de caja" y aplica a los días que aún no se cierran.
+- **Efectivo sobrante (por confirmar):** después del arqueo, el dueño retira todo lo que pase de la base, fuera del sistema. El día siguiente arranca otra vez con la base y la diferencia no se arrastra.
+- **Días que abre (por confirmar):** todos los días. Configurable; un día marcado como cerrado igual tiene cierre.
+- **Arqueo atrasado:** el ajuste incluye todo lo que entró o salió desde el corte hasta el momento de contar. Si se cuenta varios días tarde, el ajuste cubre esos días. Lo recomendable es contar antes de abrir el día siguiente.
+- **Anulación de un pago de un día ya cerrado:** se descuenta hoy, aunque el efectivo esperado quede negativo (por ejemplo, la devolución de una anualidad pagada ayer). Mientras quede negativo no se pueden registrar retiros.
+- **Pago guardado justo en el corte:** si un pago empieza a las 9:59 p.m. y termina de guardarse después del cierre, cuenta para el día siguiente; nunca se pierde ni se cuenta dos veces.
+
+### Pendiente de la puesta en marcha (no implementado)
+
+- **Procedimiento seguro para borrar los datos de prueba antes de operar con datos reales:**
+  - Qué se borra: clientes, membresías, congelaciones, pagos, comprobantes, retiros, cierres y totales de caja. También se reinician los consecutivos (comprobantes) y la fecha de inicio de la caja.
+  - Debe hacerse con respaldo previo, sobre una base sin uso real, con confirmación explícita y dejando constancia.
+  - Hasta tenerlo, no se borran datos a mano.
 
 ---
 
 ## Pendientes de definir
 
 - El prefijo del consecutivo ya se definió en la fase 5: `EF-`, editable.
-- **Caja (por confirmar con el dueño):**
+- **Caja (por confirmar con el dueño; hoy rigen los valores por defecto de la sección 10):**
   - ¿La base de $50.000 es fija todos los días?
   - ¿Qué se hace con el efectivo que sobra después del arqueo?
   - ¿El gimnasio abre todos los días?
+- **Puesta en marcha:** procedimiento seguro para borrar los datos de prueba (sección 10).

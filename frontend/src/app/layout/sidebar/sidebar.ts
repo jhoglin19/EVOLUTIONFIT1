@@ -20,7 +20,11 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Clientes', icon: 'groups', path: '/clients' },
   { label: 'Membresías', icon: 'event_available', path: '/memberships' },
   { label: 'Pagos', icon: 'payments', path: '/payments' },
+  { label: 'Caja', icon: 'point_of_sale', path: '/cash' },
+  { label: 'Cierres de caja', icon: 'fact_check', path: '/cash/closings', roles: ['ADMIN'] },
+  { label: 'Reporte mensual', icon: 'bar_chart', path: '/cash/report', roles: ['ADMIN'] },
   { label: 'Planes', icon: 'card_membership', path: '/plans' },
+  { label: 'Configuración de caja', icon: 'tune', path: '/settings/cash', roles: ['ADMIN'] },
   { label: 'Datos del comprobante', icon: 'receipt_long', path: '/settings/receipt', roles: ['ADMIN'] },
   { label: 'Usuarios', icon: 'manage_accounts', path: '/users', roles: ['ADMIN'] },
 ];

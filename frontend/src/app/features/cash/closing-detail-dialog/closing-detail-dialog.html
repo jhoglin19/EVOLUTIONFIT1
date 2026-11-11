@@ -1,0 +1,85 @@
+<h2 mat-dialog-title>Cierre del {{ detail()?.closing?.cashDate | date: 'EEEE d MMM y' }}</h2>
+<mat-dialog-content>
+  @if (!detail() && !error()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (detail(); as d) {
+    @let c = d.closing;
+    <p class="sub">
+      {{ statusLabels[c.status] }} · periodo {{ c.windowStart | date: 'd MMM h:mm a' }} – {{ c.windowEnd | date: 'd MMM h:mm a' }}
+      · cerrado {{ c.closedAt | date: 'd MMM h:mm a' }}{{ c.closingMode === 'CATCH_UP' ? ' (puesto al día)' : '' }}
+      {{ c.wasOpenDay ? '' : '· día marcado como cerrado' }}
+    </p>
+
+    <h3>Efectivo congelado al corte</h3>
+    <dl>
+      <div><dt>Base</dt><dd>{{ c.openingBase | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+      <div><dt>+ Pagos en efectivo</dt><dd>{{ c.cashIncome | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+      <div><dt>− Anulaciones en efectivo</dt><dd>{{ c.cashVoided | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+      <div><dt>− Retiros</dt><dd>{{ c.cashWithdrawals | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+      <div class="total"><dt>Efectivo esperado</dt><dd>{{ c.expectedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+    </dl>
+
+    @if (c.countedCash !== null && c.countedCash !== undefined) {
+      <h3>Arqueo</h3>
+      <dl>
+        <div><dt>+ Entró después del corte</dt><dd>{{ c.postCutIncome | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+        <div><dt>− Salió después del corte</dt><dd>{{ c.postCutOutflow | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+        <div><dt>Esperado ajustado</dt><dd>{{ c.adjustedExpectedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+        <div><dt>Contado</dt><dd>{{ c.countedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd></div>
+        <div class="total" [class.bad]="c.difference !== 0">
+          <dt>Diferencia</dt><dd>{{ c.difference | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</dd>
+        </div>
+      </dl>
+      <p class="sub">
+        Registrado por {{ c.countedBy || '—' }} el {{ c.countedAt | date: 'd MMM h:mm a' }}
+        @if (c.countNote) {
+          · Nota: {{ c.countNote }}
+        }
+      </p>
+      @if (c.reviewedAt) {
+        <p class="sub">Revisado por {{ c.reviewedBy || '—' }} el {{ c.reviewedAt | date: 'd MMM h:mm a' }} · {{ c.reviewNote }}</p>
+      }
+      @if (d.postCutMovements.length) {
+        <h4>Movimientos después del corte considerados</h4>
+        <ul>
+          @for (m of d.postCutMovements; track m.type + m.id) {
+            <li><span>{{ m.at | date: 'd MMM h:mm a' }} · {{ describe(m) }}</span><b>{{ m.cashEffect | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></li>
+          }
+        </ul>
+      }
+    }
+
+    @if (d.methods.length) {
+      <h3>Informe por método</h3>
+      <ul>
+        @for (m of d.methods; track m.method) {
+          <li>
+            <span>{{ methodName(m.method) }} · {{ m.receivedCount }} pago(s){{ m.voidedCount ? ', ' + m.voidedCount + ' anulado(s)' : '' }}</span>
+            <b>{{ m.receivedAmount - m.voidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+          </li>
+        }
+      </ul>
+    }
+
+    <h3>Movimientos del día</h3>
+    @if (d.movements.length) {
+      <ul>
+        @for (m of d.movements; track m.type + m.id) {
+          <li>
+            <span>{{ m.at | date: 'd MMM h:mm a' }} · {{ describe(m) }} · {{ methodName(m.method) }}</span>
+            <b>{{ m.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="sub">Sin movimientos.</p>
+    }
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

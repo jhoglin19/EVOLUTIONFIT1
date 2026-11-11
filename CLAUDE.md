@@ -35,8 +35,11 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
   - Fase 3: clientes y planes.
   - Fase 4: membresías y congelaciones (backend, frontend y migración V3). Probada en el navegador.
   - Fase 5: pagos, asistente de inscripción y comprobantes PDF (backend, frontend y migración V4). Comprobante en A5 para celular, enviado a mano por WhatsApp con el nombre comercial en el mensaje. Probada en el navegador.
+  - Fase 6: caja (backend, frontend y migración V5). Cierre automático a las 10 p.m. de Bogotá que se pone al día al arrancar, retiros, arqueo ajustado por los movimientos posteriores al corte, revisión del ADMIN y reporte mensual. Probada de punta a punta por API contra una copia del respaldo; falta probarla en el navegador.
 - Pendiente:
   - Cargar los datos reales del gimnasio desde "Datos del comprobante" (nunca en el código).
-  - Siguiente: fase 6, caja. Los pagos todavía no generan movimientos de caja; el efectivo esperado se calculará a partir de los pagos.
-  - Luego, en orden: control de acceso (incluye el hardware de la fase 8) y notificaciones/dashboard/reportes.
-- Pruebas con MySQL real: V3MigrationTest, V4MigrationTest, MembershipConcurrencyTest y PaymentConcurrencyTest usan Testcontainers. Con Docker apagado se omiten (aparecen como Skipped), así que hay que revisarlo antes de dar una fase por terminada.
+  - Puesta en marcha: definir un procedimiento seguro para borrar los datos de prueba (docs/REGLAS_NEGOCIO.md, sección 10); no está implementado. Luego, el ADMIN fija la fecha de inicio de la caja.
+  - Confirmar con el dueño la base fija, el efectivo sobrante y los días que abre (hoy rigen valores por defecto).
+  - Siguiente: control de acceso (incluye el hardware de la fase 8). Luego, notificaciones/dashboard/reportes.
+- Caja: los ingresos se leen de payments (no hay movimientos INCOME); cash_movements guarda solo retiros. Un cierre solo marca filas sin marcar (cash_closing_id); nunca recalcular ni editar un cierre.
+- Pruebas con MySQL real: V3MigrationTest, V4MigrationTest, V5MigrationTest, MembershipConcurrencyTest, PaymentConcurrencyTest, CashClosingMySqlTest y CashConcurrencyTest usan Testcontainers. Con Docker apagado se omiten (aparecen como Skipped), así que hay que revisarlo antes de dar una fase por terminada.
