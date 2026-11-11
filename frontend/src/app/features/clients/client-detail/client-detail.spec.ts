@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { BusinessInfoService } from '../../../core/services/business-info.service';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { Client } from '../../../shared/models/client.model';
@@ -71,8 +72,15 @@ function setup(role: string, summary: CurrentMembership, dialogResult: unknown =
   const dialog = { open: vi.fn(() => ({ afterClosed: () => of(dialogResult) })) };
   TestBed.configureTestingModule({
     providers: [
+      {
+        provide: BusinessInfoService,
+        useValue: { load: vi.fn(), set: vi.fn(), tradeName: () => 'Gimnasio Ficticio' },
+      },
       provideRouter([]),
-      { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '1' }) } } },
+      {
+        provide: ActivatedRoute,
+        useValue: { snapshot: { paramMap: convertToParamMap({ id: '1' }) } },
+      },
       { provide: ClientsService, useValue: { get: vi.fn(() => of(CLIENT)) } },
       { provide: MembershipsService, useValue: api },
       { provide: PaymentsService, useValue: paymentsApi },
@@ -164,7 +172,11 @@ describe('ClientDetail', () => {
   });
 
   it('solo el administrador anula pagos, con motivo', () => {
-    const { el, component, paymentsApi } = setup('ADMIN', { current: membership() }, 'Error de digitación');
+    const { el, component, paymentsApi } = setup(
+      'ADMIN',
+      { current: membership() },
+      'Error de digitación',
+    );
     expect(el.querySelector('[aria-label="Anular pago"]')).not.toBeNull();
     component.voidPayment(PAYMENT);
     expect(paymentsApi.voidPayment).toHaveBeenCalledWith(7, 'Error de digitación');

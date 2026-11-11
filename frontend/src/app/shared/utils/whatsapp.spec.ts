@@ -38,7 +38,7 @@ describe('whatsapp', () => {
     expect(url.startsWith('https://wa.me/573001234567?text=')).toBe(true);
     const text = decodeURIComponent(url.split('?text=')[1]);
     expect(text).toBe(receiptMessage(PAYMENT));
-    expect(text).toContain('Hola Ana Pérez');
+    expect(text).toContain('Hola Ana Pérez, te compartimos');
     expect(text).toContain('EF-000001');
     expect(text).toContain('$ 90.000');
     expect(text).toContain('del 10/11/2026 al 09/12/2026');
@@ -47,5 +47,16 @@ describe('whatsapp', () => {
   it('sin teléfono o sin comprobante no hay enlace', () => {
     expect(receiptWhatsappUrl({ ...PAYMENT, clientPhone: null })).toBeNull();
     expect(receiptWhatsappUrl({ ...PAYMENT, receiptNumber: null })).toBeNull();
+  });
+
+  it('incluye el nombre comercial del gimnasio cuando está configurado', () => {
+    expect(receiptMessage(PAYMENT, ' Gimnasio Ficticio ')).toMatch(
+      /^Hola Ana Pérez, de parte de Gimnasio Ficticio, te compartimos el comprobante EF-000001/,
+    );
+    expect(receiptMessage(PAYMENT, '  ')).toMatch(/^Hola Ana Pérez, te compartimos/);
+    const text = decodeURIComponent(
+      receiptWhatsappUrl(PAYMENT, 'Gimnasio Ficticio')!.split('?text=')[1],
+    );
+    expect(text).toContain('de parte de Gimnasio Ficticio');
   });
 });

@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { debounceTime, finalize } from 'rxjs';
 
+import { BusinessInfoService } from '../../core/services/business-info.service';
 import { AuthService } from '../../core/services/auth.service';
 import { errorMessage } from '../../core/utils/error-message';
 import { ReasonDialog, ReasonDialogData } from '../../shared/components/reason-dialog/reason-dialog';
@@ -56,6 +57,7 @@ export class Payments {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly auth = inject(AuthService);
+  private readonly business = inject(BusinessInfoService);
 
   /** Solo comodidad visual: el backend exige ADMIN para anular. */
   readonly isAdmin = this.auth.hasRole('ADMIN');
@@ -78,6 +80,7 @@ export class Payments {
   });
 
   constructor() {
+    this.business.load();
     this.filters.valueChanges.pipe(debounceTime(300), takeUntilDestroyed()).subscribe(() => {
       this.pageIndex.set(0);
       this.load();
@@ -128,7 +131,7 @@ export class Payments {
 
   /** Solo pagos vigentes con comprobante y cliente con teléfono. */
   whatsappUrl(payment: Payment): string | null {
-    return payment.status === 'COMPLETED' ? receiptWhatsappUrl(payment) : null;
+    return payment.status === 'COMPLETED' ? receiptWhatsappUrl(payment, this.business.tradeName()) : null;
   }
 
   voidPayment(payment: Payment): void {

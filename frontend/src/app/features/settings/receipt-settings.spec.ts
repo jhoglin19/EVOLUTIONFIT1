@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { BusinessInfoService } from '../../core/services/business-info.service';
 
 import { ReceiptSettings } from '../../shared/models/receipt-settings.model';
 import { ReceiptSettingsPage } from './receipt-settings';
@@ -23,10 +24,16 @@ function setup(settings: ReceiptSettings = EMPTY) {
     logo: vi.fn(),
     preview: vi.fn(),
   };
-  TestBed.configureTestingModule({ providers: [{ provide: ReceiptSettingsService, useValue: api }] });
+  const business = { load: vi.fn(), set: vi.fn(), tradeName: () => null };
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: BusinessInfoService, useValue: business },
+      { provide: ReceiptSettingsService, useValue: api },
+    ],
+  });
   const fixture = TestBed.createComponent(ReceiptSettingsPage);
   fixture.detectChanges();
-  return { c: fixture.componentInstance, api, el: fixture.nativeElement as HTMLElement };
+  return { c: fixture.componentInstance, api, business, el: fixture.nativeElement as HTMLElement };
 }
 
 function fileEvent(size: number, type: string): Event {
@@ -55,18 +62,36 @@ describe('ReceiptSettingsPage', () => {
   });
 
   it('bloquea el número inicial después del primer comprobante y no lo envía', () => {
-    const { c, api } = setup({ ...EMPTY, initialNumberLocked: true, nextNumber: 8, nextReceiptNumber: 'EF-000008' });
+    const { c, api } = setup({
+      ...EMPTY,
+      initialNumberLocked: true,
+      nextNumber: 8,
+      nextReceiptNumber: 'EF-000008',
+    });
     expect(c.form.controls.initialNumber.disabled).toBe(true);
     c.save();
-    expect(api.update).toHaveBeenCalledWith(expect.objectContaining({ initialNumber: null, receiptPrefix: 'EF-' }));
+    expect(api.update).toHaveBeenCalledWith(
+      expect.objectContaining({ initialNumber: null, receiptPrefix: 'EF-' }),
+    );
   });
 
-  it('guarda los datos del encabezado limpios', () => {
-    const { c, api } = setup();
-    c.form.patchValue({ tradeName: ' Gimnasio Ficticio ', taxId: '000.000.000-0', initialNumber: 100 });
+  it('guarda los datos del encabezado limpios y actualiza el nombre del mensaje de WhatsApp', () => {
+    const { c, api, business } = setup();
+    api.update.mockReturnValue(of({ ...EMPTY, tradeName: 'Gimnasio Ficticio' }));
+    c.form.patchValue({
+      tradeName: ' Gimnasio Ficticio ',
+      taxId: '000.000.000-0',
+      initialNumber: 100,
+    });
     c.save();
     expect(api.update).toHaveBeenCalledWith(
-      expect.objectContaining({ tradeName: 'Gimnasio Ficticio', taxId: '000.000.000-0', legalName: null, initialNumber: 100 }),
+      expect.objectContaining({
+        tradeName: 'Gimnasio Ficticio',
+        taxId: '000.000.000-0',
+        legalName: null,
+        initialNumber: 100,
+      }),
     );
+    expect(business.set).toHaveBeenLastCalledWith('Gimnasio Ficticio');
   });
 });

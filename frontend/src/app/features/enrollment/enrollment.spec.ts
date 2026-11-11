@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { NEVER, of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+import { BusinessInfoService } from '../../core/services/business-info.service';
 
 import { AuthService } from '../../core/services/auth.service';
 import { Client } from '../../shared/models/client.model';
@@ -14,7 +15,14 @@ import { PaymentsService } from '../payments/payments.service';
 import { PlansService } from '../plans/plans.service';
 import { Enrollment } from './enrollment';
 
-const PLAN: Plan = { id: 2, name: 'Mensual', durationDays: 30, price: 90000, active: true, createdAt: null };
+const PLAN: Plan = {
+  id: 2,
+  name: 'Mensual',
+  durationDays: 30,
+  price: 90000,
+  active: true,
+  createdAt: null,
+};
 const CLIENT: Client = {
   id: 1,
   documentType: 'CC',
@@ -47,7 +55,13 @@ function setup(role: string, query: Record<string, string> = {}) {
   };
   const memberships = {
     preview: vi.fn(() =>
-      of({ planName: 'Mensual', price: 90000, startDate: '2026-11-10', endDate: '2026-12-09', scheduled: false }),
+      of({
+        planName: 'Mensual',
+        price: 90000,
+        startDate: '2026-11-10',
+        endDate: '2026-12-09',
+        scheduled: false,
+      }),
     ),
     get: vi.fn(() => of(membership({ id: 20, status: 'PENDING' }))),
     paymentPreview: vi.fn(() =>
@@ -64,26 +78,45 @@ function setup(role: string, query: Record<string, string> = {}) {
     ),
   };
   const clients = {
-    list: vi.fn(() => of({ content: [CLIENT], page: 0, size: 10, totalElements: 1, totalPages: 1 })),
+    list: vi.fn(() =>
+      of({ content: [CLIENT], page: 0, size: 10, totalElements: 1, totalPages: 1 }),
+    ),
     get: vi.fn(() => of(CLIENT)),
   };
   TestBed.configureTestingModule({
     providers: [
+      {
+        provide: BusinessInfoService,
+        useValue: { load: vi.fn(), set: vi.fn(), tradeName: () => 'Gimnasio Ficticio' },
+      },
       provideRouter([]),
-      { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap(query) } } },
+      {
+        provide: ActivatedRoute,
+        useValue: { snapshot: { queryParamMap: convertToParamMap(query) } },
+      },
       { provide: PaymentsService, useValue: payments },
       { provide: MembershipsService, useValue: memberships },
       { provide: ClientsService, useValue: clients },
       {
         provide: PlansService,
-        useValue: { list: vi.fn(() => of({ content: [PLAN], page: 0, size: 100, totalElements: 1, totalPages: 1 })) },
+        useValue: {
+          list: vi.fn(() =>
+            of({ content: [PLAN], page: 0, size: 100, totalElements: 1, totalPages: 1 }),
+          ),
+        },
       },
       { provide: AuthService, useValue: { hasRole: (...roles: string[]) => roles.includes(role) } },
     ],
   });
   const fixture = TestBed.createComponent(Enrollment);
   fixture.detectChanges();
-  return { fixture, c: fixture.componentInstance, payments, clients, el: fixture.nativeElement as HTMLElement };
+  return {
+    fixture,
+    c: fixture.componentInstance,
+    payments,
+    clients,
+    el: fixture.nativeElement as HTMLElement,
+  };
 }
 
 describe('Enrollment', () => {
@@ -128,7 +161,9 @@ describe('Enrollment', () => {
 
   it('inscribe a un cliente nuevo en una sola solicitud con el total calculado', () => {
     const { c, clients, payments } = setup('RECEPTIONIST');
-    clients.list.mockReturnValue(of({ content: [], page: 0, size: 10, totalElements: 0, totalPages: 0 }));
+    clients.list.mockReturnValue(
+      of({ content: [], page: 0, size: 10, totalElements: 0, totalPages: 0 }),
+    );
     c.search.setValue('2002');
     c.findClient();
     c.clientForm.patchValue({ firstName: 'Luis', lastName: 'Gómez' });
@@ -139,9 +174,18 @@ describe('Enrollment', () => {
 
     const request = payments.enroll.mock.calls[0]![0];
     expect(request.clientId).toBeNull();
-    expect(request.client).toMatchObject({ documentNumber: '2002', firstName: 'Luis', lastName: 'Gómez' });
+    expect(request.client).toMatchObject({
+      documentNumber: '2002',
+      firstName: 'Luis',
+      lastName: 'Gómez',
+    });
     expect(request.planId).toBe(2);
-    expect(request.payment).toMatchObject({ method: 'NEQUI', reference: '987', expectedAmount: 90000, discountAmount: null });
+    expect(request.payment).toMatchObject({
+      method: 'NEQUI',
+      reference: '987',
+      expectedAmount: 90000,
+      discountAmount: null,
+    });
     expect(c.result()).toBe(PAID);
   });
 
@@ -156,11 +200,15 @@ describe('Enrollment', () => {
 
     const retry = setup('RECEPTIONIST', { clientId: '1' });
     retry.c.planForm.controls.planId.setValue(2);
-    retry.payments.enroll.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 0 })) as never);
+    retry.payments.enroll.mockReturnValueOnce(
+      throwError(() => new HttpErrorResponse({ status: 0 })) as never,
+    );
     retry.c.confirm();
     expect(retry.c.error()).toContain('No se pudo conectar');
     retry.c.confirm();
-    const [first, second] = retry.payments.enroll.mock.calls.map((call) => call[0].payment.requestId);
+    const [first, second] = retry.payments.enroll.mock.calls.map(
+      (call) => call[0].payment.requestId,
+    );
     expect(first).toBe(retry.c.currentRequestId());
     expect(second).toBe(first);
   });
@@ -170,7 +218,10 @@ describe('Enrollment', () => {
     expect(c.mode()).toBe('pay');
     expect(el.textContent).toContain('ya pasó: la membresía empezará hoy');
     c.confirm();
-    expect(payments.pay).toHaveBeenCalledWith(20, expect.objectContaining({ expectedAmount: 90000 }));
+    expect(payments.pay).toHaveBeenCalledWith(
+      20,
+      expect.objectContaining({ expectedAmount: 90000 }),
+    );
   });
 
   it('al terminar ofrece descargar el PDF y abrir WhatsApp, sin imprimir', () => {

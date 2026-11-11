@@ -126,4 +126,12 @@ class ReceiptSettingsServiceTest {
                 argThat(after -> after instanceof Map<?, ?> m && m.get("logoBytes").equals(out.size())
                         && !m.containsKey("logo")), eq(7L));
     }
+
+    @Test
+    void businessInfoExposesOnlyTheTradeName() {
+        assertThat(service.businessInfo().tradeName()).isNull();
+        settings.setTradeName("Gimnasio Ficticio");
+        settings.setTaxId("000.000.000-0");
+        assertThat(service.businessInfo()).isEqualTo(new com.evolutionfit.modules.receipts.dto.BusinessInfoResponse("Gimnasio Ficticio"));
+    }
 }

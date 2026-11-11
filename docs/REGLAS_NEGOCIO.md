@@ -127,7 +127,8 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
    - Si cambia el prefijo, la numeración sigue.
    - **Formato:** A5 vertical con letra legible en el celular. El tamaño es configurable (`app.receipts.paper-size`); carta sigue disponible.
    - **Entrega por WhatsApp, a mano:** no hay impresora. Recepción descarga el PDF ("Descargar PDF") y lo adjunta.
-     - El botón "Abrir WhatsApp" abre `wa.me` con el teléfono del cliente y un mensaje precargado.
+     - El botón "Abrir WhatsApp" abre `wa.me` con el teléfono del cliente y un mensaje precargado: "Hola {cliente}, de parte de {nombre comercial}, …". Si aún no hay nombre comercial configurado, se omite "de parte de".
+     - Recepción solo puede ver el nombre comercial del gimnasio; el resto de los datos del comprobante sigue siendo solo de ADMIN.
      - Si el número no trae indicativo, se agrega el +57.
      - Si el cliente no tiene teléfono, el botón no aparece.
      - No hay envío automático.

@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 
+import { BusinessInfoService } from '../../../core/services/business-info.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { errorMessage } from '../../../core/utils/error-message';
 import { ReasonDialog, ReasonDialogData } from '../../../shared/components/reason-dialog/reason-dialog';
@@ -59,6 +60,7 @@ export class ClientDetail {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly auth = inject(AuthService);
+  private readonly business = inject(BusinessInfoService);
   private readonly paymentsApi = inject(PaymentsService);
   private readonly router = inject(Router);
 
@@ -77,6 +79,7 @@ export class ClientDetail {
   readonly error = signal<string | null>(null);
 
   constructor() {
+    this.business.load();
     this.load();
   }
 
@@ -137,7 +140,7 @@ export class ClientDetail {
 
   /** Solo pagos vigentes con comprobante y cliente con teléfono. */
   whatsappUrl(payment: Payment): string | null {
-    return payment.status === 'COMPLETED' ? receiptWhatsappUrl(payment) : null;
+    return payment.status === 'COMPLETED' ? receiptWhatsappUrl(payment, this.business.tradeName()) : null;
   }
 
   voidPayment(payment: Payment): void {

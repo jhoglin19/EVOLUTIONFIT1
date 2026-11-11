@@ -13,6 +13,7 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EMPTY, catchError, debounceTime, finalize, forkJoin, merge, switchMap, tap } from 'rxjs';
 
+import { BusinessInfoService } from '../../core/services/business-info.service';
 import { AuthService } from '../../core/services/auth.service';
 import { errorMessage } from '../../core/utils/error-message';
 import { Client, DOCUMENT_TYPES } from '../../shared/models/client.model';
@@ -70,6 +71,7 @@ export class Enrollment {
   private readonly membershipsApi = inject(MembershipsService);
   private readonly paymentsApi = inject(PaymentsService);
   private readonly auth = inject(AuthService);
+  private readonly business = inject(BusinessInfoService);
 
   readonly documentTypes = DOCUMENT_TYPES;
   readonly methods = PAYMENT_METHODS;
@@ -173,6 +175,7 @@ export class Enrollment {
   });
 
   constructor() {
+    this.business.load();
     this.plansApi.list('', true, 0, 100).subscribe({
       next: (page) => this.plans.set(page.content),
       error: (err) => this.error.set(errorMessage(err)),
@@ -382,7 +385,7 @@ export class Enrollment {
 
   /** Enlace wa.me al teléfono del cliente, o null si no tiene teléfono (el botón no se muestra). */
   whatsappUrl(payment: Payment): string | null {
-    return receiptWhatsappUrl(payment);
+    return receiptWhatsappUrl(payment, this.business.tradeName());
   }
 
   downloadReceipt(payment: Payment): void {

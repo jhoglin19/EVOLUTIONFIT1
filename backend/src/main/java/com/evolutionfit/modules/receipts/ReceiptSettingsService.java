@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.evolutionfit.common.exception.BusinessException;
 import com.evolutionfit.modules.audit.AuditService;
+import com.evolutionfit.modules.receipts.dto.BusinessInfoResponse;
 import com.evolutionfit.modules.receipts.dto.ReceiptSettingsRequest;
 import com.evolutionfit.modules.receipts.dto.ReceiptSettingsResponse;
 
@@ -50,6 +51,12 @@ public class ReceiptSettingsService {
         long next = sequenceRepository.findById(BusinessSettings.SINGLE_ID)
                 .map(ReceiptSequence::getNextValue).orElse(1L);
         return toResponse(s, next);
+    }
+
+    /** Solo el nombre comercial (lo usa recepción en el mensaje de WhatsApp). */
+    @Transactional(readOnly = true)
+    public BusinessInfoResponse businessInfo() {
+        return new BusinessInfoResponse(settings().getTradeName());
     }
 
     @Transactional

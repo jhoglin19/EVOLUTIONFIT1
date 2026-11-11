@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { BusinessInfoService } from '../../core/services/business-info.service';
 
 import { AuthService } from '../../core/services/auth.service';
 import { Payment } from '../../shared/models/payment.model';
@@ -27,12 +28,18 @@ const PAYMENT = {
 
 function setup(role: string, reason?: string, rows: Payment[] = [PAYMENT]) {
   const api = {
-    list: vi.fn(() => of({ content: rows, page: 0, size: 20, totalElements: rows.length, totalPages: 1 })),
+    list: vi.fn(() =>
+      of({ content: rows, page: 0, size: 20, totalElements: rows.length, totalPages: 1 }),
+    ),
     voidPayment: vi.fn(() => of(PAYMENT)),
     receipt: vi.fn(),
   };
   TestBed.configureTestingModule({
     providers: [
+      {
+        provide: BusinessInfoService,
+        useValue: { load: vi.fn(), set: vi.fn(), tradeName: () => 'Gimnasio Ficticio' },
+      },
       provideRouter([]),
       { provide: PaymentsService, useValue: api },
       { provide: MatDialog, useValue: { open: () => ({ afterClosed: () => of(reason) }) } },
@@ -66,6 +73,9 @@ describe('Payments', () => {
     const { el } = setup('RECEPTIONIST');
     const link = el.querySelector<HTMLAnchorElement>('a[aria-label="Abrir WhatsApp"]')!;
     expect(link.href.startsWith('https://wa.me/573001234567?text=')).toBe(true);
+    expect(decodeURIComponent(link.href)).toContain(
+      'Hola Ana Pérez, de parte de Gimnasio Ficticio, te compartimos',
+    );
     expect(decodeURIComponent(link.href)).toContain('comprobante EF-000001');
     expect(link.target).toBe('_blank');
   });

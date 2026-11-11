@@ -32,20 +32,24 @@ const money = (value: number) =>
 
 const date = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
 
-/** Mensaje precargado. El PDF lo adjunta recepción a mano: no hay envío automático. */
-export function receiptMessage(p: Payment): string {
+/**
+ * Mensaje precargado. El PDF lo adjunta recepción a mano: no hay envío automático.
+ * Si el gimnasio aún no tiene nombre comercial configurado, se omite "de parte de".
+ */
+export function receiptMessage(p: Payment, gymName?: string | null): string {
+  const from = gymName?.trim() ? `, de parte de ${gymName.trim()},` : ',';
   return (
-    `Hola ${p.clientName}, te compartimos el comprobante ${p.receiptNumber} de tu pago del plan ` +
+    `Hola ${p.clientName}${from} te compartimos el comprobante ${p.receiptNumber} de tu pago del plan ` +
     `${p.planName} por ${money(p.amount)}. Vigencia: del ${date(p.membershipStartDate)} al ` +
     `${date(p.membershipEndDate)}. A continuación te enviamos el PDF. ¡Gracias!`
   );
 }
 
 /** Enlace wa.me con el mensaje, o null si el cliente no tiene teléfono o el pago no tiene comprobante. */
-export function receiptWhatsappUrl(p: Payment): string | null {
+export function receiptWhatsappUrl(p: Payment, gymName?: string | null): string | null {
   const number = whatsappNumber(p.clientPhone);
   if (!number || !p.receiptNumber) {
     return null;
   }
-  return `https://wa.me/${number}?text=${encodeURIComponent(receiptMessage(p))}`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(receiptMessage(p, gymName))}`;
 }

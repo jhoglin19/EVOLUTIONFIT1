@@ -8,6 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { finalize } from 'rxjs';
 
+import { BusinessInfoService } from '../../core/services/business-info.service';
 import { errorMessage } from '../../core/utils/error-message';
 import { MAX_LOGO_BYTES, ReceiptSettings } from '../../shared/models/receipt-settings.model';
 import { openPdf } from '../../shared/utils/pdf';
@@ -30,6 +31,7 @@ import { ReceiptSettingsService } from './receipt-settings.service';
 export class ReceiptSettingsPage {
   private readonly api = inject(ReceiptSettingsService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly business = inject(BusinessInfoService);
 
   readonly maxLogoKb = MAX_LOGO_BYTES / 1024;
   readonly settings = signal<ReceiptSettings | null>(null);
@@ -138,6 +140,7 @@ export class ReceiptSettingsPage {
 
   private apply(s: ReceiptSettings): void {
     this.settings.set(s);
+    this.business.set(s.tradeName);
     this.form.reset({
       tradeName: s.tradeName ?? '',
       legalName: s.legalName ?? '',
