@@ -41,12 +41,22 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
 
 ## 4. Caja
 
-1. **Una sola caja.**
-2. **Cierre diario** y **reporte mensual**; el reporte mensual es la **suma de los cierres diarios**.
-3. El cierre registra **efectivo esperado, efectivo contado, diferencia y nota**.
-4. **Se puede cerrar con diferencia.**
-5. **Sin egresos** por ahora.
-6. **Recepción ve su turno; ADMIN ve todo.**
+Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por ahora" y "recepción ve su turno").
+
+1. **Un solo recepcionista y una sola caja.** Hay **un solo cierre por día**.
+2. **Base de $50.000 cada día.** La base está incluida en el efectivo esperado.
+3. **Solo se cuadra el efectivo.** Transferencias, Nequi, Daviplata y tarjeta aparecen en el cierre solo como informe del día.
+4. **Retiros de efectivo** para gastos del gimnasio (servilletas y cosas varias):
+   - Se registran con **monto** y **concepto obligatorio**, y una **categoría** (por ejemplo: insumos, aseo, otros).
+   - Bajan el efectivo esperado.
+   - Recepción los registra; el ADMIN los ve todos.
+5. **Cierre automático a las 10 p.m., hora de Bogotá.** El sistema congela el efectivo esperado del día:
+   **base + pagos en efectivo completados − retiros − pagos en efectivo anulados ese día**.
+6. **Arqueo:** después del corte, recepción cuenta el efectivo y registra el valor contado y una nota. La diferencia se calcula sola. Se puede registrar con diferencia; el ADMIN la revisa.
+7. **Lo que pasa después del corte cuenta para el día siguiente** (pagos y retiros).
+8. **Un pago anulado se descuenta el día en que se anula**, no el día en que se pagó. **Los días ya cerrados nunca cambian.**
+9. **Reporte mensual:** es solo un informe. Suma los cierres diarios del mes, con totales por método de pago.
+10. **Permisos:** recepción solo ve el día en curso y su arqueo pendiente. El ADMIN ve y revisa todo.
 
 ## 5. Control de acceso
 
@@ -150,4 +160,8 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
 
 ## Pendientes de definir
 
-- Ninguno por ahora. (El prefijo del consecutivo se definió en la fase 5: `EF-`, editable.)
+- El prefijo del consecutivo ya se definió en la fase 5: `EF-`, editable.
+- **Caja (por confirmar con el dueño):**
+  - ¿La base de $50.000 es fija todos los días?
+  - ¿Qué se hace con el efectivo que sobra después del arqueo?
+  - ¿El gimnasio abre todos los días?
