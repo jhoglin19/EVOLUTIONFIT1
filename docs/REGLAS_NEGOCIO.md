@@ -18,6 +18,7 @@ Roles: `ADMIN` (administrador) y `RECEPTIONIST` (recepción).
 6. **No hay cambio de plan a mitad de periodo:** se termina la membresía actual y se crea otra.
 7. **Solo ADMIN anula** una membresía, con **motivo obligatorio**. La membresía anulada **no se borra**.
 8. Cada membresía guarda el **nombre y el precio del plan** al momento de la venta (`price_at_purchase` y el nombre del plan); un cambio posterior del plan no altera membresías ya vendidas.
+9. **Los días del plan son días calendario.** Si una membresía vence un domingo o un festivo, vence igual ese día. Los días en que el gimnasio no abre (domingos, festivos o días marcados como cerrados en la caja) no extienden la membresía.
 
 ## 2. Congelaciones
 
