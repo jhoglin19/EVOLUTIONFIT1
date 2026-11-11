@@ -213,4 +213,43 @@ class ClientServiceTest {
 
         assertThat(service.list("-", null, 0, 10).getContent()).isEmpty();
     }
+
+    // ---- borrado permanente ----
+
+    @Test
+    void aClientWithoutHistoryIsDeletedAndTheDeletionIsAudited() {
+        Client client = existing(4L, true);
+        when(clientRepository.findByIdForUpdate(4L)).thenReturn(Optional.of(client));
+
+        service.delete(4L, 7L);
+
+        verify(clientRepository).delete(client);
+        verify(clientRepository).flush();
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> before = ArgumentCaptor.forClass(Map.class);
+        verify(auditService).record(eq("CLIENT"), eq(4L), eq(AuditService.ACTION_DELETE), before.capture(), eq(null),
+                eq(7L));
+        assertThat(before.getValue()).containsEntry("documentNumber", "1234567").containsEntry("firstName", "Ana");
+    }
+
+    @Test
+    void aClientWithMembershipsPaymentsOrAccessesIsOnlyDeactivated() {
+        when(clientRepository.findByIdForUpdate(4L)).thenReturn(Optional.of(existing(4L, true)));
+        when(clientRepository.countMemberships(4L)).thenReturn(0L, 1L, 0L);
+        when(clientRepository.countPayments(4L)).thenReturn(0L, 0L, 0L);
+        when(clientRepository.countAccessLogs(4L)).thenReturn(2L, 0L, 0L);
+
+        assertThatThrownBy(() -> service.delete(4L, 7L)).isInstanceOf(ConflictException.class)
+                .hasMessageContaining("2 acceso(s)").hasMessageContaining("desactivarlo");
+        assertThatThrownBy(() -> service.delete(4L, 7L)).isInstanceOf(ConflictException.class)
+                .hasMessageContaining("1 membresía(s)");
+        verify(clientRepository, never()).delete(any(Client.class));
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    void deletingAMissingClientIsNotFound() {
+        when(clientRepository.findByIdForUpdate(9L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.delete(9L, 7L)).isInstanceOf(ResourceNotFoundException.class);
+    }
 }

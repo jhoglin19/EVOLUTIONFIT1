@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "check:forms": "node scripts/check-forms.mjs",
+    "pretest": "node scripts/check-forms.mjs",
+    "prebuild": "node scripts/check-forms.mjs"
   },
   "private": true,
   "packageManager": "npm@10.9.9",

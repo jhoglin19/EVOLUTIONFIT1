@@ -133,4 +133,16 @@ class ClientControllerSecurityTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Ya existe"));
     }
+
+    @Test
+    void onlyTheAdminDeletesAClient() throws Exception {
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/clients/1")
+                .with(receptionist())).andExpect(status().isForbidden());
+        org.mockito.Mockito.verify(clientService, org.mockito.Mockito.never())
+                .delete(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/clients/1")
+                .with(admin())).andExpect(status().isNoContent());
+        org.mockito.Mockito.verify(clientService).delete(1L, 7L);
+    }
 }

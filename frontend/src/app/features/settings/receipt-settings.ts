@@ -168,7 +168,10 @@ export class ReceiptSettingsPage {
     }
     this.logoUrl.set(null);
     if (hasLogo) {
-      this.api.logo().subscribe({ next: (blob) => this.logoUrl.set(URL.createObjectURL(blob)) });
+      this.api.logo().subscribe({
+        next: (blob) => this.logoUrl.set(URL.createObjectURL(blob)),
+        error: (err) => this.error.set('No se pudo cargar el logo: ' + errorMessage(err)),
+      });
     }
   }
 }

@@ -22,6 +22,7 @@ public class AuditService {
     public static final String ACTION_ACTIVATE = "ACTIVATE";
     public static final String ACTION_DISCOUNT = "DISCOUNT";
     public static final String ACTION_VOID = "VOID";
+    public static final String ACTION_DELETE = "DELETE";
 
     private final AuditLogRepository repository;
     private final ObjectMapper objectMapper;

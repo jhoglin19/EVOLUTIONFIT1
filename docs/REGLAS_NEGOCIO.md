@@ -81,7 +81,7 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 
 ## 7. Clientes
 
-1. Los clientes **no se borran, se desactivan**.
+1. Los clientes **no se borran, se desactivan**. Única excepción (decisión del dueño, después de la fase 7): el **ADMIN puede eliminar para siempre a un cliente que nunca tuvo membresías, pagos ni accesos**. Ver la sección 12.
 2. Se **migrarán poco a poco** desde otro sistema, **sin importación masiva**.
 3. **El celular es obligatorio al registrar un cliente**, también en el asistente de inscripción:
    - Es un celular colombiano de 10 dígitos que empieza por 3.
@@ -282,6 +282,27 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
    - `/api/dashboard` y `/api/alerts/**`: recepción y ADMIN.
    - `/api/dashboard/admin` y `/api/reports/**`, incluida la exportación: solo ADMIN.
 10. **Migración V7:** solo agrega índices para las consultas por fecha (`payments.voided_at`, `memberships.activated_at`, `memberships.created_at`). No cambia datos.
+
+---
+
+## 12. Ajustes posteriores a la fase 7
+
+### Eliminar un cliente sin historial
+
+1. **Solo el ADMIN**, desde la ficha del cliente ("Eliminar cliente"), con un diálogo de confirmación.
+2. **Solo si nunca tuvo membresías, pagos ni accesos:**
+   - Cuentan las membresías de cualquier estado: pendientes, anuladas y migradas.
+   - Cuentan los pagos, también los anulados.
+   - Cuentan los registros de `access_logs`.
+3. **Con historial no se borra:** el backend responde que solo se puede desactivar y dice cuánto historial tiene.
+4. **El borrado es permanente** y queda en `audit_logs` (`CLIENT` / `DELETE`), con quién lo hizo y una copia de los datos borrados: documento, nombre, celular, correo, estado y fecha de registro.
+5. **Sin carreras:** el cliente se bloquea mientras se revisa su historial, así una inscripción simultánea no puede quedar huérfana. La base de datos también lo impide con su llave foránea.
+6. El botón solo aparece si la ficha no muestra membresías ni pagos. El backend vuelve a revisar todo, incluidos los accesos, y es quien decide.
+
+### Ninguna acción falla en silencio
+
+- Si una petición falla, la pantalla o el diálogo muestran el mensaje del backend, o uno claro si no hay conexión.
+- Si un error se escapa de una pantalla, un aviso global lo muestra (`UserErrorHandler`).
 
 ---
 

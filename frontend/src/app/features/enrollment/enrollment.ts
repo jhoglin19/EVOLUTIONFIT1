@@ -89,6 +89,8 @@ export class Enrollment {
   readonly client = signal<Client | null>(null);
   readonly searched = signal(false);
   readonly search = new FormControl('', { nonNullable: true, validators: [Validators.required] });
+  /** El formulario necesita su [formGroup]: sin él, Angular no maneja el envío y el navegador recarga la página. */
+  readonly searchForm = new FormGroup({ document: this.search });
   readonly clientForm = new FormGroup({
     documentType: new FormControl('CC', { nonNullable: true, validators: [Validators.required] }),
     documentNumber: new FormControl('', {
@@ -278,6 +280,12 @@ export class Enrollment {
         },
         error: (err) => this.error.set(errorMessage(err)),
       });
+  }
+
+  /** Enter en el campo de documento busca (y no envía el formulario de forma nativa). */
+  searchOnEnter(event: Event): void {
+    event.preventDefault();
+    this.findClient();
   }
 
   useClient(client: Client): void {

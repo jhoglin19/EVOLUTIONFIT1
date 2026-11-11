@@ -44,5 +44,11 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
 - Ajustes posteriores a la fase 6: celular colombiano obligatorio en clientes, días de atención (lunes a sábado, festivos de Colombia calculados en ColombianHolidays, excepciones del ADMIN; migración V6).
 - Siguiente: fase 8, control de acceso (incluye el hardware, docs/HARDWARE_CONTROL_ACCESO.md). Ahí se agregan los reportes de asistencia y entradas.
 - Caja: los ingresos se leen de payments (no hay movimientos INCOME); cash_movements guarda solo retiros. Un cierre solo marca filas sin marcar (cash_closing_id); nunca recalcular ni editar un cierre.
+- Ajustes posteriores a la fase 7:
+  - Corregido: los `<form>` sin `[formGroup]` (búsqueda del asistente, diálogo de motivo de todas las anulaciones y arqueo) recargaban la página en el navegador.
+  - Aviso global de errores (UserErrorHandler).
+  - El ADMIN elimina clientes sin historial (docs/REGLAS_NEGOCIO.md, sección 12).
+- Frontend, regla: todo `<form>` lleva `[formGroup]` (solo se usa ReactiveFormsModule; sin él, `(ngSubmit)` nunca corre y el navegador recarga). Lo verifica `scripts/check-forms.mjs`, que corre antes de `npm test` y de `npm run build`.
+- Frontend, pruebas de integración: `src/app/testing/` monta la app real (appProviders, rutas con el shell perezoso, MatDialog) y hace clic en el DOM. Cada acción nueva necesita una prueba ahí, no solo pruebas de componentes aislados con diálogos simulados.
 - Panel y reportes: "cliente nuevo frente a renovación" está definido una sola vez (ReportRepository.FIRST_OF_CLIENT); las alertas reutilizan MembershipSpecifications. El reporte de ingresos usa la regla de Caja en días calendario.
-- Pruebas con MySQL real: V3MigrationTest, V4MigrationTest, V5MigrationTest, V6MigrationTest, V7MigrationTest, MembershipConcurrencyTest, PaymentConcurrencyTest, CashClosingMySqlTest, CashConcurrencyTest y ReportQueriesMySqlTest usan Testcontainers. Con Docker apagado se omiten (aparecen como Skipped), así que hay que revisarlo antes de dar una fase por terminada.
+- Pruebas con MySQL real: V3MigrationTest, V4MigrationTest, V5MigrationTest, V6MigrationTest, V7MigrationTest, MembershipConcurrencyTest, PaymentConcurrencyTest, CashClosingMySqlTest, CashConcurrencyTest, ReportQueriesMySqlTest y ClientDeletionMySqlTest usan Testcontainers. Con Docker apagado se omiten (aparecen como Skipped), así que hay que revisarlo antes de dar una fase por terminada.

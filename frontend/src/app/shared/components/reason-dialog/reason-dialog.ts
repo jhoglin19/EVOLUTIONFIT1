@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,12 +17,12 @@ export interface ReasonDialogData {
   imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule],
   template: `
     <h2 mat-dialog-title>{{ data.title }}</h2>
-    <form (ngSubmit)="confirm()" novalidate>
+    <form [formGroup]="form" (ngSubmit)="confirm()" novalidate>
       <mat-dialog-content>
         <p>{{ data.message }}</p>
         <mat-form-field appearance="outline">
           <mat-label>Motivo</mat-label>
-          <textarea matInput [formControl]="reason" rows="3" maxlength="255"></textarea>
+          <textarea matInput formControlName="reason" rows="3" maxlength="255"></textarea>
           @if (reason.hasError('required')) {
             <mat-error>El motivo es obligatorio</mat-error>
           }
@@ -50,6 +50,8 @@ export class ReasonDialog {
     nonNullable: true,
     validators: [Validators.required, Validators.maxLength(255), Validators.pattern(/\S/)],
   });
+  /** El formulario necesita su [formGroup]: sin él, Angular no maneja el envío y el navegador recarga la página. */
+  readonly form = new FormGroup({ reason: this.reason });
 
   confirm(): void {
     if (this.reason.invalid) {

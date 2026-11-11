@@ -13,6 +13,7 @@ import { finalize, forkJoin } from 'rxjs';
 import { BusinessInfoService } from '../../../core/services/business-info.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { errorMessage } from '../../../core/utils/error-message';
+import { ConfirmDialog, ConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ReasonDialog, ReasonDialogData } from '../../../shared/components/reason-dialog/reason-dialog';
 import { Client } from '../../../shared/models/client.model';
 import {
@@ -101,6 +102,38 @@ export class ClientDetail {
           this.payments.set(payments);
         },
         error: (err) => this.error.set(errorMessage(err)),
+      });
+  }
+
+  /**
+   * Eliminar solo si nunca tuvo membresías ni pagos (el backend también revisa los accesos y es quien decide).
+   * Con historial, el cliente solo se desactiva.
+   */
+  canDelete(): boolean {
+    return this.isAdmin && !!this.client() && this.history().length === 0 && this.payments().length === 0;
+  }
+
+  deleteClient(): void {
+    const c = this.client()!;
+    this.dialog
+      .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
+        data: {
+          title: 'Eliminar cliente',
+          message: `Se borra para siempre a ${c.firstName} ${c.lastName} (${c.documentType} ${c.documentNumber}). Solo es posible porque nunca tuvo membresías, pagos ni accesos. Queda registrado en la auditoría.`,
+          confirmLabel: 'Eliminar',
+        },
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.clientsApi.delete(c.id).subscribe({
+            next: () => {
+              this.notify('Cliente eliminado');
+              void this.router.navigate(['/clients']);
+            },
+            error: (err) => this.notify(errorMessage(err)),
+          });
+        }
       });
   }
 

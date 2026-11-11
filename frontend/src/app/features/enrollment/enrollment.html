@@ -72,10 +72,10 @@
             <button mat-flat-button type="button" (click)="next(stepper, clientStepDone())">Siguiente</button>
           </div>
         } @else {
-          <form class="row search" (ngSubmit)="findClient()">
+          <form class="row search" [formGroup]="searchForm" (ngSubmit)="findClient()">
             <mat-form-field appearance="outline">
               <mat-label>Número de documento</mat-label>
-              <input matInput [formControl]="search" autocomplete="off" />
+              <input matInput formControlName="document" autocomplete="off" (keydown.enter)="searchOnEnter($event)" />
               <mat-hint>Primero se busca para no registrar dos veces a la misma persona.</mat-hint>
             </mat-form-field>
             <button mat-stroked-button type="submit">Buscar</button>

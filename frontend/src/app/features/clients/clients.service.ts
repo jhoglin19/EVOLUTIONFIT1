@@ -37,4 +37,9 @@ export class ClientsService {
   setActive(id: number, active: boolean): Observable<Client> {
     return this.http.patch<Client>(`${this.url}/${id}/status`, { active });
   }
+
+  /** Borrado permanente (solo ADMIN): el backend lo rechaza si el cliente tiene membresías, pagos o accesos. */
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${id}`);
+  }
 }

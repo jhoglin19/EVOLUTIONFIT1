@@ -1,5 +1,5 @@
 <h2 mat-dialog-title>Arqueo del {{ preview()?.closing?.cashDate | date: 'EEEE d MMM y' }}</h2>
-<form (ngSubmit)="save()" novalidate>
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
   <mat-dialog-content>
     @if (loading()) {
       <mat-progress-bar mode="indeterminate" />
@@ -43,7 +43,7 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Efectivo contado</mat-label>
-        <input matInput type="number" min="0" step="50" [formControl]="counted" />
+        <input matInput type="number" min="0" step="50" formControlName="counted" />
         @if (counted.hasError('required')) {
           <mat-error>Digita el efectivo contado</mat-error>
         }
@@ -63,7 +63,7 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Nota {{ difference() !== null && difference() !== 0 ? '(obligatoria con diferencia)' : '(opcional)' }}</mat-label>
-        <textarea matInput rows="2" maxlength="500" [formControl]="note"></textarea>
+        <textarea matInput rows="2" maxlength="500" formControlName="note"></textarea>
         @if (note.hasError('required')) {
           <mat-error>Explica la diferencia</mat-error>
         }

@@ -45,6 +45,12 @@
           <mat-icon>add_card</mat-icon>
           Registrar sin cobrar
         </button>
+        @if (canDelete()) {
+          <button mat-stroked-button type="button" class="danger" (click)="deleteClient()" data-delete-client>
+            <mat-icon>delete_forever</mat-icon>
+            Eliminar cliente
+          </button>
+        }
       </div>
     </div>
 

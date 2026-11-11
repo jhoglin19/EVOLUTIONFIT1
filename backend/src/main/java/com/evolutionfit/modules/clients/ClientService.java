@@ -1,5 +1,6 @@
 package com.evolutionfit.modules.clients;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.evolutionfit.common.exception.BusinessException;
@@ -86,6 +87,37 @@ public class ClientService {
         auditService.record(AUDIT_ENTITY, id, AuditService.ACTION_STATUS_CHANGE,
                 Map.of("active", !active), Map.of("active", active), currentUserId);
         return ClientResponse.from(saved);
+    }
+
+    /**
+     * Borrado permanente (docs/REGLAS_NEGOCIO.md, sección 7): solo si el cliente nunca tuvo membresías
+     * (de ningún estado), pagos ni accesos. Con historial solo se desactiva. El cliente se bloquea primero
+     * (FOR UPDATE): una inscripción simultánea espera y, si se crea antes, el borrado se rechaza. La
+     * auditoría guarda una copia de los datos borrados.
+     */
+    @Transactional
+    public void delete(Long id, Long currentUserId) {
+        Client client = clientRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+        long memberships = clientRepository.countMemberships(id);
+        long payments = clientRepository.countPayments(id);
+        long accesses = clientRepository.countAccessLogs(id);
+        if (memberships + payments + accesses > 0) {
+            throw new ConflictException("No se puede eliminar: el cliente tiene historial (" + memberships
+                    + " membresía(s), " + payments + " pago(s), " + accesses + " acceso(s)). Puedes desactivarlo.");
+        }
+        Map<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put("documentType", client.getDocumentType());
+        snapshot.put("documentNumber", client.getDocumentNumber());
+        snapshot.put("firstName", client.getFirstName());
+        snapshot.put("lastName", client.getLastName());
+        snapshot.put("phone", client.getPhone());
+        snapshot.put("email", client.getEmail());
+        snapshot.put("active", client.isActive());
+        snapshot.put("createdAt", client.getCreatedAt() == null ? null : client.getCreatedAt().toString());
+        clientRepository.delete(client);
+        clientRepository.flush(); // si la base lo rechaza (llave foránea), falla aquí y no queda auditoría
+        auditService.record(AUDIT_ENTITY, id, AuditService.ACTION_DELETE, snapshot, null, currentUserId);
     }
 
     // ---- helpers ----

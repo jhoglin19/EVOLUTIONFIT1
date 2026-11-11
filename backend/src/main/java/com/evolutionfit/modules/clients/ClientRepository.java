@@ -26,6 +26,18 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
 
     boolean existsByDocumentNumberAndIdNot(String documentNumber, Long id);
 
+    // ---- historial: un cliente con historial no se borra, solo se desactiva ----
+
+    @Query(value = "select count(*) from memberships where client_id = :id", nativeQuery = true)
+    long countMemberships(@Param("id") Long id);
+
+    @Query(value = "select count(*) from payments p join memberships m on m.id = p.membership_id where m.client_id = :id",
+            nativeQuery = true)
+    long countPayments(@Param("id") Long id);
+
+    @Query(value = "select count(*) from access_logs where client_id = :id", nativeQuery = true)
+    long countAccessLogs(@Param("id") Long id);
+
     /** {@code document} es el término normalizado, para que "1.234" encuentre "1234". */
     @Query("""
             select c from Client c

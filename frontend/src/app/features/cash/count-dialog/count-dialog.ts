@@ -2,7 +2,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -56,6 +56,8 @@ export class CountDialog {
 
   readonly counted = new FormControl<number | null>(null, [Validators.required, Validators.min(0)]);
   readonly note = new FormControl('', { nonNullable: true, validators: Validators.maxLength(500) });
+  /** El formulario necesita su [formGroup]: sin él, Angular no maneja el envío y el navegador recarga la página. */
+  readonly form = new FormGroup({ counted: this.counted, note: this.note });
   private readonly countedValue = toSignal(this.counted.valueChanges, { initialValue: null });
 
   /** Diferencia en vivo; null mientras no se digite el contado. */
