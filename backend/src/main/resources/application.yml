@@ -61,6 +61,8 @@ app:
     # Reglas del dueño (docs/REGLAS_NEGOCIO.md). Cambiarlas no requiere migración.
     expiry-warning-days: ${MEMBERSHIP_EXPIRY_WARNING_DAYS:5}
     max-freeze-days: ${MEMBERSHIP_MAX_FREEZE_DAYS:30}
+    # Alerta "vencidas recientes" del panel y de Vencimientos: días hacia atrás desde ayer.
+    recently-expired-days: ${MEMBERSHIP_RECENTLY_EXPIRED_DAYS:15}
   receipts:
     # Tamaño del comprobante PDF: A5 (vertical, para enviarlo por WhatsApp y leerlo en el celular) o LETTER.
     paper-size: ${RECEIPT_PAPER_SIZE:A5}
@@ -68,6 +70,9 @@ app:
     # Hora del cierre automático diario (hora de Bogotá). La base, la fecha de inicio y los días que abre
     # los edita el ADMIN en "Configuración de caja" (tabla cash_settings).
     closing-time: ${CASH_CLOSING_TIME:22:00}
+  reports:
+    # Días máximos de un rango de fechas en los reportes del ADMIN (366: un año completo).
+    max-range-days: ${REPORTS_MAX_RANGE_DAYS:366}
   bootstrap-admin:
     # Solo se usa si la tabla users está vacía. Con la contraseña vacía no se crea ningún administrador.
     username: ${BOOTSTRAP_ADMIN_USERNAME:admin}

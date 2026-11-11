@@ -37,3 +37,17 @@ a[mat-list-item] {
     background: #ffb74d;
   }
 }
+
+.badge {
+  display: inline-block;
+  min-width: 20px;
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  background: #e65100;
+  color: #fff;
+}

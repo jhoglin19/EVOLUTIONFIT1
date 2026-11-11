@@ -1,37 +1,94 @@
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+@use '../cash/cash';
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.tile {
+a.card {
   color: inherit;
   text-decoration: none;
 
-  mat-card:hover {
+  &:hover {
     border-color: var(--mat-sys-primary);
   }
 }
 
-mat-card-content {
-  padding: 20px;
-
-  mat-icon {
-    margin-bottom: 8px;
-    color: var(--mat-sys-primary);
-  }
-
-  h2 {
-    margin: 0 0 4px;
-    font: var(--mat-sys-title-medium);
-  }
-
-  p {
-    margin: 0;
+.card {
+  small {
+    font-size: 0.78rem;
     color: var(--mat-sys-on-surface-variant);
+  }
+
+  &.warn {
+    background: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+
+    span,
+    small {
+      color: inherit;
+    }
   }
 }
 
-.soon mat-icon {
+.cards.small {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 16px 24px;
+  margin-bottom: 16px;
+}
+
+section {
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.cash-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.alert-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+  a {
+    color: var(--mat-sys-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .pending {
+    color: var(--mat-sys-tertiary);
+  }
+}
+
+tr.voided td {
   color: var(--mat-sys-on-surface-variant);
+  text-decoration: line-through;
+}
+
+tr.voided td:last-child {
+  text-decoration: none;
+}
+
+td a {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
 }

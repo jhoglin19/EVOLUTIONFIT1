@@ -16,6 +16,7 @@ describe('SHELL_ROUTES', () => {
     expect(paths).toEqual([
       '',
       'dashboard',
+      'expirations',
       'clients',
       'clients/:id',
       'memberships',
@@ -25,12 +26,13 @@ describe('SHELL_ROUTES', () => {
       'cash',
       'cash/closings',
       'cash/report',
+      'reports',
       'settings/cash',
       'settings/receipt',
       'users',
     ]);
     const adminOnly = (shell.children ?? []).filter((r: Route) => r.canActivate?.length).map((r: Route) => r.path);
-    expect(adminOnly).toEqual(['cash/closings', 'cash/report', 'settings/cash', 'settings/receipt', 'users']);
+    expect(adminOnly).toEqual(['cash/closings', 'cash/report', 'reports', 'settings/cash', 'settings/receipt', 'users']);
     expect(routes.find((r) => r.path === '')?.canActivate?.length).toBe(1); // sesión obligatoria
   });
 

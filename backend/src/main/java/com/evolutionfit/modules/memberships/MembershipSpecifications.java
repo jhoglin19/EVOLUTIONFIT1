@@ -83,15 +83,63 @@ final class MembershipSpecifications {
      */
     private static Predicate expiringSoon(Root<Membership> root, jakarta.persistence.criteria.CriteriaQuery<?> cq,
                                           CriteriaBuilder cb, LocalDate today, int warningDays) {
+        return cb.and(inForce(root, cb, today),
+                cb.lessThanOrEqualTo(root.get("endDate"), today.plusDays(warningDays)),
+                cb.exists(renewal(root, cq, cb)).not());
+    }
+
+    /**
+     * Alerta "por vencer" (docs/REGLAS_NEGOCIO.md, sección 11): el mismo filtro del listado de membresías,
+     * solo para clientes activos.
+     */
+    static Specification<Membership> expiringAlert(LocalDate today, int warningDays, String query) {
+        return (root, cq, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            p.add(expiringSoon(root, cq, cb, today, warningDays));
+            p.add(cb.isTrue(root.get("client").get("active")));
+            if (query != null && !query.isBlank()) {
+                p.add(matchesClient(root, cb, query.trim()));
+            }
+            return cb.and(p.toArray(Predicate[]::new));
+        };
+    }
+
+    /**
+     * Alerta "vencida reciente": confirmada, venció entre hoy − días y ayer, y el cliente no tiene otra
+     * confirmada que empiece después de ese vencimiento (no renovó). Una renovación pendiente de pago no
+     * quita la alerta. Solo clientes activos.
+     */
+    static Specification<Membership> recentlyExpiredAlert(LocalDate today, int days, String query) {
+        return (root, cq, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            p.add(confirmed(root, cb));
+            p.add(cb.between(root.get("endDate"), today.minusDays(days), today.minusDays(1)));
+            p.add(cb.exists(renewal(root, cq, cb)).not());
+            p.add(cb.isTrue(root.get("client").get("active")));
+            if (query != null && !query.isBlank()) {
+                p.add(matchesClient(root, cb, query.trim()));
+            }
+            return cb.and(p.toArray(Predicate[]::new));
+        };
+    }
+
+    /** Vigentes hoy (activas o congeladas), para contar clientes con membresía en el panel. */
+    static Specification<Membership> inForceToday(LocalDate today, boolean frozen) {
+        return (root, cq, cb) -> frozen
+                ? cb.and(inForce(root, cb, today), frozenToday(root, cq, cb, today))
+                : cb.and(inForce(root, cb, today), frozenToday(root, cq, cb, today).not());
+    }
+
+    /** Otra membresía confirmada del mismo cliente que empieza después del vencimiento de esta. */
+    private static Subquery<Long> renewal(Root<Membership> root, jakarta.persistence.criteria.CriteriaQuery<?> cq,
+                                          CriteriaBuilder cb) {
         Subquery<Long> renewal = cq.subquery(Long.class);
         Root<Membership> other = renewal.from(Membership.class);
         renewal.select(other.get("id")).where(
                 cb.equal(other.get("client"), root.get("client")),
                 other.get("status").in(MembershipStatus.PENDING, MembershipStatus.CANCELLED).not(),
                 cb.greaterThan(other.get("startDate"), root.get("endDate")));
-        return cb.and(inForce(root, cb, today),
-                cb.lessThanOrEqualTo(root.get("endDate"), today.plusDays(warningDays)),
-                cb.exists(renewal).not());
+        return renewal;
     }
 
     private static Predicate matchesClient(Root<Membership> root, CriteriaBuilder cb, String query) {

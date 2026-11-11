@@ -1,3 +1,4 @@
+import { ExpirationAlert } from '../models/dashboard.model';
 import { Payment } from '../models/payment.model';
 
 /** Indicativo de Colombia: se agrega cuando el número no trae uno. */
@@ -52,4 +53,27 @@ export function receiptWhatsappUrl(p: Payment, gymName?: string | null): string 
     return null;
   }
   return `https://wa.me/${number}?text=${encodeURIComponent(receiptMessage(p, gymName))}`;
+}
+
+/**
+ * Recordatorio de vencimiento: "Hola {cliente}, de parte de {gimnasio}, tu plan {plan} vence el {fecha}. Si
+ * quieres renovarlo, te esperamos." Si ya venció, "venció el {fecha}". Sin nombre comercial configurado se
+ * omite "de parte de". Lo envía recepción a mano: no hay envío automático.
+ */
+export function expirationMessage(a: ExpirationAlert, gymName?: string | null): string {
+  const from = gymName?.trim() ? `, de parte de ${gymName.trim()},` : ',';
+  const verb = a.daysToEnd < 0 ? 'venció' : 'vence';
+  return (
+    `Hola ${a.clientName}${from} tu plan ${a.planName} ${verb} el ${date(a.endDate)}. ` +
+    'Si quieres renovarlo, te esperamos.'
+  );
+}
+
+/** Enlace wa.me del recordatorio, o null si el cliente no tiene un teléfono usable (igual que el comprobante). */
+export function expirationWhatsappUrl(a: ExpirationAlert, gymName?: string | null): string | null {
+  const number = whatsappNumber(a.clientPhone);
+  if (!number) {
+    return null;
+  }
+  return `https://wa.me/${number}?text=${encodeURIComponent(expirationMessage(a, gymName))}`;
 }

@@ -230,6 +230,61 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 
 ---
 
+## 11. Decisiones confirmadas en la fase 7 (panel de inicio, alertas de vencimiento y reportes)
+
+1. **Fechas, no la columna `status`:** todo se calcula con `start_date`, `end_date`, las congelaciones y las fechas de pago y anulación, en **hora de Bogotá**. De `status` solo se usan los estados que fija un usuario (`PENDING` y `CANCELLED`).
+2. **"Hoy" es el día calendario** (de 12 a.m. a 12 a.m.) en el panel y en los reportes. La tarjeta de caja del panel respeta el día de caja, con su corte de las 10 p.m.
+3. **Panel de inicio:**
+   - Recepción y ADMIN ven:
+     - Clientes con membresía vigente (activas y congeladas).
+     - Las que vencen en los próximos 5 días y las vencidas recientes.
+     - Las inscripciones del día: nuevas, renovaciones, migradas y pendientes de pago.
+     - La cantidad y la lista de los pagos del día, con el valor de cada pago **y sin sumas**.
+     - El estado de la caja (arqueos pendientes).
+   - Solo el ADMIN ve los ingresos de hoy y del mes, las anulaciones y descuentos del mes y las diferencias de arqueo por revisar. Los ingresos se piden en un endpoint aparte, solo para el ADMIN.
+4. **Alertas de vencimiento**, solo dentro del sistema:
+   - **Por vencer:** vigentes que vencen entre hoy y hoy + 5 días (`app.memberships.expiry-warning-days`) y que no tienen una renovación pagada. Es el mismo criterio de "Por vencer" en Membresías.
+   - **Vencidas recientes:** vencieron entre hace 15 días y ayer (`app.memberships.recently-expired-days`, configurable) y el cliente no tiene otra membresía pagada o migrada que empiece después.
+   - Una renovación **pendiente de pago** no quita la alerta: la acción pasa a ser "Cobrar renovación".
+   - **Los clientes inactivos no aparecen** en las alertas.
+   - **Sin seguimiento:** no se guarda "contactado". El cliente sale de la lista cuando paga la renovación.
+   - **"Recordar por WhatsApp":** abre `wa.me` con el celular del cliente. Usa la misma normalización (+57) y el mismo criterio que el comprobante: sin un número usable, el botón no aparece.
+     - Mensaje: "Hola {cliente}, de parte de {nombre comercial}, tu plan {plan} vence el {fecha}. Si quieres renovarlo, te esperamos."
+     - Si ya venció, dice "venció el {fecha}". Sin nombre comercial se omite "de parte de".
+     - Lo envía recepción a mano; no hay envío automático.
+   - El menú muestra el número de alertas.
+5. **Cliente nuevo frente a renovación** (panel y reportes, una sola definición):
+   - Una membresía cuenta cuando está pagada o es migrada. Las pendientes y las anuladas no cuentan.
+   - Empieza a contar al activarla el pago o, si es migrada o anterior a la fase 5, al registrarla.
+   - Un cliente es **nuevo** solo si su primera membresía, de **cualquier tipo**, cae en el periodo.
+   - Quien tiene una membresía **migrada**, en cualquier estado, cuenta como **migrado**. Su primera renovación pagada es una renovación, no un cliente nuevo.
+   - Si el primer pago de un cliente se anuló, esa membresía anulada no cuenta y su siguiente pago es el primero.
+6. **Reporte de ingresos: la misma regla de Caja.**
+   - Lo recibido se cuenta por la fecha del pago, aunque después se anule.
+   - Lo anulado se cuenta por la fecha de anulación. Neto = recibido − anulado.
+   - Tiene las mismas columnas y los totales de efectivo, otros métodos y general.
+   - Se agrupa por día, semana (lunes a domingo) o mes, recortado al rango.
+   - Diferencias con Caja:
+     - Los días son calendario. La pantalla aclara que un pago hecho entre las 10 p.m. y las 12 a.m. aparece en el reporte ese día y en Caja el día siguiente.
+     - El reporte no depende de la fecha de inicio de la caja: incluye también los pagos y anulaciones anteriores a ella.
+7. **Otros reportes del ADMIN** (rango de fechas de máximo 366 días, `app.reports.max-range-days`):
+   - **Vencimientos:** membresías pagadas o migradas que vencen en el periodo. Cada una dice si renovó, si tiene la renovación pendiente de pago o si no renovó. Incluye la tasa de renovación de las ya vencidas y los clientes inactivos.
+   - **Clientes nuevos y migrados:** según el punto 5.
+   - **Planes más vendidos:** membresías pagadas en el periodo, sin anuladas ni migradas. Muestra cantidad, nuevas frente a renovaciones, ingreso y descuentos, con el nombre que tenía el plan al venderse.
+   - **Pagos anulados:** por la fecha de anulación, con quién anuló y el motivo.
+   - **Descuentos:** por la fecha del pago, con quién lo aplicó y el motivo. Los pagos que después se anularon aparecen marcados y no suman.
+   - Los reportes de asistencia y entradas quedan para la fase 8.
+8. **Exportación CSV:**
+   - UTF-8 con BOM, separador `;`, coma decimal y fechas `aaaa-mm-dd`.
+   - Los textos que empiezan por `=`, `+`, `-` o `@` llevan un apóstrofo, así Excel no los ejecuta como fórmula.
+   - Cada exportación queda en `audit_logs` (`REPORT` / `EXPORT`).
+9. **Permisos (`@PreAuthorize`):**
+   - `/api/dashboard` y `/api/alerts/**`: recepción y ADMIN.
+   - `/api/dashboard/admin` y `/api/reports/**`, incluida la exportación: solo ADMIN.
+10. **Migración V7:** solo agrega índices para las consultas por fecha (`payments.voided_at`, `memberships.activated_at`, `memberships.created_at`). No cambia datos.
+
+---
+
 ## Pendientes de definir
 
 - **Caja (por confirmar con el dueño):** ¿qué se hace con el efectivo que sobra después del arqueo? Hoy rige el valor por defecto de la sección 10.

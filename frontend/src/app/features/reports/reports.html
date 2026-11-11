@@ -1,0 +1,291 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Reportes</h1>
+      <p>Días calendario en hora de Bogotá; las dos fechas se incluyen. Solo administrador.</p>
+    </div>
+    <button mat-flat-button type="button" (click)="export()" [disabled]="exporting() || !validRange()" data-export>
+      <mat-icon>download</mat-icon> Exportar CSV
+    </button>
+  </div>
+
+  <form class="filters" [formGroup]="range" (ngSubmit)="load()">
+    <mat-form-field appearance="outline">
+      <mat-label>Desde</mat-label>
+      <input matInput type="date" formControlName="from" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Hasta</mat-label>
+      <input matInput type="date" formControlName="to" />
+    </mat-form-field>
+    <button mat-stroked-button type="submit">Consultar</button>
+    <div class="presets">
+      @for (p of presets; track p.value) {
+        <button mat-button type="button" (click)="applyPreset(p.value)">{{ p.label }}</button>
+      }
+    </div>
+  </form>
+
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  <mat-tab-group (selectedIndexChange)="tabChanged($event)">
+    @for (t of tabs; track t.name) {
+      <mat-tab [label]="t.label" />
+    }
+  </mat-tab-group>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <div class="content">
+    @switch (active()) {
+      @case ('income') {
+        <div class="toolbar">
+          <mat-form-field appearance="outline" class="grouping">
+            <mat-label>Agrupar</mat-label>
+            <mat-select [formControl]="grouping" (selectionChange)="load()">
+              @for (g of groupings; track g[0]) {
+                <mat-option [value]="g[0]">{{ g[1] }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <p class="notice" role="note" data-cutoff-note>
+          Misma regla de Caja: lo recibido cuenta por la fecha del pago, lo anulado por la fecha de anulación, y
+          neto = recibido − anulado. Aquí los días son calendario (de 12 a.m. a 12 a.m.); en Caja el día se corta a las
+          10 p.m., así que un pago hecho entre las 10 p.m. y las 12 a.m. aparece aquí ese día y en Caja el día
+          siguiente.
+        </p>
+        @if (income(); as r) {
+          @if (incomeTotals(); as t) {
+            <section class="cards">
+              <div class="card"><span>Total efectivo (neto)</span><b>{{ t.cash.net | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+              <div class="card"><span>Total otros métodos (neto)</span><b>{{ t.other.net | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+              <div class="card"><span>Anulado</span><b>{{ t.all.voided | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+              <div class="card expected" data-total-net>
+                <span>Total general recaudado</span><b>{{ t.all.net | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+              </div>
+            </section>
+          }
+          <h2>Por método de pago</h2>
+          <app-method-totals [methods]="r.methods" periodLabel="el periodo" [cashHint]="false" />
+          <h2>{{ groupingLabel[r.grouping] }}</h2>
+          <div class="table-wrap methods">
+            <table>
+              <thead>
+                <tr><th>Periodo</th><th>Pagos</th><th>Recibido</th><th>Anulado</th><th>Neto</th><th>Efectivo neto</th><th>Otros neto</th></tr>
+              </thead>
+              <tbody>
+                @for (p of r.periods; track p.start) {
+                  <tr [class.zero]="!p.receivedCount && !p.voidedCount">
+                    <td>
+                      @if (p.start === p.end) {
+                        {{ p.start | date: 'EEE d MMM' }}
+                      } @else {
+                        {{ p.start | date: 'd MMM' }} – {{ p.end | date: 'd MMM' }}
+                      }
+                    </td>
+                    <td>{{ p.receivedCount }}</td>
+                    <td>{{ p.receivedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td>{{ p.voidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td [class.negative]="p.netAmount < 0">{{ p.netAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td [class.negative]="p.cashNet < 0">{{ p.cashNet | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td [class.negative]="p.otherNet < 0">{{ p.otherNet | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      @case ('expirations') {
+        @if (expirations(); as r) {
+          <section class="cards">
+            <div class="card"><span>Vencen en el periodo</span><b>{{ r.total }}</b></div>
+            <div class="card"><span>Ya vencidas</span><b>{{ r.expired }}</b></div>
+            <div class="card"><span>Renovaron</span><b>{{ r.renewed }}</b></div>
+            <div class="card"><span>Renovación pendiente de pago</span><b>{{ r.pendingPayment }}</b></div>
+            <div class="card"><span>Sin renovar</span><b>{{ r.notRenewed }}</b></div>
+            <div class="card expected" data-renewal-rate>
+              <span>Tasa de renovación (de las vencidas)</span>
+              <b>{{ r.renewalRate == null ? '—' : (r.renewalRate | number: '1.0-1') + ' %' }}</b>
+            </div>
+          </section>
+          <p class="hint">Incluye clientes inactivos. "Renovó" = tiene otra membresía pagada o migrada que empieza después.</p>
+          <div class="table-wrap methods">
+            <table>
+              <thead>
+                <tr><th>Vence</th><th>Cliente</th><th>Plan</th><th>Estado</th><th>Renovación</th></tr>
+              </thead>
+              <tbody>
+                @for (row of r.rows; track row.membershipId) {
+                  <tr>
+                    <td>{{ row.endDate | date: 'EEE d MMM' }}</td>
+                    <td>
+                      <a [routerLink]="['/clients', row.clientId]">{{ row.clientName }}</a>
+                      <div class="sub">{{ row.clientDocument }}{{ row.clientActive ? '' : ' · Inactivo' }}</div>
+                    </td>
+                    <td>{{ row.planName }}</td>
+                    <td>{{ row.state === 'EXPIRED' ? 'Vencida' : 'Vigente' }}</td>
+                    <td>
+                      <span class="chip" [class.voided]="row.renewal === 'NOT_RENEWED'">{{ renewalLabel[row.renewal] }}</span>
+                      @if (row.renewedAt) {
+                        <div class="sub">{{ row.renewedAt | date: 'd MMM y' }}</div>
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr class="empty"><td colspan="5">Ninguna membresía vence en el periodo.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      @case ('new-clients') {
+        @if (newClients(); as r) {
+          <section class="cards">
+            <div class="card expected"><span>Clientes nuevos</span><b>{{ r.newClients }}</b></div>
+            <div class="card"><span>Migrados del sistema anterior</span><b>{{ r.migratedClients }}</b></div>
+          </section>
+          <p class="hint">
+            Nuevo: su primera membresía (de cualquier tipo) cae en el periodo. Quien tiene una membresía migrada cuenta
+            como migrado y sus pagos posteriores son renovaciones.
+          </p>
+          <div class="table-wrap methods">
+            <table>
+              <thead>
+                <tr><th>Fecha</th><th>Tipo</th><th>Cliente</th><th>Plan</th><th>Valor pagado</th></tr>
+              </thead>
+              <tbody>
+                @for (row of r.rows; track row.membershipId) {
+                  <tr>
+                    <td>{{ row.at | date: 'd MMM y, h:mm a' }}</td>
+                    <td><span class="chip" [class.NO_ACTIVITY]="row.type === 'MIGRATED'">{{ row.type === 'NEW' ? 'Nuevo' : 'Migrado' }}</span></td>
+                    <td>
+                      <a [routerLink]="['/clients', row.clientId]">{{ row.clientName }}</a>
+                      <div class="sub">{{ row.clientDocument }}{{ row.clientActive ? '' : ' · Inactivo' }}</div>
+                    </td>
+                    <td>{{ row.planName }}</td>
+                    <td>{{ row.paidAmount == null ? '—' : (row.paidAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2') }}</td>
+                  </tr>
+                } @empty {
+                  <tr class="empty"><td colspan="5">Sin clientes nuevos en el periodo.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      @case ('plans') {
+        @if (plans(); as r) {
+          <section class="cards">
+            <div class="card"><span>Membresías vendidas</span><b>{{ r.totalSold }}</b></div>
+            <div class="card expected"><span>Ingreso (sin anuladas)</span><b>{{ r.totalRevenue | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+          </section>
+          <p class="hint">Membresías pagadas en el periodo, sin anuladas ni migradas. El nombre es el que tenía el plan al venderse.</p>
+          <div class="table-wrap methods">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Plan</th><th>Vendidas</th><th>A clientes nuevos</th><th>Renovaciones</th><th>Ingreso</th><th>Descuentos</th></tr>
+              </thead>
+              <tbody>
+                @for (row of r.rows; track row.planId; let i = $index) {
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ row.planNames }}</td>
+                    <td>{{ row.sold }}</td>
+                    <td>{{ row.newClients }}</td>
+                    <td>{{ row.renewals }}</td>
+                    <td>{{ row.revenue | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td>{{ row.discounts | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                  </tr>
+                } @empty {
+                  <tr class="empty"><td colspan="7">Sin ventas en el periodo.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      @case ('voided-payments') {
+        @if (voided(); as r) {
+          <section class="cards">
+            <div class="card"><span>Pagos anulados</span><b>{{ r.count }}</b></div>
+            <div class="card bad"><span>Valor anulado</span><b>{{ r.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+          </section>
+          <p class="hint">Por la fecha de anulación, igual que Caja.</p>
+          <div class="table-wrap methods">
+            <table>
+              <thead>
+                <tr><th>Anulado</th><th>Pagado</th><th>Comprobante</th><th>Cliente</th><th>Método</th><th>Valor</th><th>Por</th><th>Motivo</th></tr>
+              </thead>
+              <tbody>
+                @for (row of r.rows; track row.paymentId) {
+                  <tr>
+                    <td>{{ row.voidedAt | date: 'd MMM y, h:mm a' }}</td>
+                    <td>{{ row.paidAt | date: 'd MMM y' }}</td>
+                    <td>{{ row.receiptNumber ?? '—' }}</td>
+                    <td><a [routerLink]="['/clients', row.clientId]">{{ row.clientName }}</a><div class="sub">{{ row.planName }}</div></td>
+                    <td>{{ methodName(row.method) }}</td>
+                    <td>{{ row.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td>{{ row.voidedBy ?? '—' }}</td>
+                    <td class="reason">{{ row.voidReason }}</td>
+                  </tr>
+                } @empty {
+                  <tr class="empty"><td colspan="8">Sin pagos anulados en el periodo.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      @case ('discounts') {
+        @if (discounts(); as r) {
+          <section class="cards">
+            <div class="card"><span>Pagos con descuento</span><b>{{ r.count }}</b></div>
+            <div class="card expected"><span>Total descontado</span><b>{{ r.discountAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+            @if (r.voidedCount) {
+              <div class="card"><span>Con descuento y luego anulados</span><b>{{ r.voidedCount }}</b></div>
+            }
+          </section>
+          <p class="hint">Por la fecha del pago. Los totales no incluyen los pagos anulados (aparecen en la lista, marcados).</p>
+          <div class="table-wrap methods">
+            <table>
+              <thead>
+                <tr><th>Fecha</th><th>Cliente</th><th>Precio</th><th>Descuento</th><th>Pagado</th><th>Motivo</th><th>Aplicado por</th><th>Estado</th></tr>
+              </thead>
+              <tbody>
+                @for (row of r.rows; track row.paymentId) {
+                  <tr [class.zero]="row.status === 'VOIDED'">
+                    <td>{{ row.paidAt | date: 'd MMM y' }}</td>
+                    <td><a [routerLink]="['/clients', row.clientId]">{{ row.clientName }}</a><div class="sub">{{ row.planName }}</div></td>
+                    <td>{{ row.listPrice | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td>{{ row.discountAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td>{{ row.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                    <td class="reason">{{ row.discountReason }}</td>
+                    <td>{{ row.discountedBy ?? '—' }}</td>
+                    <td><span class="chip" [class.voided]="row.status === 'VOIDED'">{{ statusLabel[row.status] }}</span></td>
+                  </tr>
+                } @empty {
+                  <tr class="empty"><td colspan="8">Sin descuentos en el periodo.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    }
+  </div>
+</div>

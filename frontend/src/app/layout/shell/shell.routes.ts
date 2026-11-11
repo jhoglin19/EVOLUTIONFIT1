@@ -21,6 +21,12 @@ export const SHELL_ROUTES: Routes = [
         title: 'Inicio · EvolutionFit',
       },
       {
+        path: 'expirations',
+        loadComponent: () =>
+          import('../../features/expirations/expirations').then((m) => m.Expirations),
+        title: 'Vencimientos · EvolutionFit',
+      },
+      {
         path: 'clients',
         loadComponent: () => import('../../features/clients/clients').then((m) => m.Clients),
         title: 'Clientes · EvolutionFit',
@@ -72,6 +78,12 @@ export const SHELL_ROUTES: Routes = [
         loadComponent: () =>
           import('../../features/cash/cash-report/cash-report').then((m) => m.CashReportPage),
         title: 'Reporte mensual de caja · EvolutionFit',
+      },
+      {
+        path: 'reports',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () => import('../../features/reports/reports').then((m) => m.Reports),
+        title: 'Reportes · EvolutionFit',
       },
       {
         path: 'settings/cash',

@@ -1,5 +1,10 @@
 /** Descarga un PDF recibido como blob (la descarga va con el token de sesión). */
 export function downloadPdf(blob: Blob, fileName: string): void {
+  downloadFile(blob, fileName);
+}
+
+/** Descarga cualquier archivo recibido como blob (PDF, CSV…). */
+export function downloadFile(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

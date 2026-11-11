@@ -1,0 +1,50 @@
+@use '../cash/cash';
+
+.filters {
+  align-items: center;
+  margin-bottom: 8px;
+
+  mat-form-field {
+    flex: 0 1 170px;
+  }
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.content {
+  min-width: 0;
+  padding-top: 16px;
+}
+
+.toolbar .grouping {
+  width: 180px;
+}
+
+p.notice {
+  display: block;
+}
+
+tr.zero td {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+td a {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.reason {
+  min-width: 160px;
+  max-width: 320px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.methods td {
+  white-space: nowrap;
+}

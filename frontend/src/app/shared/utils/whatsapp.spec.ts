@@ -1,5 +1,12 @@
+import { ExpirationAlert } from '../models/dashboard.model';
 import { Payment } from '../models/payment.model';
-import { receiptMessage, receiptWhatsappUrl, whatsappNumber } from './whatsapp';
+import {
+  expirationMessage,
+  expirationWhatsappUrl,
+  receiptMessage,
+  receiptWhatsappUrl,
+  whatsappNumber,
+} from './whatsapp';
 
 const PAYMENT = {
   id: 7,
@@ -58,5 +65,36 @@ describe('whatsapp', () => {
       receiptWhatsappUrl(PAYMENT, 'Gimnasio Ficticio')!.split('?text=')[1],
     );
     expect(text).toContain('de parte de Gimnasio Ficticio');
+  });
+
+  describe('recordatorio de vencimiento', () => {
+    const ALERT = {
+      clientName: 'Ana Pérez',
+      clientPhone: '+57 300 123 4567',
+      planName: 'Mensual',
+      endDate: '2026-11-15',
+      daysToEnd: 5,
+    } as ExpirationAlert;
+
+    it('usa el mensaje del dueño con el nombre comercial', () => {
+      expect(expirationMessage(ALERT, 'Gimnasio Ficticio')).toBe(
+        'Hola Ana Pérez, de parte de Gimnasio Ficticio, tu plan Mensual vence el 15/11/2026. ' +
+          'Si quieres renovarlo, te esperamos.',
+      );
+    });
+
+    it('si ya venció dice "venció" y sin nombre comercial omite "de parte de"', () => {
+      expect(expirationMessage({ ...ALERT, daysToEnd: -2 }, null)).toBe(
+        'Hola Ana Pérez, tu plan Mensual venció el 15/11/2026. Si quieres renovarlo, te esperamos.',
+      );
+    });
+
+    it('normaliza el número como el comprobante y sin teléfono no hay enlace', () => {
+      const url = expirationWhatsappUrl(ALERT, 'Gimnasio Ficticio')!;
+      expect(url.startsWith('https://wa.me/573001234567?text=')).toBe(true);
+      expect(expirationWhatsappUrl({ ...ALERT, clientPhone: '3001234567' })).toContain('wa.me/573001234567?');
+      expect(expirationWhatsappUrl({ ...ALERT, clientPhone: null })).toBeNull();
+      expect(expirationWhatsappUrl({ ...ALERT, clientPhone: '123' })).toBeNull();
+    });
   });
 });

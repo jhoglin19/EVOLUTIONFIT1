@@ -2,29 +2,217 @@
   <div class="page-header">
     <div>
       <h1>Hola, {{ user()?.firstName }}</h1>
-      <p>Sesión iniciada como {{ roleLabel(user()?.role) }}.</p>
+      <p>
+        Sesión iniciada como {{ roleLabel(user()?.role) }}.
+        @if (data(); as d) {
+          Hoy es {{ d.today | date: 'EEEE d \'de\' MMMM' }}.
+        }
+      </p>
+    </div>
+    <div class="header-actions">
+      <a mat-flat-button routerLink="/enrollment"><mat-icon>point_of_sale</mat-icon> Nueva inscripción</a>
+      <button mat-stroked-button type="button" (click)="load()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon> Actualizar
+      </button>
     </div>
   </div>
 
-  <div class="grid">
-    @if (isAdmin()) {
-      <a class="tile" routerLink="/users">
-        <mat-card appearance="outlined">
-          <mat-card-content>
-            <mat-icon>manage_accounts</mat-icon>
-            <h2>Usuarios</h2>
-            <p>Crea y administra las cuentas del personal y sus roles.</p>
-          </mat-card-content>
-        </mat-card>
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  @if (data(); as d) {
+    <section class="cards" aria-label="Resumen del día">
+      <a class="card" routerLink="/memberships" data-card="active">
+        <span>Clientes con membresía vigente</span>
+        <b>{{ d.activeMemberships + d.frozenMemberships }}</b>
+        <small>{{ d.activeMemberships }} activas · {{ d.frozenMemberships }} congeladas</small>
       </a>
+      <a class="card" [class.warn]="d.expiringCount > 0" routerLink="/expirations" data-card="expiring">
+        <span>Vencen en los próximos {{ d.warningDays }} días</span>
+        <b>{{ d.expiringCount }}</b>
+        <small>Sin renovación pagada</small>
+      </a>
+      <a class="card" [class.warn]="d.recentlyExpiredCount > 0" routerLink="/expirations"
+         [queryParams]="{ tab: 'expired' }" data-card="expired">
+        <span>Vencidas en los últimos {{ d.recentlyExpiredDays }} días</span>
+        <b>{{ d.recentlyExpiredCount }}</b>
+        <small>No han renovado</small>
+      </a>
+      <div class="card" data-card="enrollments">
+        <span>Inscripciones de hoy</span>
+        <b>{{ d.enrollments.newClients + d.enrollments.renewals }}</b>
+        <small>
+          {{ d.enrollments.newClients }} nuevas · {{ d.enrollments.renewals }} renovaciones
+          @if (d.enrollments.migrated) {
+            · {{ d.enrollments.migrated }} migradas
+          }
+          @if (d.enrollments.pendingPayment) {
+            · {{ d.enrollments.pendingPayment }} pendientes de pago
+          }
+        </small>
+      </div>
+      <a class="card" routerLink="/payments" data-card="payments">
+        <span>Pagos de hoy</span>
+        <b>{{ d.paymentsCount }}</b>
+        @if (d.voidedPaymentsCount) {
+          <small>{{ d.voidedPaymentsCount }} anulados</small>
+        } @else {
+          <small>Día calendario</small>
+        }
+      </a>
+    </section>
+
+    <section class="cash" aria-label="Caja">
+      <h2>Caja</h2>
+      @if (!d.cash.started) {
+        <div class="notice" role="status">
+          La caja todavía no ha empezado.
+          @if (isAdmin()) {
+            <a mat-button routerLink="/settings/cash">Configurar caja</a>
+          }
+        </div>
+      } @else {
+        <div class="notice" [class.pending]="d.cash.pendingCounts.length > 0" role="status" data-cash>
+          <span>
+            Día de caja {{ d.cash.cashDate | date: 'EEE d \'de\' MMM' }}
+            @if (d.cash.cutoffAt) {
+              · corte a las {{ d.cash.cutoffAt | date: 'h:mm a' }}
+            }
+            @if (!d.cash.openDay) {
+              · Gimnasio cerrado{{ d.cash.closedReason ? ' (' + d.cash.closedReason + ')' : '' }}
+            }
+            @if (d.cash.pendingCounts.length) {
+              <br />
+              <b>Arqueo pendiente:</b>
+              @for (p of d.cash.pendingCounts; track p.closingId; let last = $last) {
+                {{ p.cashDate | date: 'EEE d \'de\' MMM' }}{{ last ? '' : ', ' }}
+              }
+            } @else {
+              · Sin arqueos pendientes
+            }
+            @if (d.cash.pendingReviews) {
+              <br />
+              {{ d.cash.pendingReviews }} diferencia(s) de arqueo por revisar.
+            }
+          </span>
+          <span class="cash-actions">
+            <a mat-button routerLink="/cash">{{ d.cash.pendingCounts.length ? 'Hacer arqueo' : 'Ir a caja' }}</a>
+            @if (d.cash.pendingReviews && isAdmin()) {
+              <a mat-button routerLink="/cash/closings">Revisar</a>
+            }
+          </span>
+        </div>
+      }
+    </section>
+
+    @if (isAdmin() && income(); as inc) {
+      <section aria-label="Ingresos" data-income>
+        <h2>Ingresos</h2>
+        <p class="hint">
+          Misma regla de Caja: lo recibido por la fecha del pago, lo anulado por la fecha de anulación y neto =
+          recibido − anulado, en días calendario. Los pagos entre las 10 p.m. y las 12 a.m. cuentan aquí hoy y en Caja
+          para el día siguiente.
+        </p>
+        <div class="grid">
+          <div>
+            <h3>Hoy</h3>
+            <app-method-totals [methods]="inc.todayMethods" periodLabel="el día" [cashHint]="false" />
+          </div>
+          <div>
+            <h3>Este mes (desde el {{ inc.monthStart | date: 'd \'de\' MMM' }})</h3>
+            <app-method-totals [methods]="inc.monthMethods" periodLabel="el mes" [cashHint]="false" />
+          </div>
+        </div>
+        <div class="cards small">
+          <div class="card">
+            <span>Anulaciones del mes</span>
+            <b>{{ inc.monthVoidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+            <small>{{ inc.monthVoidedCount }} pago(s)</small>
+          </div>
+          <div class="card">
+            <span>Descuentos del mes</span>
+            <b>{{ inc.monthDiscountAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
+            <small>{{ inc.monthDiscountCount }} pago(s)</small>
+          </div>
+          <a class="card" routerLink="/reports"><span>Más detalle</span><b>Reportes</b><small>Con filtros y CSV</small></a>
+        </div>
+      </section>
     }
 
-    <mat-card appearance="outlined" class="soon">
-      <mat-card-content>
-        <mat-icon>hourglass_top</mat-icon>
-        <h2>Próximamente</h2>
-        <p>Clientes, planes, membresías, pagos, caja y control de acceso se habilitarán aquí a medida que se construyan.</p>
-      </mat-card-content>
-    </mat-card>
-  </div>
+    <div class="grid">
+      <section aria-label="Por vencer">
+        <h2>Por vencer</h2>
+        @for (a of d.expiring; track a.membershipId) {
+          <div class="alert-row" data-alert="expiring">
+            <div>
+              <a [routerLink]="['/clients', a.clientId]">{{ a.clientName }}</a>
+              <div class="sub">{{ a.planName }} · {{ daysLabel(a.daysToEnd) }} ({{ a.endDate | date: 'd/MM' }})</div>
+              @if (a.pendingRenewalId) {
+                <div class="sub pending">Renovación registrada, pendiente de pago</div>
+              }
+            </div>
+            <app-alert-actions [alert]="a" />
+          </div>
+        } @empty {
+          <p class="hint">Nadie vence en los próximos {{ d.warningDays }} días.</p>
+        }
+        @if (d.expiringCount > d.expiring.length) {
+          <a mat-button routerLink="/expirations">Ver las {{ d.expiringCount }}</a>
+        }
+      </section>
+
+      <section aria-label="Vencidas recientes">
+        <h2>Vencidas recientes</h2>
+        @for (a of d.recentlyExpired; track a.membershipId) {
+          <div class="alert-row" data-alert="expired">
+            <div>
+              <a [routerLink]="['/clients', a.clientId]">{{ a.clientName }}</a>
+              <div class="sub">{{ a.planName }} · {{ daysLabel(a.daysToEnd) }} ({{ a.endDate | date: 'd/MM' }})</div>
+              @if (a.pendingRenewalId) {
+                <div class="sub pending">Renovación registrada, pendiente de pago</div>
+              }
+            </div>
+            <app-alert-actions [alert]="a" />
+          </div>
+        } @empty {
+          <p class="hint">Nadie vencido sin renovar en los últimos {{ d.recentlyExpiredDays }} días.</p>
+        }
+        @if (d.recentlyExpiredCount > d.recentlyExpired.length) {
+          <a mat-button routerLink="/expirations" [queryParams]="{ tab: 'expired' }">Ver las {{ d.recentlyExpiredCount }}</a>
+        }
+      </section>
+    </div>
+
+    <section aria-label="Pagos de hoy">
+      <h2>Pagos de hoy</h2>
+      <div class="table-wrap methods">
+        <table>
+          <thead>
+            <tr><th>Hora</th><th>Cliente</th><th>Plan</th><th>Método</th><th>Valor</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            @for (p of d.payments; track p.id) {
+              <tr [class.voided]="p.status === 'VOIDED'" data-payment>
+                <td>{{ p.paidAt | date: 'h:mm a' }}</td>
+                <td><a [routerLink]="['/clients', p.clientId]">{{ p.clientName }}</a></td>
+                <td>{{ p.planName }}</td>
+                <td>{{ methodName(p.method) }}</td>
+                <td>{{ p.amount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+                <td><span class="chip" [class.voided]="p.status === 'VOIDED'">{{ statusName[p.status] }}</span></td>
+              </tr>
+            } @empty {
+              <tr class="empty"><td colspan="6">Todavía no hay pagos hoy.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
 </div>

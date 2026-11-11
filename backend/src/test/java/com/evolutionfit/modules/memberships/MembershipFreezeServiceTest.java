@@ -64,7 +64,7 @@ class MembershipFreezeServiceTest {
     void setUp() {
         MembershipSupport support = new MembershipSupport(clientRepository, membershipRepository, auditService, CLOCK);
         service = new MembershipFreezeService(membershipRepository, freezeRepository, support,
-                new MembershipProperties(5, 30));
+                new MembershipProperties(5, 30, 15));
         client = client(1L, true);
         when(clientRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(client));
         when(membershipRepository.findByClientIdOrderByStartDateDescIdDesc(1L)).thenReturn(clientMemberships);

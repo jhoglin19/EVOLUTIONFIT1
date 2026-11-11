@@ -54,8 +54,10 @@ import { methodLabel } from '../../../shared/models/payment.model';
     <p class="hint">
       <b>Total general recaudado</b>: lo cobrado en {{ periodLabel() }} con todos los métodos, neto de anulaciones.
       No descuenta los retiros ni incluye la base.
-      <b>Efectivo esperado</b>: lo que debe haber en el cajón (base + efectivo − anulaciones en efectivo − retiros).
-      Solo se cuadra el efectivo; los demás métodos son informativos.
+      @if (cashHint()) {
+        <b>Efectivo esperado</b>: lo que debe haber en el cajón (base + efectivo − anulaciones en efectivo − retiros).
+        Solo se cuadra el efectivo; los demás métodos son informativos.
+      }
     </p>
   `,
   styles: `
@@ -113,6 +115,8 @@ export class MethodTotals {
   readonly methods = input.required<MethodTotal[]>();
   /** Texto del periodo en las explicaciones: "el día", "el mes"… */
   readonly periodLabel = input('el día');
+  /** Explicación del efectivo esperado de la caja. Los reportes y el panel no la muestran. */
+  readonly cashHint = input(true);
 
   readonly methodName = methodLabel;
 

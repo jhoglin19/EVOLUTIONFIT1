@@ -26,6 +26,9 @@ public interface MembershipRepository extends JpaRepository<Membership, Long>, J
     @Query("select m.client.id from Membership m where m.id = :id")
     Optional<Long> findClientIdById(@Param("id") Long id);
 
+    /** Renovaciones pendientes de pago de varios clientes (alertas de vencimiento). */
+    List<Membership> findByClientIdInAndStatusOrderByIdAsc(Collection<Long> clientIds, MembershipStatus status);
+
     /** Para la sincronización diaria de la columna status. */
     List<Membership> findByStatusIn(Collection<MembershipStatus> statuses);
 }

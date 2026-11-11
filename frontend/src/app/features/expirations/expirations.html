@@ -1,0 +1,89 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Vencimientos</h1>
+      <p>
+        Avisos dentro del sistema, calculados con las fechas de hoy. Un cliente sale de la lista cuando paga su
+        renovación. Los clientes inactivos no aparecen.
+      </p>
+    </div>
+  </div>
+
+  <mat-tab-group [selectedIndex]="kinds.indexOf(kind())" (selectedIndexChange)="tabChanged($event)">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Por vencer ({{ counts()?.warningDays ?? 5 }} días)
+        @if (counts(); as c) {
+          <span class="count" data-count="expiring">{{ c.expiring }}</span>
+        }
+      </ng-template>
+    </mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Vencidas recientes ({{ counts()?.recentlyExpiredDays ?? 15 }} días)
+        @if (counts(); as c) {
+          <span class="count" data-count="expired">{{ c.recentlyExpired }}</span>
+        }
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search">
+      <mat-label>Buscar por documento o nombre</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="search" autocomplete="off" />
+    </mat-form-field>
+  </div>
+
+  @if (error()) {
+    <div class="alert" role="alert">
+      {{ error() }}
+      <button mat-button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <div class="list">
+    @for (a of rows(); track a.membershipId) {
+      <div class="row" data-row>
+        <div class="who">
+          <a [routerLink]="['/clients', a.clientId]">{{ a.clientName }}</a>
+          <div class="sub">{{ a.clientDocument }}{{ a.clientPhone ? ' · ' + a.clientPhone : ' · Sin celular' }}</div>
+        </div>
+        <div class="what">
+          <div>{{ a.planName }} <app-membership-status-chip [status]="a.status" /></div>
+          <div class="sub">
+            <b [class.urgent]="a.daysToEnd <= 1">{{ daysLabel(a.daysToEnd) }}</b>
+            · {{ a.endDate | date: 'EEE d \'de\' MMM' }}
+          </div>
+          @if (a.pendingRenewalId) {
+            <div class="sub pending">Renovación {{ a.pendingRenewalPlanName }} registrada, pendiente de pago</div>
+          }
+        </div>
+        <app-alert-actions [alert]="a" />
+      </div>
+    } @empty {
+      @if (!loading()) {
+        <p class="empty">
+          @if (kind() === 'EXPIRING') {
+            Nadie vence en los próximos días sin una renovación pagada.
+          } @else {
+            Nadie vencido sin renovar en los últimos días.
+          }
+        </p>
+      }
+    }
+  </div>
+
+  <mat-paginator
+    [length]="total()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[10, 20, 50]"
+    (page)="page($event)"
+  />
+</div>

@@ -5,7 +5,12 @@
     @for (item of items(); track item.path) {
       <a mat-list-item [routerLink]="item.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.path === '/cash' }" (click)="navigated.emit()">
         <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-        <span matListItemTitle>{{ item.label }}</span>
+        <span matListItemTitle>
+          {{ item.label }}
+          @if (item.alerts && alertTotal() > 0) {
+            <span class="badge" [attr.aria-label]="alertTotal() + ' alertas de vencimiento'">{{ alertTotal() }}</span>
+          }
+        </span>
       </a>
     }
   </mat-nav-list>
