@@ -201,3 +201,38 @@ export interface ClosingFilters {
 export function countDifference(counted: number, expectedAdjusted: number): number {
   return Math.round((counted - expectedAdjusted) * 100) / 100;
 }
+
+export interface AmountTotals {
+  count: number;
+  received: number;
+  voided: number;
+  /** Recibido − anulado. */
+  net: number;
+}
+
+/**
+ * Totales del informe por método. `all` es lo recaudado (todos los métodos, neto de anulaciones); no
+ * descuenta retiros ni incluye la base, así que no es el efectivo esperado del cajón.
+ */
+export interface MethodTotalsSummary {
+  cash: AmountTotals;
+  other: AmountTotals;
+  all: AmountTotals;
+}
+
+export function summarizeMethods(methods: MethodTotal[]): MethodTotalsSummary {
+  const sum = (rows: MethodTotal[]): AmountTotals => {
+    const received = cents(rows.reduce((s, m) => s + Number(m.receivedAmount), 0));
+    const voided = cents(rows.reduce((s, m) => s + Number(m.voidedAmount), 0));
+    return { count: rows.reduce((s, m) => s + m.receivedCount, 0), received, voided, net: cents(received - voided) };
+  };
+  return {
+    cash: sum(methods.filter((m) => m.method === 'CASH')),
+    other: sum(methods.filter((m) => m.method !== 'CASH')),
+    all: sum(methods),
+  };
+}
+
+function cents(value: number): number {
+  return Math.round(value * 100) / 100;
+}

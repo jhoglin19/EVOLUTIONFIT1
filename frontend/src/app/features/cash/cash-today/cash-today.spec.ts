@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { CashClosing, CashToday } from '../../../shared/models/cash.model';
+import { NOV_10 } from '../cash.fixtures';
 import { CashService } from '../cash.service';
 import { CashTodayPage } from './cash-today';
 
@@ -73,6 +74,20 @@ describe('CashTodayPage', () => {
     expect(el.textContent).toContain('Arqueo pendiente');
     expect(el.textContent).toContain('Registrar retiro');
     expect(el.querySelector('[aria-label="Anular retiro"]')).toBeNull();
+  });
+
+  it('el informe por método trae los totales y el total general no descuenta retiros', () => {
+    const { el } = setup('RECEPTIONIST', {
+      ...TODAY,
+      summary: { ...TODAY.summary!, cashIncome: 180000, expectedCash: 225000, methods: NOV_10 },
+    });
+    const all = el.querySelector('tr[data-total="all"]')!.textContent!;
+    expect(all).toContain('Total general recaudado');
+    expect(all).toMatch(/2[.,]280[.,]000/);
+    expect(el.querySelector('tr[data-total="cash"]')!.textContent).toMatch(/180[.,]000/);
+    expect(el.querySelector('tr[data-total="other"]')!.textContent).toMatch(/2[.,]100[.,]000/);
+    expect(el.textContent).toContain('Efectivo esperado (en el cajón)');
+    expect(el.textContent).toMatch(/225[.,]000/); // 50.000 + 180.000 − 5.000 de retiros
   });
 
   it('abre el arqueo del día pendiente', () => {

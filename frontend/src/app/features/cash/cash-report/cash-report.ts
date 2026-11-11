@@ -9,15 +9,15 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { finalize } from 'rxjs';
 
 import { errorMessage } from '../../../core/utils/error-message';
-import { CLOSING_STATUS_LABELS, MonthlyReport } from '../../../shared/models/cash.model';
-import { methodLabel } from '../../../shared/models/payment.model';
+import { CLOSING_STATUS_LABELS, MonthlyReport, summarizeMethods } from '../../../shared/models/cash.model';
 import { todayInGym } from '../../../shared/utils/dates';
 import { CashService } from '../cash.service';
+import { MethodTotals } from '../method-totals/method-totals';
 
 /** Reporte mensual (solo ADMIN): suma de los cierres diarios del mes. Es solo informe. */
 @Component({
   selector: 'app-cash-report',
-  imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressBarModule],
+  imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressBarModule, MethodTotals],
   templateUrl: './cash-report.html',
   styleUrl: './cash-report.scss',
 })
@@ -29,7 +29,6 @@ export class CashReportPage {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly statusLabels = CLOSING_STATUS_LABELS;
-  readonly methodName = methodLabel;
 
   constructor() {
     this.month.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.load());
@@ -51,8 +50,8 @@ export class CashReportPage {
       });
   }
 
-  /** Total recibido menos anulado de todos los métodos. */
+  /** Total general recaudado: todos los métodos, neto de anulaciones (no descuenta retiros). */
   totalNet(r: MonthlyReport): number {
-    return r.methods.reduce((sum, m) => sum + m.receivedAmount - m.voidedAmount, 0);
+    return summarizeMethods(r.methods).all.net;
   }
 }

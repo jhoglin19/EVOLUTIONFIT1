@@ -14,11 +14,12 @@ import {
 } from '../../../shared/models/cash.model';
 import { methodLabel } from '../../../shared/models/payment.model';
 import { CashService } from '../cash.service';
+import { MethodTotals } from '../method-totals/method-totals';
 
 /** Detalle de un cierre (ADMIN): lo congelado, el informe por método, los movimientos y el arqueo. */
 @Component({
   selector: 'app-closing-detail-dialog',
-  imports: [CurrencyPipe, DatePipe, MatDialogModule, MatButtonModule, MatProgressBarModule],
+  imports: [CurrencyPipe, DatePipe, MatDialogModule, MatButtonModule, MatProgressBarModule, MethodTotals],
   templateUrl: './closing-detail-dialog.html',
   styleUrl: './closing-detail-dialog.scss',
 })

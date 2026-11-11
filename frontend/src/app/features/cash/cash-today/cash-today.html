@@ -82,39 +82,13 @@
           <b>{{ s.cashWithdrawals | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
         </div>
         <div class="card expected">
-          <span>Efectivo esperado</span>
+          <span>Efectivo esperado (en el cajón)</span>
           <b>{{ s.expectedCash | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
         </div>
       </section>
 
       <h2>Informe por método de pago</h2>
-      @if (s.methods.length) {
-        <div class="table-wrap methods">
-          <table>
-            <thead>
-              <tr>
-                <th>Método</th>
-                <th>Pagos</th>
-                <th>Recibido</th>
-                <th>Anulado</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (m of s.methods; track m.method) {
-                <tr>
-                  <td>{{ methodName(m.method) }}</td>
-                  <td>{{ m.receivedCount }}</td>
-                  <td>{{ m.receivedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-                  <td>{{ m.voidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        <p class="hint">Solo se cuadra el efectivo; los demás métodos son informativos.</p>
-      } @else {
-        <p class="hint">Todavía no hay pagos en este día de caja.</p>
-      }
+      <app-method-totals [methods]="s.methods" periodLabel="este día de caja" />
 
       <h2>Movimientos</h2>
       <div class="table-wrap">

@@ -24,6 +24,7 @@ import {
 import { PaymentMethod, methodLabel } from '../../../shared/models/payment.model';
 import { CashService } from '../cash.service';
 import { CountDialog, CountDialogData } from '../count-dialog/count-dialog';
+import { MethodTotals } from '../method-totals/method-totals';
 import { WithdrawalDialog, WithdrawalDialogData } from '../withdrawal-dialog/withdrawal-dialog';
 
 /** Caja del día en curso (recepción y ADMIN) y arqueos pendientes. */
@@ -38,6 +39,7 @@ import { WithdrawalDialog, WithdrawalDialogData } from '../withdrawal-dialog/wit
     MatProgressBarModule,
     MatTableModule,
     MatTooltipModule,
+    MethodTotals,
   ],
   templateUrl: './cash-today.html',
   styleUrl: './cash-today.scss',

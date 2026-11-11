@@ -184,8 +184,13 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
    - Con diferencia, la nota es obligatoria.
 6. **Revisión:** solo los arqueos con diferencia quedan por revisar. El ADMIN los marca como revisados con nota obligatoria. Los que cuadran quedan listos.
 7. **Reapertura:** el ADMIN puede reabrir un arqueo (por ejemplo, un valor mal digitado) con motivo. El esperado del cierre no cambia.
-8. **Permisos:** recepción ve el día en curso, registra retiros y sus arqueos pendientes. El ADMIN además ve el historial, todos los retiros, el detalle de cada cierre, el reporte mensual y la configuración.
-9. **Auditoría (`audit_logs`):** cierres (hechos por el sistema), retiros y sus anulaciones, arqueos, revisiones, reaperturas y cambios de configuración.
+8. **Totales del informe por método** (caja del día, detalle del cierre y reporte mensual):
+   - Total efectivo, total otros métodos (transferencia, Nequi, Daviplata, tarjeta y otro) y total general recaudado, cada uno con lo recibido, lo anulado y el neto.
+   - El **total general recaudado** es lo cobrado en el periodo con todos los métodos, neto de anulaciones; no descuenta retiros ni incluye la base.
+   - El **efectivo esperado** es lo que debe haber en el cajón: base + efectivo − anulaciones en efectivo − retiros.
+   - En cierres y reportes se leen de `cash_closing_totals`; no cambian ningún cierre guardado.
+9. **Permisos:** recepción ve el día en curso, registra retiros y sus arqueos pendientes. El ADMIN además ve el historial, todos los retiros, el detalle de cada cierre, el reporte mensual y la configuración.
+10. **Auditoría (`audit_logs`):** cierres (hechos por el sistema), retiros y sus anulaciones, arqueos, revisiones, reaperturas y cambios de configuración.
 
 ### Interpretaciones de la fase 6 (a confirmar con el dueño)
 

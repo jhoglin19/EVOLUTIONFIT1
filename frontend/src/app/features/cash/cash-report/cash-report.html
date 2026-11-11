@@ -34,32 +34,13 @@
       <div class="card" [class.bad]="r.countedDifference !== 0">
         <span>Diferencias de arqueo</span><b>{{ r.countedDifference | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b>
       </div>
-      <div class="card expected"><span>Total recaudado (todos los métodos)</span><b>{{ totalNet(r) | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
+      <div class="card expected"><span>Total general recaudado (todos los métodos)</span><b>{{ totalNet(r) | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</b></div>
     </section>
 
     <div class="grid">
       <section>
         <h2>Por método de pago</h2>
-        <div class="table-wrap methods">
-          <table>
-            <thead>
-              <tr><th>Método</th><th>Pagos</th><th>Recibido</th><th>Anulado</th><th>Neto</th></tr>
-            </thead>
-            <tbody>
-              @for (m of r.methods; track m.method) {
-                <tr>
-                  <td>{{ methodName(m.method) }}</td>
-                  <td>{{ m.receivedCount }}</td>
-                  <td>{{ m.receivedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-                  <td>{{ m.voidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-                  <td>{{ m.receivedAmount - m.voidedAmount | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-                </tr>
-              } @empty {
-                <tr><td colspan="5">Sin pagos en el mes.</td></tr>
-              }
-            </tbody>
-          </table>
-        </div>
+        <app-method-totals [methods]="r.methods" periodLabel="el mes" />
       </section>
       <section>
         <h2>Retiros por categoría</h2>
