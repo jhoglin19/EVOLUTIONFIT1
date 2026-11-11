@@ -31,8 +31,8 @@ Arquitectura de tres capas (Angular → API REST Spring Boot → MySQL), como mo
 | 7 | Panel de inicio, alertas de vencimiento y reportes | Hecho |
 | 8 | Control de acceso (incluye el hardware) | Pendiente |
 
-Salida a producción: [docs/PUESTA_EN_MARCHA.md](docs/PUESTA_EN_MARCHA.md) (checklist, con las decisiones
-pendientes marcadas) y la sección "Pendientes de definir" de [docs/REGLAS_NEGOCIO.md](docs/REGLAS_NEGOCIO.md).
+Salida a producción: ver la sección [Producción](#producción) y "Pendiente antes del arranque" en
+[docs/PUESTA_EN_MARCHA.md](docs/PUESTA_EN_MARCHA.md).
 
 ## Requisitos
 
@@ -187,8 +187,21 @@ scripts/backup.sh                       # respaldo comprimido en ~/evolutionfit-
 scripts/restore.sh <archivo>            # lo verifica en una MySQL temporal, sin tocar la base real
 ```
 
-Procedimiento completo, restauración de emergencia, frecuencia y dónde guardar las copias:
-[docs/RESPALDOS.md](docs/RESPALDOS.md).
+En producción: respaldo diario a las 10:30 p.m. en el servidor, cifrado con age y copiado con rclone fuera del
+servidor (Backblaze B2 o Google Drive), copia mensual en disco externo y prueba de restauración mensual.
+Procedimiento completo, la llave de cifrado y la restauración de emergencia: [docs/RESPALDOS.md](docs/RESPALDOS.md).
+
+## Producción
+
+- Corre en un **VPS en la nube** (mínimo 4 GB de RAM) con Docker: MySQL, backend y frontend.
+- Un proxy inverso con HTTPS sirve todo en **un único dominio**: el frontend en `/` y la API en `/api`, sin CORS
+  entre dominios.
+- MySQL y el backend no publican puertos. El firewall solo deja abiertos el 80 y el 443, y SSH entra solo con
+  llave.
+- El computador del gimnasio solo usa el navegador.
+
+Guía paso a paso, carga de clientes del sistema anterior y plan de reversa:
+[docs/PUESTA_EN_MARCHA.md](docs/PUESTA_EN_MARCHA.md).
 
 ## Seguridad
 
