@@ -1,23 +1,26 @@
+// Planes (docs/DISENO_VISUAL.md, sección 6.5): mismo sistema que Clientes.
 .search {
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
 }
 
 .alert {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 8px 12px;
   margin-bottom: 16px;
-  padding: 8px 8px 8px 16px;
-  border-radius: 8px;
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  padding: 10px 12px 10px 20px;
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-danger-tint);
+  color: var(--ef-danger);
 }
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
   background: var(--ef-surface);
 }
 
@@ -26,8 +29,30 @@ table {
   background: transparent;
 }
 
+td.mat-mdc-cell {
+  color: var(--ef-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+// El nombre y el precio son lo que se busca en la fila.
+td.mat-column-name,
+td.mat-column-price {
+  color: var(--ef-text);
+  font-weight: 600;
+}
+
+.mat-column-duration,
+.mat-column-price {
+  white-space: nowrap;
+}
+
+td .mat-mdc-icon-button:hover,
+td .mat-mdc-icon-button:focus-visible {
+  color: var(--ef-orange-light);
+}
+
 .empty td {
   padding: 32px 16px;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ef-text-3);
 }
