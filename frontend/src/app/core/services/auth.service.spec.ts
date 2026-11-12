@@ -83,6 +83,17 @@ describe('AuthService', () => {
     expect(sessionStorage.getItem('evolutionfit.token')).toBeNull();
   });
 
+  it('changePassword envía la actual y la nueva al endpoint existente', () => {
+    const { auth, http } = setup();
+
+    auth.changePassword('Actual123', 'Nueva1234').subscribe();
+
+    const req = http.expectOne('/api/auth/change-password');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ currentPassword: 'Actual123', newPassword: 'Nueva1234' });
+    req.flush(null);
+  });
+
   it('restoreSession sin sesión no llama al backend', () => {
     const { auth, http } = setup();
 

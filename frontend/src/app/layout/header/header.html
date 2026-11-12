@@ -24,6 +24,10 @@
         }
       </div>
       <mat-divider />
+      <button mat-menu-item type="button" (click)="changePassword()">
+        <mat-icon>lock_reset</mat-icon>
+        <span>Cambiar mi contraseña</span>
+      </button>
       <button mat-menu-item type="button" (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Cerrar sesión</span>

@@ -243,3 +243,66 @@ describe('eliminar cliente (ADMIN)', () => {
     expect(app.page().querySelector('[data-delete-reason]')).toBeNull();
   });
 });
+
+describe('cambiar mi contraseña (menú del usuario)', () => {
+  const openDialog = async () => {
+    app.page().querySelector<HTMLButtonElement>('.user-button')!.click();
+    await app.settle();
+    button(overlay(), 'Cambiar mi contraseña').click();
+    await app.settle();
+    const inputs = overlay().querySelectorAll<HTMLInputElement>('input[type="password"]');
+    expect(inputs.length).toBe(2);
+    return { current: inputs[0], next: inputs[1] };
+  };
+
+  it('envía la actual y la nueva, cierra la sesión y el login lo avisa', async () => {
+    app = await startApp('RECEPTIONIST', '/clients');
+    await app.respond({ 'GET /api/clients': page([]) });
+    const { current, next } = await openDialog();
+    type(current, 'ClaveActual1');
+    type(next, 'ClaveNueva123');
+    button(overlay(), 'Cambiar contraseña').click();
+
+    const req = await app.request((r) => r.method === 'POST' && r.url === '/api/auth/change-password');
+    expect(req.request.body).toEqual({ currentPassword: 'ClaveActual1', newPassword: 'ClaveNueva123' });
+    req.flush(null, { status: 204, statusText: 'No Content' });
+    for (let i = 0; i < 20 && !TestBed.inject(Router).url.startsWith('/login'); i++) {
+      await app.settle();
+      await new Promise((r) => setTimeout(r, 20));
+    }
+
+    expect(TestBed.inject(Router).url).toBe('/login?passwordChanged=1');
+    expect(sessionStorage.getItem('evolutionfit.token')).toBeNull();
+    expect(app.page().textContent).toContain('Tu contraseña cambió. Inicia sesión de nuevo.');
+  });
+
+  it('con la contraseña actual errada muestra el error y no cierra la sesión', async () => {
+    app = await startApp('ADMIN', '/clients');
+    await app.respond({ 'GET /api/clients': page([]) });
+    const { current, next } = await openDialog();
+    type(current, 'Equivocada1');
+    type(next, 'ClaveNueva123');
+    button(overlay(), 'Cambiar contraseña').click();
+
+    const req = await app.request((r) => r.method === 'POST' && r.url === '/api/auth/change-password');
+    req.flush({ message: 'La contraseña actual es incorrecta' }, { status: 400, statusText: 'Bad Request' });
+    await app.settle();
+
+    expect(overlay().textContent).toContain('La contraseña actual es incorrecta');
+    expect(TestBed.inject(Router).url).toBe('/clients');
+    expect(sessionStorage.getItem('evolutionfit.token')).toBe('token-ficticio');
+  });
+
+  it('no envía una contraseña nueva de menos de 8 caracteres', async () => {
+    app = await startApp('RECEPTIONIST', '/clients');
+    await app.respond({ 'GET /api/clients': page([]) });
+    const { current, next } = await openDialog();
+    type(current, 'ClaveActual1');
+    type(next, 'corta');
+    button(overlay(), 'Cambiar contraseña').click();
+    await app.settle();
+
+    expect(app.http.match((r) => r.url === '/api/auth/change-password').length).toBe(0);
+    expect(overlay().textContent).toContain('Mínimo 8 caracteres');
+  });
+});

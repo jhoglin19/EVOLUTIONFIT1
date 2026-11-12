@@ -6,6 +6,8 @@ import { Observable, catchError, map, of, tap } from 'rxjs';
 import { LoginResponse, User } from '../../shared/models/user.model';
 import { API_URL } from '../config/api.config';
 
+export type LogoutReason = 'expired' | 'passwordChanged';
+
 const TOKEN_KEY = 'evolutionfit.token';
 const USER_KEY = 'evolutionfit.user';
 const EXPIRES_KEY = 'evolutionfit.expiresAt';
@@ -55,10 +57,18 @@ export class AuthService {
     );
   }
 
-  /** Cierra la sesión local. El token es stateless: basta con descartarlo. */
-  logout(expired = false): void {
+  /**
+   * Cierra la sesión local. El token es stateless: basta con descartarlo. El motivo se muestra en el login:
+   * 'expired' (el backend respondió 401) o 'passwordChanged' (el usuario cambió su contraseña).
+   */
+  logout(reason?: LogoutReason): void {
     this.clearSession();
-    void this.router.navigate(['/login'], expired ? { queryParams: { expired: 1 } } : {});
+    void this.router.navigate(['/login'], reason ? { queryParams: { [reason]: 1 } } : {});
+  }
+
+  /** Cambia la contraseña del usuario actual. El backend cierra todas sus sesiones (V8). */
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${API_URL}/auth/change-password`, { currentPassword, newPassword });
   }
 
   /**

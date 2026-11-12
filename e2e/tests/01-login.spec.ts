@@ -58,3 +58,37 @@ test('con la contraseña errada 5 veces la cuenta se bloquea, aun con la contras
   await expect(page.getByRole('alert')).toHaveText(/Demasiados intentos fallidos\. Espera 15 minutos e intenta de nuevo\./);
   await expect(page).toHaveURL(/\/login/);
 });
+
+test('cambiar mi contraseña desde el menú cierra la sesión; luego solo entra la nueva', async ({ page }) => {
+  const name = uniqueName();
+  const username = `e2e_clave_${Date.now()}`;
+  const old = `Vieja-${Date.now()}`;
+  const fresh = `Nueva-${Date.now()}`;
+  await api('POST', '/users', { username, password: old, firstName: name.first, lastName: name.last, role: 'RECEPTIONIST' });
+
+  const enterAs = async (password: string) => {
+    await page.getByLabel('Usuario o correo').fill(username);
+    await page.getByLabel('Contraseña', { exact: true }).fill(password);
+    const answer = page.waitForResponse((r) => r.url().endsWith('/api/auth/login'));
+    await page.getByRole('button', { name: 'Entrar' }).click();
+    return (await answer).status();
+  };
+
+  await page.goto('/login');
+  expect(await enterAs(old)).toBe(200);
+  await expect(page).toHaveURL(/\/dashboard/);
+
+  await page.locator('.user-button').click();
+  await page.getByRole('menuitem', { name: 'Cambiar mi contraseña' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Contraseña actual').fill(old);
+  await dialog.getByLabel('Nueva contraseña').fill(fresh);
+  await dialog.getByRole('button', { name: 'Cambiar contraseña' }).click();
+
+  await expect(page).toHaveURL(/\/login\?passwordChanged=1/);
+  await expect(page.getByRole('status')).toHaveText('Tu contraseña cambió. Inicia sesión de nuevo.');
+
+  expect(await enterAs(old)).toBe(401);
+  expect(await enterAs(fresh)).toBe(200);
+  await expect(page).toHaveURL(/\/dashboard/);
+});

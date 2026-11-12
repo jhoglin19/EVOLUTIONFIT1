@@ -13,7 +13,9 @@
       <h1>Iniciar sesión</h1>
       <p class="subtitle">Ingresa con tu usuario o correo.</p>
 
-      @if (sessionExpired && !error()) {
+      @if (passwordChanged && !error()) {
+        <div class="alert info" role="status">Tu contraseña cambió. Inicia sesión de nuevo.</div>
+      } @else if (sessionExpired && !error()) {
         <div class="alert info" role="status">Tu sesión expiró. Inicia sesión nuevamente.</div>
       }
       @if (error()) {

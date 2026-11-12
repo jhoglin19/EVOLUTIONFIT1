@@ -39,6 +39,7 @@ export class Login {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly sessionExpired = this.route.snapshot.queryParamMap.has('expired');
+  readonly passwordChanged = this.route.snapshot.queryParamMap.has('passwordChanged');
 
   submit(): void {
     if (this.form.invalid) {
