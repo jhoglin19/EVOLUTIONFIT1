@@ -35,10 +35,14 @@ Estas decisiones o tareas siguen abiertas y bloquean el arranque:
 1. **Actualizar Spring Boot.** Hecho en la rama `upgrade/spring-boot-4.1` (3.3.5 → 3.5.16 → 4.1.2), falta que el
    dueño apruebe el merge. Procedimiento y resultados: [ACTUALIZACION_SPRING_BOOT.md](ACTUALIZACION_SPRING_BOOT.md).
    La 4.1 tiene soporte gratuito hasta el 31/07/2027; después hay que subir a la siguiente versión menor.
-2. **Cambios de seguridad aprobados:**
-   - límite de intentos en el inicio de sesión (valores por decidir);
-   - Swagger apagado en producción;
-   - protección para que el perfil `e2e` no pueda arrancar con el perfil de producción.
+2. **Cambios de seguridad aprobados:** hechos el 12/11/2026.
+   - V8: cambiar o restablecer una contraseña cierra las sesiones abiertas;
+   - límite de intentos en el inicio de sesión: 5 fallos en 15 minutos, por cuenta y por IP
+     ([REGLAS_NEGOCIO.md](REGLAS_NEGOCIO.md), sección 13, punto 6);
+   - Swagger apagado con el perfil `prod` (`SWAGGER_ENABLED=true` lo enciende);
+   - logs sin cédulas en los errores de restricciones;
+   - una prueba falla si algún endpoint no tiene `@PreAuthorize`;
+   - el perfil `prod` no arranca si detecta el perfil `e2e` o `APP_E2E_ENABLED=true` (ProdGuard).
 3. **Archivos de despliegue para el servidor** (por crear y aprobar; no son código de la aplicación):
    - `docker-compose.prod.yml`: MySQL, backend y proxy, sin puertos de MySQL ni del backend;
    - la configuración del proxy (por ejemplo, Caddy, que obtiene y renueva el certificado HTTPS solo);
