@@ -8,3 +8,11 @@ springdoc:
     enabled: ${SWAGGER_ENABLED:false}
   swagger-ui:
     enabled: ${SWAGGER_ENABLED:false}
+
+server:
+  tomcat:
+    remoteip:
+      # Solo Caddy puede decir cuál es la IP del cliente (X-Forwarded-For): la red "app" de docker-compose.prod.yml
+      # (subred fija 172.28.10.0/24). Una conexión desde cualquier otra dirección se toma tal cual, con su propia IP.
+      # Si se cambia APP_SUBNET en el compose, este patrón debe cambiar igual (TRUSTED_PROXIES_REGEX).
+      internal-proxies: ${TRUSTED_PROXIES_REGEX:172\.28\.10\.\d+}
