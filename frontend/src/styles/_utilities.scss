@@ -38,6 +38,13 @@ a {
   margin-bottom: 28px;
   min-height: 56px;
 
+  // El bloque del título cede espacio: un subtítulo largo se parte en dos líneas y el botón principal sigue en la
+  // cabecera (antes caía debajo en Reportes y Datos del comprobante a 1280 px). Solo baja de fila con menos de 320 px.
+  > div:first-child {
+    flex: 1 1 320px;
+    min-width: 0;
+  }
+
   h1 {
     margin: 0;
     font-family: var(--ef-font-display);
