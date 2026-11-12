@@ -28,6 +28,13 @@
 		-Server
 	}
 
+	# Salud para el aviso externo de caída (UptimeRobot, healthchecks...): solo {"status":"UP"} o un error, sin
+	# detalles. Comprueba el backend y su conexión a MySQL, no solo que Caddy esté arriba.
+	handle /api/health {
+		rewrite * /actuator/health/readiness
+		reverse_proxy backend:8080
+	}
+
 	# API: solo /api llega al backend (ni /actuator ni Swagger son accesibles desde fuera).
 	handle /api/* {
 		request_body {
