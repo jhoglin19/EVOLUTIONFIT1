@@ -56,7 +56,7 @@ public class AuthService {
      * Valida las credenciales (usuario o correo + contraseña) y emite un token JWT.
      * Lanza BadCredentialsException / DisabledException, que el manejador global responde como 401.
      */
-    @Transactional(noRollbackFor = {BadCredentialsException.class, DisabledException.class})
+    @Transactional
     public LoginResponse login(LoginRequest request, String ip) {
         String identifier = request.identifier().trim();
         // Usuario y correo de la misma cuenta comparten contador; los identificadores que no existen también cuentan.
