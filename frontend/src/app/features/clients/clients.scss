@@ -1,12 +1,14 @@
+// Clientes (docs/DISENO_VISUAL.md, sección 6.4): búsqueda, filtro por estado, tabla con estado y paginador.
 .filters {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  margin-bottom: 4px;
 }
 
 .search {
   flex: 1 1 280px;
-  max-width: 420px;
+  max-width: 460px;
 }
 
 .status {
@@ -15,19 +17,22 @@
 
 .alert {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 8px 12px;
   margin-bottom: 16px;
-  padding: 8px 8px 8px 16px;
-  border-radius: 8px;
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  padding: 10px 12px 10px 20px;
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-danger-tint);
+  color: var(--ef-danger);
 }
 
+// La tabla va dentro de una tarjeta.
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
   background: var(--ef-surface);
 }
 
@@ -36,14 +41,32 @@ table {
   background: transparent;
 }
 
+td.mat-mdc-cell {
+  color: var(--ef-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+// Las acciones de la fila (gris del tema) se encienden al señalarlas.
+td .mat-mdc-icon-button {
+  &:hover,
+  &:focus-visible {
+    color: var(--ef-orange-light);
+  }
+}
+
 .empty td {
   padding: 32px 16px;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ef-text-3);
 }
 
 .name-link {
-  color: var(--mat-sys-primary);
+  color: var(--ef-orange-light);
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
 }
