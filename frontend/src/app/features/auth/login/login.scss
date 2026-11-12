@@ -25,7 +25,23 @@
   max-width: 460px;
 }
 
-// La misma marca en texto de la barra lateral (hasta que llegue el logotipo del toro).
+// Logotipo del toro sobre la misma placa clara de la barra lateral, y debajo la marca en texto.
+.plaque {
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 20px;
+  padding: 10px 12px;
+  border-radius: var(--ef-radius-card);
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(255 122 26 / 35%), 0 12px 32px rgb(0 0 0 / 45%);
+
+  img {
+    display: block;
+    width: 115px;
+    height: 140px;
+  }
+}
+
 .logo {
   display: block;
   margin-bottom: 48px;

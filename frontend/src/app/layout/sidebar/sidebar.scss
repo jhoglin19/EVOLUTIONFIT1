@@ -16,6 +16,24 @@
   border-bottom: 1px solid var(--ef-border);
 }
 
+// Placa clara con bordes redondeados: el logotipo tiene fondo blanco y así no queda un recuadro duro sobre el negro.
+.plaque {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 52px;
+  border-radius: var(--ef-radius-control);
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(255 122 26 / 35%);
+
+  img {
+    display: block;
+    width: 36px;
+    height: 44px;
+  }
+}
+
 .wordmark {
   font-family: var(--ef-font-display);
   font-size: 24px;
