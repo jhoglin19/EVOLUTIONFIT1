@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 import { Locator, Page } from '@playwright/test';
 
-import { expect, login, open, openDialog, paidClient, test } from '../support/app';
+import { choose, existingClient, expect, login, open, openDialog, paidClient, test, visibleButton } from '../support/app';
+import { existingClientStep, planStep } from '../support/enrollment';
 
 /**
  * Capturas de pantalla para revisar el diseño visual (docs/DISENO_VISUAL.md). Solo corre con E2E_CAPTURAS=1
@@ -92,6 +93,25 @@ for (const size of SIZES) {
       dialog = await openDialog(page, pay);
       await shot(page, size, '22-dialogo-motivo');
       await closeDialog(page, dialog);
+    });
+
+    test('inscripción por pasos (sin cobrar)', async ({ page }) => {
+      const client = await existingClient();
+      await login(page, 'RECEPTIONIST');
+      await open(page, '/enrollment');
+      await page.locator('form.search input').fill(client.doc);
+      await page.locator('form.search input').press('Enter');
+      await expect(page.locator('.summary').filter({ hasText: 'Cliente existente' })).toBeVisible();
+      await shot(page, size, '40-inscripcion-cliente');
+      await existingClientStep(page, client, 'Enter');
+      await choose(page, 'Plan', /Mensual E2E/);
+      await expect(page.locator('.summary').filter({ hasText: 'Del' })).toBeVisible();
+      await shot(page, size, '41-inscripcion-plan');
+      await planStep(page, 'Mensual E2E');
+      await choose(page, 'Método de pago', 'Efectivo');
+      await visibleButton(page, 'Siguiente').click();
+      await expect(visibleButton(page, 'Cobrar y activar')).toBeVisible();
+      await shot(page, size, '42-inscripcion-confirmar');
     });
 
     test('recepción y login', async ({ page }) => {
