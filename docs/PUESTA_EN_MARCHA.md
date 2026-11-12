@@ -32,8 +32,9 @@ VPS con Docker ─────────────────────�
 
 Estas decisiones o tareas siguen abiertas y bloquean el arranque:
 
-1. **Actualizar Spring Boot.** Las dependencias de la versión 3.3.5 tienen vulnerabilidades críticas conocidas
-   (Tomcat, Spring, Jackson). Falta decidir hasta qué versión subir y hacerlo con todas las pruebas.
+1. **Actualizar Spring Boot.** Hecho en la rama `upgrade/spring-boot-4.1` (3.3.5 → 3.5.16 → 4.1.2), falta que el
+   dueño apruebe el merge. Procedimiento y resultados: [ACTUALIZACION_SPRING_BOOT.md](ACTUALIZACION_SPRING_BOOT.md).
+   La 4.1 tiene soporte gratuito hasta el 31/07/2027; después hay que subir a la siguiente versión menor.
 2. **Cambios de seguridad aprobados:**
    - límite de intentos en el inicio de sesión (valores por decidir);
    - Swagger apagado en producción;

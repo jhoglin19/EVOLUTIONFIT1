@@ -38,3 +38,46 @@ Rama `upgrade/spring-boot-4.1`. `main` no cambia hasta que el dueño apruebe el 
 
    Luego se comparan el JSON normalizado y las cabeceras, y se revisa el PDF del comprobante.
 5. **Limpieza.** La base temporal se borra al terminar.
+
+## Resultados (12/11/2026)
+
+**Versiones finales.**
+
+| Componente | Antes | Después |
+|---|---|---|
+| Spring Boot | 3.3.5 | 4.1.2 |
+| Spring Framework | 6.1 | 7.0.10 |
+| Spring Security | 6.3 | 7.1.2 |
+| Tomcat | 10.1.31 | 11.0.27 |
+| Hibernate | 6.5 | 7.4.13 |
+| Flyway | 10.10 | 12.4.0 |
+| Jackson | 2.17 | 3.1.7 |
+| springdoc | 2.6.0 | 3.2.0 |
+| jjwt | 0.12.6 | 0.13.0 |
+| Testcontainers | 1.21.4 | 2.0.5 |
+
+Jackson 2.21.7 queda solo como dependencia interna de jjwt-jackson.
+
+**Cambios que no son de versión:**
+- `spring.jackson.deserialization.fail-on-null-for-primitives: false`. Jackson 3 rechaza un booleano primitivo ausente y la API lo aceptaba como `false`.
+- `server.error.*` pasa a `spring.web.error.*`.
+
+**Pruebas:**
+- `./mvnw test`: 332 de 332, 0 omitidas, en cada commit.
+- `npm test`: 178 de 178. `ng build` compila.
+- e2e: 21 flujos y 3 de caja, en cada commit.
+
+**Con datos reales (copia del respaldo `pre_boot4`):**
+- **Flyway 12.4** valida V1 a V7 y no aplica nada.
+- **Respuestas:** se compararon 48 entre 3.3.5 y 4.1.2. Hay 46 idénticas en cuerpo y cabeceras, entre ellas el PDF del comprobante, la vista previa, el CSV y los errores 400, 401, 403 y 404. Las diferencias son dos:
+  - `/actuator/health` agrega los grupos `liveness` y `readiness`;
+  - `/v3/api-docs` documenta mejor las validaciones.
+- **Escritura:** una inscripción nueva guarda la instantánea del comprobante y la auditoría con las mismas claves y el mismo formato de fecha que 3.3.5.
+- **PDF del comprobante:** revisado como imagen. Se ve completo.
+
+**Avisos de seguridad:**
+- **CVE-2025-48988:** probado en vivo. Una subida del logo con 60 partes de relleno se aceptaba en 3.3.5 (200) y se rechaza en 4.1.2 (413). Con el archivo solo sigue funcionando.
+  - El mensaje del 413 dice que el archivo supera los 500 KB. No es exacto para este caso, pero solo lo ve quien arme la petición a mano.
+- **CVE-2026-22732:** Spring Security 7.1.2 trae la corrección. El PDF y el CSV salen con `X-Content-Type-Options`, `Cache-Control: no-store`, `X-Frame-Options` y las demás cabeceras, iguales a las de antes.
+
+**Soporte.** La 4.1 tiene soporte gratuito hasta el 31/07/2027. Antes de esa fecha hay que pasar a la siguiente versión menor (4.2 o la que siga), con este mismo procedimiento.
