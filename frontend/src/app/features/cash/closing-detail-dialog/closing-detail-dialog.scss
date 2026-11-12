@@ -3,13 +3,18 @@ mat-dialog-content {
 }
 
 h3 {
-  margin: 16px 0 4px;
-  font-size: 1rem;
+  margin: 18px 0 6px;
+  font-family: var(--ef-font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 h4 {
   margin: 12px 0 4px;
-  font-size: 0.9rem;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 dl {
@@ -23,7 +28,7 @@ dl {
   }
 
   dt {
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ef-text-3);
   }
 
   dd {
@@ -31,7 +36,7 @@ dl {
   }
 
   .total {
-    border-top: 1px solid var(--mat-sys-outline-variant);
+    border-top: 1px solid var(--ef-border);
     font-weight: 600;
 
     dt {
@@ -40,7 +45,7 @@ dl {
   }
 
   .bad {
-    color: var(--mat-sys-error);
+    color: var(--ef-danger);
   }
 }
 
@@ -65,15 +70,15 @@ ul {
     }
 
     padding: 3px 0;
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    border-bottom: 1px solid var(--ef-border);
   }
 }
 
 .sub {
-  font-size: 0.8rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  color: var(--ef-text-3);
 }
 
 .error {
-  color: var(--mat-sys-error);
+  color: var(--ef-danger);
 }

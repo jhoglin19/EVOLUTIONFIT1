@@ -1,4 +1,5 @@
 import { advanceClock, expect, expectNoReload, login, open, openDialog, paidClient, syncBrowserClock, test, TODAY } from '../support/app';
+import { capture, CAPTURAS } from '../support/capture';
 
 /**
  * Caja y arqueo. Es la única prueba que adelanta el reloj (a las 10:01 p.m. del día de pruebas), por eso se
@@ -28,7 +29,9 @@ test('a las 10:01 p.m. el día se cierra y recepción registra el arqueo', async
   await open(page, '/cash');
   await expect(page.getByText(/Arqueo pendiente del/)).toBeVisible();
 
+  await capture(page, '50-caja-arqueo-pendiente');
   const dialog = await openDialog(page, page.getByRole('button', { name: 'Registrar arqueo' }));
+  await capture(page, '51-dialogo-arqueo');
   const expectedRow = dialog.locator('div').filter({ has: page.getByText('Debe haber en la caja', { exact: true }) }).last();
   const expected = money((await expectedRow.locator('dd').textContent()) ?? '');
   expect(expected).toBeGreaterThan(0);
@@ -56,4 +59,14 @@ test('el ADMIN revisa la diferencia del arqueo', async ({ page }) => {
 
   await expect(page.getByRole('row').filter({ hasText: 'Diferencia revisada' })).toBeVisible();
   await expectNoReload(page);
+
+  if (CAPTURAS) {
+    await capture(page, '52-cierres-de-caja');
+    const detail = await openDialog(page, page.getByRole('button', { name: 'Ver detalle' }).first(), 'container');
+    await capture(page, '53-dialogo-detalle-cierre');
+    await page.keyboard.press('Escape');
+    await expect(detail).toBeHidden();
+    await open(page, '/cash/report');
+    await capture(page, '54-reporte-mensual');
+  }
 });

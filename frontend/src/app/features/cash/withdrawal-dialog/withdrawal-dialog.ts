@@ -81,10 +81,11 @@ export interface WithdrawalDialogData {
       --dialog-width: 420px;
     }
     .hint {
-      color: var(--mat-sys-on-surface-variant);
+      font-size: 13px;
+      color: var(--ef-text-3);
     }
     .error {
-      color: var(--mat-sys-error);
+      color: var(--ef-danger);
     }
   `,
 })

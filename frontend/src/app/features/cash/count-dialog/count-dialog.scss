@@ -15,7 +15,7 @@ mat-dialog-content {
   }
 
   dt {
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--ef-text-3);
   }
 
   dd {
@@ -24,14 +24,21 @@ mat-dialog-content {
   }
 
   .total {
-    border-top: 1px solid var(--mat-sys-outline-variant);
+    border-top: 1px solid var(--ef-border);
     margin-top: 4px;
     padding-top: 8px;
 
     dt,
     dd {
-      color: var(--mat-sys-on-surface);
+      color: var(--ef-text);
       font-weight: 600;
+    }
+
+    dd {
+      font-family: var(--ef-font-display);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--ef-orange);
     }
   }
 }
@@ -39,12 +46,14 @@ mat-dialog-content {
 .post-cut {
   margin-bottom: 16px;
   padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-control);
+  background: var(--ef-surface-2);
 
   h3 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   ul {
@@ -74,31 +83,31 @@ mat-dialog-content {
 
 .hint {
   margin: 2px 0;
-  font-size: 0.8rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  color: var(--ef-text-3);
 }
 
 .negative {
-  color: var(--mat-sys-error);
+  color: var(--ef-danger);
 }
 
 .difference {
   margin: 0 0 12px;
   padding: 8px 12px;
-  border-radius: 8px;
-  font-weight: 500;
+  border-radius: var(--ef-radius-control);
+  font-weight: 600;
 
   &.ok {
-    background: var(--mat-sys-primary-container);
-    color: var(--mat-sys-on-primary-container);
+    background: var(--ef-success-tint);
+    color: var(--ef-success);
   }
 
   &.bad {
-    background: var(--mat-sys-error-container);
-    color: var(--mat-sys-on-error-container);
+    background: var(--ef-danger-tint);
+    color: var(--ef-danger);
   }
 }
 
 .error {
-  color: var(--mat-sys-error);
+  color: var(--ef-danger);
 }
