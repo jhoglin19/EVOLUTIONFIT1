@@ -1,13 +1,35 @@
+// Datos del comprobante (docs/DISENO_VISUAL.md, sección 6.5): datos y logo, cada uno en su tarjeta.
+form,
+.logo {
+  max-width: 960px;
+  padding: 8px 24px 24px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-surface);
+}
+
+.logo {
+  padding-top: 20px;
+}
+
 h2 {
-  margin: 16px 0 8px;
-  font-size: 1.05rem;
+  margin: 20px 0 12px;
+  font-family: var(--ef-font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+// "Logo" va entre las dos tarjetas.
+:host > .page > h2 {
+  margin-top: 28px;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   column-gap: 12px;
-  max-width: 900px;
 }
 
 .actions {
@@ -26,34 +48,38 @@ h2 {
   max-width: 220px;
   max-height: 120px;
   padding: 8px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-small);
   background: #fff;
 }
 
 .sub {
-  font-size: 0.85rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  color: var(--ef-text-3);
+
+  strong {
+    color: var(--ef-orange-light);
+  }
 }
 
 .alert,
 .warning {
-  max-width: 900px;
+  max-width: 960px;
   margin: 8px 0 16px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 12px 16px;
+  border-radius: var(--ef-radius-control);
+  font-size: 14px;
 }
 
 .alert {
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  background: var(--ef-danger-tint);
+  color: var(--ef-danger);
 }
 
 .warning {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
+  background: var(--ef-info-tint);
+  color: var(--ef-info);
 }

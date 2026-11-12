@@ -1,8 +1,17 @@
+// Configuración de caja (docs/DISENO_VISUAL.md, sección 6.5): ajustes y calendario, cada uno en su tarjeta.
+.form,
+.calendar {
+  padding: 24px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-surface);
+}
+
 .form {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 520px;
+  max-width: 600px;
 }
 
 fieldset {
@@ -11,24 +20,26 @@ fieldset {
   gap: 4px 12px;
   margin: 0;
   padding: 12px 16px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-control);
+  background: var(--ef-surface-2);
 
   legend {
-    padding: 0 4px;
-    color: var(--mat-sys-on-surface-variant);
+    padding: 0 6px;
+    font-weight: 600;
+    color: var(--ef-text-2);
   }
 }
 
 .hint {
   flex-basis: 100%;
   margin: 4px 0 0;
-  font-size: 0.8rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  color: var(--ef-text-3);
 }
 
 .error {
-  color: var(--mat-sys-error);
+  color: var(--ef-danger);
 }
 
 .actions {
@@ -37,17 +48,22 @@ fieldset {
 }
 
 .calendar {
-  max-width: 760px;
-  margin-top: 32px;
+  max-width: 860px;
+  margin-top: 28px;
 
   h2 {
     margin: 0;
-    font-size: 1.1rem;
+    font-family: var(--ef-font-display);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
 }
 
 .calendar-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -73,7 +89,7 @@ fieldset {
   }
 
   button {
-    margin-top: 8px;
+    margin-top: 2px;
   }
 }
 
@@ -81,16 +97,17 @@ fieldset {
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-control);
+  background: var(--ef-surface-2);
 
   li {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px 16px;
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--ef-border);
 
     &:last-child {
       border-bottom: 0;
@@ -105,16 +122,16 @@ fieldset {
 
   .state {
     min-width: 70px;
-    font-weight: 500;
-    color: var(--mat-sys-error);
+    font-weight: 600;
+    color: var(--ef-danger);
   }
 
   li.open .state {
-    color: var(--mat-sys-primary);
+    color: var(--ef-success);
   }
 }
 
 .sub {
-  font-size: 0.8rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  color: var(--ef-text-3);
 }
