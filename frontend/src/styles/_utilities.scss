@@ -39,10 +39,11 @@ a {
   min-height: 56px;
 
   // El bloque del título cede espacio: un subtítulo largo se parte en dos líneas y el botón principal sigue en la
-  // cabecera (antes caía debajo en Reportes y Datos del comprobante a 1280 px). Solo baja de fila con menos de 320 px.
+  // cabecera (antes caía debajo en Reportes y Datos del comprobante a 1280 px). El título no se parte: el bloque
+  // nunca es más angosto que él (min-width: min-content con el h1 en una línea); si no caben, los botones bajan.
   > div:first-child {
     flex: 1 1 320px;
-    min-width: 0;
+    min-width: min-content;
   }
 
   h1 {
@@ -54,6 +55,7 @@ a {
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--ef-text);
+    white-space: nowrap;
   }
 
   p {
@@ -87,5 +89,10 @@ h3 {
 
   .page-header h1 {
     font-size: 32px;
+    white-space: normal;
+  }
+
+  .page-header > div:first-child {
+    min-width: 0;
   }
 }
