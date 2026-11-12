@@ -108,7 +108,7 @@ public class UserService {
     @Transactional
     public void resetPassword(Long id, String newPassword) {
         User user = findOrThrow(id);
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.changePasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 

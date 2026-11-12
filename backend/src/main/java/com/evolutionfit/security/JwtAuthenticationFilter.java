@@ -43,16 +43,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith(BEARER_PREFIX)
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
             String token = header.substring(BEARER_PREFIX.length()).trim();
-            jwtService.extractUsername(token).ifPresent(username -> authenticate(username, request));
+            jwtService.parse(token).ifPresent(info -> authenticate(info, request));
         }
 
         chain.doFilter(request, response);
     }
 
-    private void authenticate(String username, HttpServletRequest request) {
+    private void authenticate(JwtService.TokenInfo token, HttpServletRequest request) {
         try {
-            UserDetails user = userDetailsService.loadUserByUsername(username);
+            UserDetails user = userDetailsService.loadUserByUsername(token.username());
             if (!user.isEnabled()) {
+                return;
+            }
+            // Token emitido antes de cambiar la contraseña: la sesión quedó cerrada (V8).
+            if (user instanceof AuthUserDetails details && details.tokenIssuedBeforePasswordChange(token.issuedAt())) {
                 return;
             }
             UsernamePasswordAuthenticationToken authentication =

@@ -1,5 +1,7 @@
 package com.evolutionfit.security;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -20,18 +22,34 @@ public class AuthUserDetails implements UserDetails {
     private final String passwordHash;
     private final String roleName;
     private final boolean active;
+    private final Instant passwordChangedAt;
 
     public AuthUserDetails(Long id, String username, String passwordHash, String roleName, boolean active) {
+        this(id, username, passwordHash, roleName, active, null);
+    }
+
+    public AuthUserDetails(Long id, String username, String passwordHash, String roleName, boolean active,
+                           Instant passwordChangedAt) {
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;
         this.roleName = roleName;
         this.active = active;
+        this.passwordChangedAt = passwordChangedAt;
     }
 
     public static AuthUserDetails from(User user) {
         return new AuthUserDetails(user.getId(), user.getUsername(), user.getPasswordHash(),
-                user.getRole().getName(), user.isActive());
+                user.getRole().getName(), user.isActive(), user.getPasswordChangedAt());
+    }
+
+    /**
+     * El token se emitió antes del último cambio de contraseña. La hora de emisión del JWT va en segundos, así que el
+     * cambio se compara truncado al segundo: un inicio de sesión en el mismo segundo del cambio sigue sirviendo.
+     */
+    public boolean tokenIssuedBeforePasswordChange(Instant issuedAt) {
+        return passwordChangedAt != null
+                && (issuedAt == null || issuedAt.isBefore(passwordChangedAt.truncatedTo(ChronoUnit.SECONDS)));
     }
 
     public Long getId() {

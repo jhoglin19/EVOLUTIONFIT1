@@ -1,5 +1,6 @@
 package com.evolutionfit.modules.users;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 import com.evolutionfit.modules.roles.Role;
@@ -44,6 +45,19 @@ public class User {
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
+
+    /**
+     * Último cambio o restablecimiento de la contraseña (hora real, no el reloj de negocio: se compara con la hora
+     * de emisión del token). Los tokens emitidos antes dejan de servir.
+     */
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt;
+
+    /** Cambia la contraseña y cierra todas las sesiones abiertas del usuario. */
+    public void changePasswordHash(String newHash) {
+        this.passwordHash = newHash;
+        this.passwordChangedAt = Instant.now();
+    }
 
     @Column(name = "first_name", nullable = false, length = 80)
     private String firstName;

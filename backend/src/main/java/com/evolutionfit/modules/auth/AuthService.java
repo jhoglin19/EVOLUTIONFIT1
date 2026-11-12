@@ -80,7 +80,7 @@ public class AuthService {
             throw new BusinessException("La nueva contraseña debe ser diferente a la actual");
         }
 
-        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.changePasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
     }
 }

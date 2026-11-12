@@ -158,4 +158,17 @@ class UserServiceTest {
         assertThat(response.role()).isEqualTo("ADMIN");
         assertThat(response.firstName()).isEqualTo("Nuevo");
     }
+
+    @Test
+    void resetPasswordEncodesItAndClosesTheUsersSessions() {
+        User other = existingUser(6L, receptionistRole);
+        when(userRepository.findById(6L)).thenReturn(Optional.of(other));
+        when(passwordEncoder.encode("NuevaClave123")).thenReturn("hash-nuevo");
+        java.time.Instant before = java.time.Instant.now();
+
+        service.resetPassword(6L, "NuevaClave123");
+
+        assertThat(other.getPasswordHash()).isEqualTo("hash-nuevo");
+        assertThat(other.getPasswordChangedAt()).isNotNull().isAfterOrEqualTo(before);
+    }
 }

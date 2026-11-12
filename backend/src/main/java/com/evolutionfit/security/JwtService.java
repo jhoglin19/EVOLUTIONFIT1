@@ -10,6 +10,7 @@ import javax.crypto.SecretKey;
 
 import com.evolutionfit.config.AppProperties;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -58,6 +59,27 @@ public class JwtService {
                     .getPayload()
                     .getSubject();
             return Optional.ofNullable(subject);
+        } catch (JwtException | IllegalArgumentException ex) {
+            return Optional.empty();
+        }
+    }
+
+    /** Usuario y hora de emisión de un token con firma válida y sin expirar. */
+    public record TokenInfo(String username, Instant issuedAt) {
+    }
+
+    public Optional<TokenInfo> parse(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            if (claims.getSubject() == null) {
+                return Optional.empty();
+            }
+            Date issuedAt = claims.getIssuedAt();
+            return Optional.of(new TokenInfo(claims.getSubject(), issuedAt == null ? null : issuedAt.toInstant()));
         } catch (JwtException | IllegalArgumentException ex) {
             return Optional.empty();
         }
