@@ -22,7 +22,8 @@ DB="${EVOLUTIONFIT_DB_NAME:-evolution_fit}"
 KEEP_DAILY=14
 KEEP_WEEKLY=8
 KEEP_MONTHLY=12
-MIN_BYTES=10000 # comprimido; la base vacía (solo esquema) ya supera este tamaño
+MIN_BYTES=2000 # comprimido. Una base recién instalada (solo esquema, V1–V8) pesa unos 5,5 KB: el tamaño
+               # solo descarta volcados casi vacíos; lo que protege son las comprobaciones de estructura de abajo.
 
 die() { echo "[respaldo] ERROR: $*" >&2; exit 1; }
 log() { echo "[respaldo] $*"; }
@@ -70,7 +71,9 @@ fi
 
 gzip -t "$partial" || die "el archivo comprimido está dañado."
 gzip -dc "$partial" | tail -n 1 | grep -q '^-- Dump completed' || die "el volcado no terminó (falta '-- Dump completed')."
-gzip -dc "$partial" | grep -q 'CREATE TABLE `payments`' || die "el volcado no contiene la tabla payments."
+for table in flyway_schema_history users clients memberships payments; do
+  gzip -dc "$partial" | grep -q "CREATE TABLE \`$table\`" || die "el volcado no contiene la tabla $table."
+done
 size=$(wc -c < "$partial" | tr -d ' ')
 [ "$size" -ge "$MIN_BYTES" ] || die "el respaldo pesa solo $size bytes; se descarta."
 

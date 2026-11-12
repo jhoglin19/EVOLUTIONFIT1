@@ -11,7 +11,8 @@
 # Flyway, y borra el contenedor aunque algo falle.
 #
 # Restaurar sobre la base real:
-#   - exige que el backend esté detenido (puerto 8080 libre) y que escribas el nombre de la base para confirmar;
+#   - exige que el backend esté detenido (puerto 8080 libre; EVOLUTIONFIT_BACKEND_PORT=none si se detuvo de otra
+#     forma, como hace scripts/rollback.sh) y que escribas el nombre de la base para confirmar;
 #   - ANTES hace un respaldo automático de la base actual (etiqueta pre_restore) con scripts/backup.sh;
 #   - borra y vuelve a crear la base, y carga el respaldo. Los permisos del usuario de la aplicación se conservan.
 set -euo pipefail
@@ -117,7 +118,12 @@ fi
 
 # ---- Restaurar sobre la base real ----
 docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -q true || die "el contenedor $CONTAINER no está corriendo."
-if nc -z 127.0.0.1 8080 2>/dev/null; then die "el backend parece estar corriendo (puerto 8080). Detenlo antes de restaurar."; fi
+# En desarrollo el backend escucha en 8080. En producción no publica puertos: rollback.sh lo detiene con docker
+# compose y pasa EVOLUTIONFIT_BACKEND_PORT=none.
+backend_port="${EVOLUTIONFIT_BACKEND_PORT:-8080}"
+if [ "$backend_port" != "none" ] && nc -z 127.0.0.1 "$backend_port" 2>/dev/null; then
+  die "el backend parece estar corriendo (puerto $backend_port). Detenlo antes de restaurar."
+fi
 [ -t 0 ] || die "la restauración sobre la base real solo se hace en una terminal interactiva."
 
 echo "Vas a REEMPLAZAR toda la base '$DB' del contenedor '$CONTAINER' por el contenido de:"
