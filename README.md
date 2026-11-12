@@ -13,7 +13,7 @@ Arquitectura de tres capas (Angular → API REST Spring Boot → MySQL), como mo
 
 | Capa | Tecnología |
 | --- | --- |
-| Backend | Java 21, Spring Boot 3.3.5, Spring Security + JWT, Spring Data JPA/Hibernate, Flyway, Swagger/OpenAPI, OpenPDF |
+| Backend | Java 21, Spring Boot 4.1, Spring Security + JWT, Spring Data JPA/Hibernate, Flyway, Swagger/OpenAPI, OpenPDF |
 | Frontend | Angular 22, Angular Material, Reactive Forms, RxJS |
 | Base de datos | MySQL 8.4 (Docker) |
 | Pruebas | JUnit 5, Testcontainers, Vitest (Angular), Playwright |

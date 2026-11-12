@@ -42,12 +42,18 @@ spring:
   jackson:
     time-zone: America/Bogota
     default-property-inclusion: non_null
+    deserialization:
+      # Jackson 3 (Spring Boot 4) rechaza por defecto un booleano primitivo ausente; se conserva el comportamiento
+      # anterior (ausente = false), del que dependen los clientes de la API (p. ej. freezeUsedInPreviousSystem).
+      fail-on-null-for-primitives: false
+
+  web:
+    error:
+      include-message: never
+      include-stacktrace: never
 
 server:
   port: ${SERVER_PORT:8080}
-  error:
-    include-message: never
-    include-stacktrace: never
 
 app:
   jwt:

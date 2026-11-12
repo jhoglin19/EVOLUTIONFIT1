@@ -5,7 +5,7 @@ Sistema web para administrar un gimnasio. Documento técnico y funcional: docs/ 
 **Reglas de negocio: [docs/REGLAS_NEGOCIO.md](docs/REGLAS_NEGOCIO.md) es fuente obligatoria.** Léelo antes de implementar cualquier módulo. Prevalece sobre el documento técnico y sobre cualquier suposición.
 
 ## Stack
-- Backend: Java 21, Spring Boot 3.3.5, Spring Security + JWT, JPA/Hibernate, Flyway, Swagger. Carpeta backend/
+- Backend: Java 21, Spring Boot 4.1 (Spring 7, Security 7, Hibernate 7, Jackson 3), Spring Security + JWT, JPA/Hibernate, Flyway, Swagger. Carpeta backend/
 - Frontend: Angular, Angular Material, Reactive Forms. Carpeta frontend/
 - Base de datos: MySQL 8.4 en Docker (docker compose up -d). Ya existe con datos.
 
