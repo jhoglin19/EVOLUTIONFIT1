@@ -1,3 +1,4 @@
+// Reportes (docs/DISENO_VISUAL.md, sección 6.5): cifras y tablas con el sistema de Caja.
 @use '../cash/cash';
 
 .filters {
@@ -29,13 +30,27 @@ p.notice {
 }
 
 tr.zero td {
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ef-muted);
 }
 
 td a {
-  color: var(--mat-sys-primary);
+  color: var(--ef-orange-light);
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+td {
+  color: var(--ef-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+mat-tab-group {
+  margin-bottom: 4px;
 }
 
 .reason {
@@ -45,6 +60,20 @@ td a {
   overflow-wrap: anywhere;
 }
 
-.methods td {
-  white-space: nowrap;
+// Las tablas caben a 1280 px: las celdas se parten en líneas (los montos no, llevan espacio no separable)
+// y el espaciado es más compacto que el de Caja.
+.methods {
+  th,
+  td {
+    padding: 12px;
+  }
+
+  td {
+    white-space: normal;
+  }
+}
+
+// Vencimientos tiene seis tarjetas: caben en una fila a 1280 px.
+.cards {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }

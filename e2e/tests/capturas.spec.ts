@@ -39,6 +39,15 @@ const ADMIN_SCREENS: { name: string; path: string }[] = [
   { name: '14-usuarios', path: '/users' },
 ];
 
+/** Pestañas de Reportes además de Ingresos (la 10). */
+const REPORT_TABS: [string, string][] = [
+  ['Vencimientos', '10b-reportes-vencimientos'],
+  ['Clientes nuevos', '10c-reportes-clientes-nuevos'],
+  ['Planes más vendidos', '10d-reportes-planes'],
+  ['Pagos anulados', '10e-reportes-anulados'],
+  ['Descuentos', '10f-reportes-descuentos'],
+];
+
 async function settle(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);
@@ -70,6 +79,11 @@ for (const size of SIZES) {
       for (const screen of ADMIN_SCREENS) {
         await open(page, screen.path);
         await shot(page, size, screen.name);
+      }
+      await open(page, '/reports');
+      for (const [tab, name] of REPORT_TABS) {
+        await page.getByRole('tab', { name: tab }).click();
+        await shot(page, size, name);
       }
       await open(page, `/clients/${client.id}`);
       await expect(page.getByRole('heading', { name: `${client.first} ${client.last}` })).toBeVisible();
