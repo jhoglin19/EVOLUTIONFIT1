@@ -93,6 +93,34 @@ for (const size of SIZES) {
       dialog = await openDialog(page, pay);
       await shot(page, size, '22-dialogo-motivo');
       await closeDialog(page, dialog);
+
+      await open(page, '/plans');
+      dialog = await openDialog(page, page.getByRole('button', { name: 'Nuevo plan' }));
+      await shot(page, size, '23-dialogo-plan');
+      await closeDialog(page, dialog);
+
+      await open(page, '/users');
+      dialog = await openDialog(page, page.getByRole('button', { name: 'Nuevo usuario' }));
+      await shot(page, size, '24-dialogo-usuario');
+      await closeDialog(page, dialog);
+    });
+
+    test('diálogos de membresía', async ({ page }) => {
+      const fresh = await existingClient();
+      const paid = await paidClient();
+      await login(page, 'ADMIN');
+      await open(page, `/clients/${fresh.id}`);
+      let dialog = await openDialog(page, page.getByRole('button', { name: 'Membresía migrada' }));
+      await shot(page, size, '25-dialogo-migrada');
+      await closeDialog(page, dialog);
+      dialog = await openDialog(page, page.getByRole('button', { name: 'Registrar sin cobrar' }));
+      await shot(page, size, '26-dialogo-registrar-sin-cobrar');
+      await closeDialog(page, dialog);
+
+      await open(page, `/clients/${paid.id}`);
+      dialog = await openDialog(page, page.getByRole('button', { name: 'Congelar' }));
+      await shot(page, size, '27-dialogo-congelar');
+      await closeDialog(page, dialog);
     });
 
     test('inscripción por pasos (sin cobrar)', async ({ page }) => {

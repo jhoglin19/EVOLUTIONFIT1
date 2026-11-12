@@ -1,3 +1,4 @@
+// Diálogos de membresía (venta, migrada y congelación): superficies y avisos del diseño.
 mat-dialog-content {
   display: flex;
   flex-direction: column;
@@ -15,10 +16,16 @@ mat-form-field {
   margin-bottom: 4px;
 }
 
+// Casilla de la migrada: alineada con el borde de los campos.
+mat-checkbox {
+  margin: 4px 0 8px -8px;
+  color: var(--ef-text-2);
+}
+
 .hint {
   margin: 0 0 12px;
-  font-size: 0.85rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+  color: var(--ef-text-3);
 }
 
 .summary {
@@ -26,19 +33,26 @@ mat-form-field {
   flex-direction: column;
   gap: 4px;
   margin-bottom: 12px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: var(--mat-sys-surface-container-high);
+  padding: 12px 16px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-control);
+  font-size: 14px;
+  color: var(--ef-text-2);
+  background: var(--ef-surface-2);
+
+  strong,
+  b {
+    color: var(--ef-text);
+  }
 }
 
 .alert {
   margin-bottom: 16px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  padding: 12px 16px;
+  border-radius: var(--ef-radius-control);
+  font-size: 14px;
+  background: var(--ef-danger-tint);
+  color: var(--ef-danger);
 }
 
 @media (max-width: 520px) {

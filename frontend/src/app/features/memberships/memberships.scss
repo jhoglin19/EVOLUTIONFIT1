@@ -1,13 +1,15 @@
+// Membresías (docs/DISENO_VISUAL.md, sección 6.5): mismo sistema que Clientes.
 .filters {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 12px 16px;
+  margin-bottom: 4px;
 }
 
 .search {
   flex: 1 1 280px;
-  max-width: 420px;
+  max-width: 460px;
 }
 
 .status {
@@ -16,23 +18,26 @@
 
 .toggle {
   margin-bottom: 20px;
+  color: var(--ef-text-2);
 }
 
 .alert {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 8px 12px;
   margin-bottom: 16px;
-  padding: 8px 8px 8px 16px;
-  border-radius: 8px;
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  padding: 10px 12px 10px 20px;
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-danger-tint);
+  color: var(--ef-danger);
 }
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
   background: var(--ef-surface);
 }
 
@@ -41,19 +46,35 @@ table {
   background: transparent;
 }
 
+td.mat-mdc-cell {
+  color: var(--ef-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.mat-column-startDate,
+.mat-column-endDate {
+  white-space: nowrap;
+}
+
 a {
-  color: var(--mat-sys-primary);
+  color: var(--ef-orange-light);
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
 }
 
 .sub {
-  font-size: 0.78rem;
-  color: var(--mat-sys-on-surface-variant);
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ef-text-3);
 }
 
 .empty td {
   padding: 32px 16px;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ef-text-3);
 }
