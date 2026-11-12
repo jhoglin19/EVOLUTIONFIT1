@@ -14,9 +14,10 @@ Computador del gimnasio (solo navegador)
         ▼
 VPS con Docker ──────────────────────────────────────────────
   Firewall: solo 80 y 443 abiertos a internet
-  Proxy inverso con HTTPS (único servicio con puertos publicados)
-     ├── /        → frontend Angular (archivos estáticos)
-     └── /api     → backend Spring Boot (red interna de Docker)
+  Caddy con HTTPS (único servicio con puertos publicados)
+     ├── /           → frontend Angular (archivos estáticos)
+     ├── /api        → backend Spring Boot, perfil prod (red interna "app", sin salida a internet)
+     └── /api/health → salud para el aviso externo de caída
                        └── MySQL 8.4 (red interna, sin puertos publicados)
   Respaldo diario 10:30 p.m. → cifrado con age → rclone → copia fuera del servidor
 ──────────────────────────────────────────────────────────────
@@ -32,8 +33,8 @@ VPS con Docker ─────────────────────�
 
 Estas decisiones o tareas siguen abiertas y bloquean el arranque:
 
-1. **Actualizar Spring Boot.** Hecho en la rama `upgrade/spring-boot-4.1` (3.3.5 → 3.5.16 → 4.1.2), falta que el
-   dueño apruebe el merge. Procedimiento y resultados: [ACTUALIZACION_SPRING_BOOT.md](ACTUALIZACION_SPRING_BOOT.md).
+1. **Actualizar Spring Boot.** Hecho: 4.1.2, fusionado en `main` el 12/11/2026. Procedimiento y resultados:
+   [ACTUALIZACION_SPRING_BOOT.md](ACTUALIZACION_SPRING_BOOT.md).
    La 4.1 tiene soporte gratuito hasta el 31/07/2027; después hay que subir a la siguiente versión menor.
 2. **Cambios de seguridad aprobados:** hechos el 12/11/2026.
    - V8: cambiar o restablecer una contraseña cierra las sesiones abiertas;
@@ -43,10 +44,13 @@ Estas decisiones o tareas siguen abiertas y bloquean el arranque:
    - logs sin cédulas en los errores de restricciones;
    - una prueba falla si algún endpoint no tiene `@PreAuthorize`;
    - el perfil `prod` no arranca si detecta el perfil `e2e` o `APP_E2E_ENABLED=true` (ProdGuard).
-3. **Archivos de despliegue para el servidor** (por crear y aprobar; no son código de la aplicación):
-   - `docker-compose.prod.yml`: MySQL, backend y proxy, sin puertos de MySQL ni del backend;
-   - la configuración del proxy (por ejemplo, Caddy, que obtiene y renueva el certificado HTTPS solo);
-   - la compilación del frontend que sirve el proxy.
+3. **Archivos de despliegue:** hechos el 12/11/2026 y ensayados en un Mac (sección 14):
+   - `docker-compose.prod.yml`, `backend/Dockerfile`, `deploy/caddy/Dockerfile` y `deploy/caddy/Caddyfile`;
+   - `deploy/env.prod.example` y `scripts/check-env-prod.sh`;
+   - `scripts/deploy.sh`, `scripts/rollback.sh`, `scripts/prod-health.sh` y `scripts/offsite.sh`.
+
+   **Lo que falta para arrancar** son decisiones y cuentas del dueño: proveedor y región del VPS, dominio con
+   acceso a su DNS, correo para Let's Encrypt, cuenta de Backblaze B2 (o Google Drive) y el par de llaves de age.
 
 ## 1. Proveedor, región y servidor
 
@@ -62,6 +66,15 @@ Estas decisiones o tareas siguen abiertas y bloquean el arranque:
       - Uso aproximado: MySQL ~1 GB; backend con `-Xmx1g` ~1,2 GB; proxy y sistema ~0,5 GB.
       - Holgura para picos y actualizaciones.
 - [ ] **Sistema:** Ubuntu Server LTS (24.04).
+- [ ] **Swap de 2 GB.** Con 4 GB de RAM, un pico (compilar las imágenes en una actualización, un reporte grande)
+      puede agotar la memoria y el sistema mataría a MySQL. El swap da margen y no se usa en la operación normal:
+
+      sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
+      sudo mkswap /swapfile && sudo swapon /swapfile
+      echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+      echo 'vm.swappiness=10' | sudo tee /etc/sysctl.d/99-swap.conf && sudo sysctl --system
+
+      Comprobar con `free -h` (debe verse `Swap: 2.0Gi`) y después de un reinicio.
 - [ ] **Cuenta del proveedor:** a nombre del dueño, con autenticación en dos pasos y pago automático. Si la cuenta
       se suspende por falta de pago, el gimnasio se queda sin sistema.
 - [ ] **Copias del proveedor** (snapshots o "backups" del VPS) activadas. Son una capa extra: no reemplazan los
@@ -74,8 +87,23 @@ Estas decisiones o tareas siguen abiertas y bloquean el arranque:
 - [ ] Registro DNS `A` (y `AAAA` si hay IPv6) del dominio o subdominio apuntando a la IP del VPS.
 - [ ] El proxy obtiene el certificado HTTPS (Let's Encrypt) y lo renueva solo. Todo lo que llega por HTTP (80) se
       redirige a HTTPS (443).
-- [ ] Cabeceras de seguridad en el proxy: HSTS, `X-Content-Type-Options`, `Referrer-Policy` y una CSP para la
-      aplicación.
+- [ ] Cabeceras de seguridad en Caddy (`deploy/caddy/Caddyfile`): HSTS, CSP, `X-Content-Type-Options`,
+      `X-Frame-Options`, `Referrer-Policy` y `Permissions-Policy`. Se comprueban con `scripts/prod-smoke.sh`.
+- [ ] **HSTS a un año, más adelante.** Se arranca con `max-age=86400` (un día) a propósito.
+      - **Qué hace HSTS:** el navegador recuerda, durante `max-age`, que el dominio solo se abre por HTTPS. Si en
+        ese tiempo el certificado falla (venció, se cambió de servidor o de dominio y quedó mal), el navegador
+        **no deja entrar ni con "continuar de todos modos"**.
+      - **No se puede revertir rápido:** bajar `max-age` solo surte efecto cuando cada navegador vuelve a entrar
+        con HTTPS funcionando. Con un año, un error de certificado puede dejar el computador del gimnasio sin
+        sistema hasta que se arregle el certificado; no hay forma de "desactivarlo" desde el servidor.
+      - **Cuándo subirlo:** después de al menos 2 semanas de operación real sin ningún problema de HTTPS, con el
+        dominio definitivo (no se va a cambiar) y la renovación automática del certificado comprobada al menos una
+        vez (`docker compose logs caddy | grep -i renew`, o revisar la fecha del certificado en el navegador).
+      - **Cómo:** en `/opt/evolutionfit/.env.prod` poner `HSTS_MAX_AGE=31536000`, recrear Caddy
+        (`docker compose -f docker-compose.prod.yml --env-file /opt/evolutionfit/.env.prod up -d caddy`) y
+        comprobar la cabecera: `curl -sI https://<dominio> | grep -i strict`.
+      - No se usa `includeSubDomains` ni `preload`: el dominio puede tener otros usos y la lista de precarga de
+        los navegadores tarda meses en quitarse.
 
 ## 3. Seguridad del servidor
 
@@ -98,9 +126,23 @@ Estas decisiones o tareas siguen abiertas y bloquean el arranque:
       que hacer antes un respaldo con `scripts/backup.sh --label antes_actualizar` y verificarlo.
 - [ ] **Hora del servidor en Bogotá** (`timedatectl set-timezone America/Bogota`), además de `TZ=America/Bogota`
       en los contenedores. El respaldo programado y los registros quedan en la hora del gimnasio.
-- [ ] **Registros de Docker con límite de tamaño** (`max-size` y `max-file`), para que no llenen el disco.
-- [ ] **Monitoreo externo** gratuito de `https://<dominio>/actuator/health` (por ejemplo, UptimeRobot), con aviso
-      por correo o WhatsApp al dueño si el sistema cae. Además, una alerta si el disco pasa del 80 %.
+- [ ] **Registros de Docker con límite de tamaño:** ya están en `docker-compose.prod.yml` (10 MB × 5 archivos por
+      servicio).
+- [ ] **Aviso externo de caída.** Un servicio gratuito fuera del VPS (por ejemplo UptimeRobot) revisa cada 5
+      minutos `https://<dominio>/api/health`, con la palabra clave `"UP"`, y avisa al dueño por correo (y si se
+      quiere por Telegram o WhatsApp) cuando no responde o no dice UP.
+      - `/api/health` comprueba el backend y su conexión a MySQL, no solo que Caddy esté arriba; no muestra
+        detalles. `/actuator` no es accesible desde fuera.
+      - Probarlo una vez: detener el backend (`docker compose ... stop backend`), esperar el aviso y arrancarlo.
+- [ ] **Alerta de disco casi lleno (80 %).** Si el disco se llena, MySQL se detiene y los respaldos fallan.
+      - Preferido: la alerta de disco del propio proveedor (por ejemplo, "Monitoring alerts" de DigitalOcean).
+      - Si el proveedor no la tiene: un chequeo de healthchecks.io que espera una señal cada hora y avisa si
+        no llega. En `crontab -e` del usuario administrador (la señal solo se envía si el disco está bajo 80 %):
+
+            0 * * * * [ "$(df --output=pcent / | tail -1 | tr -dc 0-9)" -lt 80 ] && curl -fsS -m 10 -o /dev/null https://hc-ping.com/<uuid-del-chequeo-de-disco>
+
+      - Qué hacer al recibirla: `docker system df` y `docker image prune` (imágenes viejas, dejando las de la
+        versión anterior para la reversa) y revisar `~/evolutionfit-backups`.
 
 ## 4. MySQL sin exposición pública
 
@@ -128,21 +170,32 @@ Estas decisiones o tareas siguen abiertas y bloquean el arranque:
 - [ ] Si el servidor estuvo apagado a las 10 p.m., la caja hace sola los cierres que faltaron al volver a arrancar
       (REGLAS_NEGOCIO.md, sección 10, punto 2).
 
-## 6. Variables de producción (`.env` en el servidor)
+## 6. Variables de producción (`/opt/evolutionfit/.env.prod`)
 
-Todas nuevas: **ningún valor se copia de desarrollo.** El archivo va en la carpeta del despliegue, por ejemplo
-`/opt/evolutionfit/.env`, con permisos 600 y dueño el usuario administrador. Una copia queda en el gestor de
-contraseñas del dueño.
+Todas nuevas: **ningún valor se copia de desarrollo.** Carpetas en el servidor:
+
+```
+/opt/evolutionfit/app          clon del repositorio (se instalan etiquetas de versión, nunca se edita aquí)
+/opt/evolutionfit/.env.prod    variables de producción: FUERA del repositorio, permisos 600, dueño el administrador
+/opt/evolutionfit/estado       versión instalada y anterior (la escriben deploy.sh y rollback.sh)
+/opt/evolutionfit/offsite.env  destino de la copia externa (RESPALDOS.md)
+```
+
+- [ ] Partir de `deploy/env.prod.example`. Una copia del archivo lleno queda en el gestor de contraseñas del dueño.
+- [ ] **Validarlo siempre antes de arrancar:** `scripts/check-env-prod.sh /opt/evolutionfit/.env.prod`. No lo
+      ejecuta ni imprime valores; revisa permisos, que esté fuera de git, longitudes mínimas, que CORS sea
+      `https://<DOMAIN>` y que no haya variables de pruebas.
 
 - [ ] `MYSQL_ROOT_PASSWORD` y `MYSQL_PASSWORD`: generadas con `openssl rand -base64 24`.
 - [ ] `JWT_SECRET`: nueva, con `openssl rand -base64 48`. Si se filtra, se cambia y todas las sesiones se cierran.
 - [ ] `JWT_EXPIRATION_MINUTES`: duración de la sesión de recepción (por defecto 480, es decir, 8 h).
+- [ ] `DOMAIN=<dominio>` y `ACME_EMAIL=<correo del dueño>` (avisos de Let's Encrypt).
 - [ ] `CORS_ALLOWED_ORIGINS=https://<dominio>`: el mismo origen; no se agregan otros.
 - [ ] `BOOTSTRAP_ADMIN_USERNAME`, `BOOTSTRAP_ADMIN_EMAIL` y `BOOTSTRAP_ADMIN_PASSWORD` (larga, mínimo 8).
 - [ ] Reglas configurables: solo si el dueño pidió algo distinto del valor por defecto (README, tabla de
       variables).
-- [ ] `SPRING_PROFILES_ACTIVE=prod`. Con ese perfil Swagger queda apagado (`/v3/api-docs` y `/swagger-ui.html`
-      responden 404); `SWAGGER_ENABLED=true` lo enciende solo para una revisión puntual.
+- [ ] `SPRING_PROFILES_ACTIVE=prod` lo fija `docker-compose.prod.yml` (no va en `.env.prod`). Con ese perfil
+      Swagger queda apagado y ProdGuard impide arrancar con algo de las pruebas e2e.
 - [ ] Límite de intentos del inicio de sesión: los valores por defecto (5 fallos en 15 minutos, por cuenta y por IP)
       salvo que el dueño pida otros (`LOGIN_MAX_FAILURES_PER_USER`, `LOGIN_MAX_FAILURES_PER_IP`, `LOGIN_WINDOW`).
 - [ ] **No** existe `APP_E2E_ENABLED`, y `SPRING_PROFILES_ACTIVE` no incluye `e2e`.
@@ -163,11 +216,26 @@ contraseñas del dueño.
 
 ## 8. Administrador real y usuarios
 
+- [ ] **Primera instalación** (en el VPS, como el usuario administrador):
+
+      sudo mkdir -p /opt/evolutionfit && sudo chown $USER /opt/evolutionfit
+      git clone <repositorio> /opt/evolutionfit/app
+      cp /opt/evolutionfit/app/deploy/env.prod.example /opt/evolutionfit/.env.prod
+      chmod 600 /opt/evolutionfit/.env.prod     # y llenarlo (sección 6)
+      cd /opt/evolutionfit/app && scripts/deploy.sh v1.0.0
+
+      `deploy.sh` valida el `.env.prod`, construye las imágenes, levanta todo y comprueba la salud por HTTPS. En
+      la primera instalación no hay respaldo previo porque la base no existe.
 - [ ] En el primer arranque del backend se crea el ADMIN con `BOOTSTRAP_ADMIN_*`. Solo pasa si la tabla `users`
       está vacía.
-- [ ] Entrar como ese ADMIN y **cambiar la contraseña** desde la aplicación.
-- [ ] **Borrar `BOOTSTRAP_ADMIN_PASSWORD` del `.env`** y reiniciar el backend.
-- [ ] Crear un usuario de recepción por persona; nunca se comparte un usuario. Cada uno cambia su contraseña.
+- [ ] Entrar como ese ADMIN, abrir el menú del usuario (arriba a la derecha) → **Cambiar mi contraseña**. Al
+      guardarla se cierra la sesión y el login dice "Tu contraseña cambió. Inicia sesión de nuevo.". Entrar con la
+      nueva.
+- [ ] **Borrar `BOOTSTRAP_ADMIN_PASSWORD` de `.env.prod`** y recrear el backend:
+      `docker compose -f docker-compose.prod.yml --env-file /opt/evolutionfit/.env.prod up -d backend`.
+      `check-env-prod.sh` avisa mientras siga definida.
+- [ ] Crear un usuario de recepción por persona; nunca se comparte un usuario. El ADMIN les da una contraseña
+      inicial y cada uno la cambia en su primer ingreso con **Cambiar mi contraseña**.
 
 ## 9. Configuración desde la aplicación (como ADMIN), en este orden
 
@@ -289,8 +357,8 @@ Antes de empezar debe estar listo lo siguiente:
 
 | Qué falla | Qué se hace | Datos |
 | --- | --- | --- |
-| Un error de la aplicación (pantalla, cálculo) | Volver a la imagen o jar de la etiqueta anterior y reiniciar el backend, o corregir y volver a desplegar | No se tocan |
-| Una migración de base falla al actualizar | Restaurar el respaldo hecho justo antes (`scripts/restore.sh <archivo> --into-real`) y volver a la versión anterior. Flyway no tiene marcha atrás | Se vuelve al momento del respaldo |
+| Un error de la aplicación (pantalla, cálculo) | `scripts/rollback.sh <etiqueta anterior>` (usa las imágenes guardadas, no reconstruye), o corregir y volver a desplegar | No se tocan |
+| Una migración de base falla o deja la base incompatible | `scripts/rollback.sh <etiqueta anterior> --restore <respaldo pre_<versión>>`: restaura el respaldo hecho justo antes de actualizar y vuelve a la versión anterior. Flyway no tiene marcha atrás | Se vuelve al momento del respaldo |
 | El VPS se daña, se borra o no arranca | Restaurar el snapshot del proveedor, o crear un VPS nuevo con esta guía y restaurar el último respaldo cifrado. Después, apuntar el DNS a la nueva IP | Se pierde lo posterior al respaldo; se vuelve a registrar desde los comprobantes y los mensajes de WhatsApp |
 | Se cae internet del gimnasio o el servidor | Recibos en papel; se registran en el sistema cuando vuelva. La puerta falla cerrada: se usan el botón manual de recepción y la llave (fase 8) | Se conserva lo registrado |
 | El sistema no se puede usar el primer día | Volver al sistema anterior y a los recibos en papel. Lo cobrado en el sistema nuevo queda guardado y se reconcilia después | Se conserva lo registrado |
@@ -298,3 +366,30 @@ Antes de empezar debe estar listo lo siguiente:
 - [ ] El dueño, o quien él designe, decide revertir, y define cuánto tiempo sin sistema se espera antes de pasar a
       papel.
 - [ ] Después de revertir, se anota qué pasó, a qué hora y qué datos hay que volver a registrar.
+
+## 13. Actualizar a una versión nueva
+
+1. En el equipo de desarrollo, con todas las pruebas en verde (sección 7): `git tag v1.0.1` y subir la etiqueta.
+2. Avisar en recepción: el sistema queda 1 a 3 minutos sin responder. Mejor fuera del horario del gimnasio.
+3. En el VPS: `cd /opt/evolutionfit/app && scripts/deploy.sh v1.0.1`. El script:
+   - valida `.env.prod` y que el repositorio no tenga cambios;
+   - hace el respaldo `pre_v1_0_1` y lo verifica con `restore.sh` (si no se puede verificar, no instala nada);
+   - instala la etiqueta, construye las imágenes `evolutionfit-backend:v1.0.1` y `evolutionfit-web:v1.0.1`,
+     levanta los servicios y comprueba la salud por HTTPS (`prod-health.sh`);
+   - si la comprobación falla, muestra el comando exacto de reversa.
+4. Entrar a la aplicación y revisar Inicio, Caja y un comprobante.
+5. **Reversa** si algo salió mal: `scripts/rollback.sh <versión anterior>` (está en
+   `/opt/evolutionfit/estado/anterior`). Si la versión nueva aplicó una migración incompatible, agregar
+   `--restore <respaldo pre_>`: se pierde lo registrado desde ese respaldo (sección 12).
+6. Las imágenes viejas se borran a mano cuando ya no hagan falta, dejando siempre las de la versión anterior.
+
+## 14. Ensayo en un Mac antes del VPS
+
+`scripts/prod-smoke.sh`, con Docker encendido, levanta la misma pila de producción en
+`https://evolutionfit.localhost:8443` (certificado de la CA interna de Caddy, base propia, secretos aleatorios) y
+comprueba: HTTPS y redirección; cabeceras, compresión y caché; rutas internas en 404 y `/api/health`; que MySQL y
+el backend no publican puertos ni salen a internet; que nada corre como root; solo lectura, rotación de logs y
+reinicio automático; el flujo del ADMIN inicial; la IP real del cliente con el Caddy real (dos clientes con IPs
+y cuentas distintas, inventando `X-Forwarded-For`); Playwright (login, Clientes, PDF, sin errores de CSP, fuentes
+ni imágenes); y un respaldo con su restauración de verificación y su copia externa cifrada. Al terminar borra
+todo. El ensayo de actualización y reversa entre dos versiones se hizo igual, en un clon desechable.

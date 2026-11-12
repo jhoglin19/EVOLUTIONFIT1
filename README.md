@@ -149,6 +149,14 @@ en archivos versionados.
 | `RECEIPT_PAPER_SIZE` | No | `A5` | Tamaño del comprobante PDF: `A5` o `LETTER`. |
 | `CASH_CLOSING_TIME` | No | `22:00` | Hora del cierre automático diario de caja (hora de Bogotá). |
 | `REPORTS_MAX_RANGE_DAYS` | No | `366` | Días máximos del rango de fechas en los reportes. |
+| `LOGIN_MAX_FAILURES_PER_USER` / `_PER_IP` | No | `5` / `5` | Inicios de sesión fallidos por cuenta y por IP antes del bloqueo (429). |
+| `LOGIN_WINDOW` | No | `15m` | Ventana del límite de intentos. |
+| `SWAGGER_ENABLED` | No | `true` (desarrollo) / `false` (perfil `prod`) | Enciende o apaga Swagger y `/v3/api-docs`. |
+| `SERVER_FORWARD_HEADERS_STRATEGY` | No | `native` | IP del cliente detrás del proxy (X-Forwarded-For). En `prod` solo se acepta de la red interna de Docker (`TRUSTED_PROXIES_REGEX`). |
+
+Producción usa su propio archivo, `/opt/evolutionfit/.env.prod`, fuera del repositorio: plantilla en
+[deploy/env.prod.example](deploy/env.prod.example), validación con `scripts/check-env-prod.sh` y la lista completa
+en [docs/PUESTA_EN_MARCHA.md](docs/PUESTA_EN_MARCHA.md), sección 6.
 
 `APP_E2E_ENABLED` existe solo para las pruebas de punta a punta: **no la definas** en `.env` ni en producción.
 
@@ -177,7 +185,10 @@ frontend/                aplicación Angular
 e2e/                     pruebas de punta a punta con Playwright y su orquestador
 docs/                    reglas de negocio, documento técnico y control de acceso
 docker-compose.yml       MySQL (y el backend opcional con --profile full)
-.env.example             plantilla de variables (copiar a .env)
+docker-compose.prod.yml  producción: MySQL, backend (perfil prod) y Caddy con HTTPS
+deploy/                  Caddy (Caddyfile e imagen con el frontend) y la plantilla de .env.prod
+scripts/                 respaldos, copia externa, despliegue, reversa y ensayo de producción
+.env.example             plantilla de variables de desarrollo (copiar a .env)
 ```
 
 ## Respaldos
@@ -185,6 +196,7 @@ docker-compose.yml       MySQL (y el backend opcional con --profile full)
 ```bash
 scripts/backup.sh                       # respaldo comprimido en ~/evolutionfit-backups, con suma SHA-256
 scripts/restore.sh <archivo>            # lo verifica en una MySQL temporal, sin tocar la base real
+scripts/offsite.sh                      # cifra el más reciente con age y lo sube con rclone (en contenedores)
 ```
 
 En producción: respaldo diario a las 10:30 p.m. en el servidor, cifrado con age y copiado con rclone fuera del
@@ -193,9 +205,11 @@ Procedimiento completo, la llave de cifrado y la restauración de emergencia: [d
 
 ## Producción
 
-- Corre en un **VPS en la nube** (mínimo 4 GB de RAM) con Docker: MySQL, backend y frontend.
-- Un proxy inverso con HTTPS sirve todo en **un único dominio**: el frontend en `/` y la API en `/api`, sin CORS
-  entre dominios.
+- Corre en un **VPS en la nube** (mínimo 4 GB de RAM y 2 GB de swap) con Docker: `docker-compose.prod.yml`.
+- Caddy sirve todo con HTTPS en **un único dominio**: el frontend en `/` y la API en `/api`, sin CORS entre
+  dominios. `/api/health` es para el aviso externo de caída.
+- Instalar y actualizar: `scripts/deploy.sh <etiqueta>`; volver atrás: `scripts/rollback.sh <etiqueta>`.
+- Ensayo completo en un Mac antes de tocar el VPS: `scripts/prod-smoke.sh`.
 - MySQL y el backend no publican puertos. El firewall solo deja abiertos el 80 y el 443, y SSH entra solo con
   llave.
 - El computador del gimnasio solo usa el navegador.

@@ -105,20 +105,40 @@ nuevos.
 La configuración de rclone guarda credenciales. Va en `~/.config/rclone/rclone.conf` del usuario administrador
 del servidor, con permisos 600, y nunca en el repositorio.
 
-### Pasos diarios (después del respaldo local)
+### scripts/offsite.sh (después del respaldo local)
 
-```bash
-f=$(ls -1t ~/evolutionfit-backups/evolution_fit_*_{diario,semanal,mensual}.sql.gz | head -1)
-age -r "$(cat ~/.config/evolutionfit/backup.pub)" -o "$f.age" "$f"     # cifra con la llave pública
-rclone copy "$f.age"    remoto:evolutionfit-backups/                     # sube el cifrado
-rclone copy "$f.sha256" remoto:evolutionfit-backups/                     # y su suma (no es secreta)
-rm "$f.age"
+`scripts/offsite.sh` toma el respaldo local más reciente (o el que se le indique) y:
+
+1. verifica su suma SHA-256;
+2. lo cifra con age usando **solo la llave pública** (si encuentra una llave privada, se niega);
+3. lo sube con `rclone copy --immutable` (nunca `sync`, que borraría en el destino lo que la rotación local
+   borró), junto con su suma y la suma del cifrado;
+4. lo verifica en el destino: el tamaño y la suma del archivo **descargado**;
+5. borra el cifrado local. Si algo falla termina con error y, si se configuró, avisa al monitor externo.
+
+`age` y `rclone` corren en contenedores de Docker efímeros (Alpine con `age` y `rclone/rclone:1.76.0`): no se
+instalan en el servidor. Si se vuelve a correr con un respaldo que ya está en el destino, no lo reemplaza:
+comprueba que lo que hay allá coincide con su suma y termina bien.
+
+Variables, en `/opt/evolutionfit/offsite.env` (permisos 600; no tiene secretos, pero tampoco va en git):
+
+```
+EVOLUTIONFIT_OFFSITE_REMOTE=b2:<bucket>/diarios        # o gdrive:evolutionfit-backups
+EVOLUTIONFIT_AGE_RECIPIENT=/home/<admin>/.config/evolutionfit/backup.pub
+EVOLUTIONFIT_RCLONE_CONFIG=/home/<admin>/.config/rclone
+EVOLUTIONFIT_OFFSITE_PING_URL=https://hc-ping.com/<uuid-del-chequeo-de-respaldo>   # opcional, recomendado
 ```
 
-- Se usa `rclone copy`, nunca `rclone sync`. `sync` borraría en el destino lo que la rotación local borró.
-- La llave pública va en `~/.config/evolutionfit/backup.pub`.
-- **Pendiente:** juntar el respaldo local y estos pasos en un script (por ejemplo, `scripts/offsite.sh`) que
-  avise si algo falla. Se crea con aprobación antes de la puesta en marcha.
+- **Configurar rclone una vez**, sin instalarlo, con el mismo contenedor:
+  `docker run --rm -it -v ~/.config/rclone:/config/rclone rclone/rclone:1.76.0 config`.
+  Para B2: tipo `b2`, con el *keyID* y la *applicationKey* de la llave limitada al bucket.
+- **Llave de B2:** capacidades `listBuckets`, `listFiles`, `readFiles` y `writeFiles`, **sin** `deleteFiles`, y
+  limitada al bucket. La lectura hace falta para la verificación por descarga. La retención la hace el bucket
+  (ciclo de vida), no el servidor.
+- **Aviso si falla:** con `EVOLUTIONFIT_OFFSITE_PING_URL`, healthchecks.io recibe una señal cada noche; si no llega
+  (o llega a `/fail`), avisa al dueño por correo. Así un respaldo que falla en silencio se nota al día siguiente.
+- Ensayado en un Mac con un destino local: el archivo descifrado desde el destino es idéntico al respaldo
+  original (`scripts/prod-smoke.sh` lo repite en cada ensayo).
 
 ### Programarlo en el servidor
 
@@ -127,14 +147,14 @@ hora. Con `crontab -e` del usuario administrador:
 
 ```
 PATH=/usr/local/bin:/usr/bin:/bin
-30 22 * * * cd /opt/evolutionfit && scripts/backup.sh --auto && scripts/offsite.sh >> ~/evolutionfit-backups/respaldo.log 2>&1
+30 22 * * * cd /opt/evolutionfit/app && set -a && . /opt/evolutionfit/offsite.env && set +a && scripts/backup.sh --auto && scripts/offsite.sh >> ~/evolutionfit-backups/respaldo.log 2>&1
 ```
 
 - 10:30 p.m. es justo después del cierre automático de caja de las 10:00, así el respaldo incluye el cierre del
   día.
-- La línea `PATH` hace falta porque cron no encuentra `docker`, `age` ni `rclone` por su cuenta.
-- Revisa `respaldo.log` cada semana, o mejor, que el script avise al dueño si falla. Un respaldo que falla en
-  silencio es el riesgo más común.
+- La línea `PATH` hace falta porque cron no encuentra `docker` por su cuenta (age y rclone van en contenedores).
+- Si `backup.sh` falla, `offsite.sh` no corre y el monitor no recibe su señal: el aviso llega igual.
+- Revisa `respaldo.log` cada semana de todos modos. Un respaldo que falla en silencio es el riesgo más común.
 
 ## Disco externo (capa 3, mensual)
 
