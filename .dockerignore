@@ -1,0 +1,8 @@
+# Contexto de deploy/caddy/Dockerfile (la raíz del repositorio): solo el frontend y la configuración de Caddy.
+*
+!frontend/
+!deploy/caddy/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+**/.env*

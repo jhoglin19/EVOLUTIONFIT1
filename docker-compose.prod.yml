@@ -1,0 +1,129 @@
+# Producción en el VPS: MySQL, backend y Caddy (HTTPS automático, frontend estático y /api al backend).
+#
+#   docker compose -f docker-compose.prod.yml --env-file /opt/evolutionfit/.env.prod up -d --build
+#
+# - Solo Caddy publica puertos (80 y 443). MySQL y el backend viven en la red "app", interna y sin salida a internet.
+# - Las variables vienen de .env.prod (fuera del repositorio, permisos 600; ver deploy/env.prod.example y
+#   scripts/check-env-prod.sh). SPRING_PROFILES_ACTIVE=prod lo fija este archivo: Swagger apagado y ProdGuard activo.
+# - APP_VERSION etiqueta las imágenes (scripts/deploy.sh) para poder volver a la versión anterior sin reconstruir.
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+name: ${COMPOSE_PROJECT_NAME:-evolutionfit}
+
+services:
+  mysql:
+    image: mysql:8.4.13
+    container_name: ${MYSQL_CONTAINER_NAME:-evolutionfit-mysql}
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Falta MYSQL_ROOT_PASSWORD en .env.prod}
+      MYSQL_DATABASE: evolution_fit
+      MYSQL_USER: ${MYSQL_USER:?Falta MYSQL_USER en .env.prod}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Falta MYSQL_PASSWORD en .env.prod}
+      TZ: America/Bogota
+    command: ["--default-time-zone=-05:00", "--innodb-buffer-pool-size=512M"]
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks: [app]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1536m
+    logging: *logging
+
+  backend:
+    build: ./backend
+    image: evolutionfit-backend:${APP_VERSION:-local}
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://mysql:3306/evolution_fit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota&useUnicode=true&characterEncoding=UTF-8
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en .env.prod}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-480}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?Falta CORS_ALLOWED_ORIGINS en .env.prod}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-admin}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      BOOTSTRAP_ADMIN_FIRST_NAME: ${BOOTSTRAP_ADMIN_FIRST_NAME:-Administrador}
+      BOOTSTRAP_ADMIN_LAST_NAME: ${BOOTSTRAP_ADMIN_LAST_NAME:-Sistema}
+      LOGIN_MAX_FAILURES_PER_USER: ${LOGIN_MAX_FAILURES_PER_USER:-5}
+      LOGIN_MAX_FAILURES_PER_IP: ${LOGIN_MAX_FAILURES_PER_IP:-5}
+      LOGIN_WINDOW: ${LOGIN_WINDOW:-15m}
+      TZ: America/Bogota
+    networks: [app]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/actuator/health/readiness"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    read_only: true
+    tmpfs: ["/tmp:size=128m"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1280m
+    logging: *logging
+
+  caddy:
+    build:
+      context: .
+      dockerfile: deploy/caddy/Dockerfile
+    image: evolutionfit-web:${APP_VERSION:-local}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      DOMAIN: ${DOMAIN:?Falta DOMAIN en .env.prod}
+      ACME_EMAIL: ${ACME_EMAIL:?Falta ACME_EMAIL en .env.prod}
+      HSTS_MAX_AGE: ${HSTS_MAX_AGE:-86400}
+      CADDY_TLS: ${CADDY_TLS:-}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [app, edge]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    logging: *logging
+
+networks:
+  # MySQL, backend y Caddy. Interna: sin salida a internet. Subred fija: el backend solo acepta X-Forwarded-For
+  # de esta red (server.tomcat.remoteip.internal-proxies).
+  app:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${APP_SUBNET:-172.28.10.0/24}
+  # Solo Caddy: puertos publicados y salida a internet (certificados de Let's Encrypt).
+  edge: {}
+
+volumes:
+  mysql_data:
+  caddy_data:
+  caddy_config:
