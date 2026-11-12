@@ -100,6 +100,12 @@ app:
     first-name: ${BOOTSTRAP_ADMIN_FIRST_NAME:Administrador}
     last-name: ${BOOTSTRAP_ADMIN_LAST_NAME:Sistema}
 
+logging:
+  level:
+    # Hibernate registra por su cuenta el mensaje crudo de MySQL, que trae el valor en conflicto (p. ej. la cédula
+    # en "Duplicate entry"). Se apaga: GlobalExceptionHandler registra el error ya enmascarado (SensitiveData).
+    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: "off"
+
 management:
   endpoints:
     web:

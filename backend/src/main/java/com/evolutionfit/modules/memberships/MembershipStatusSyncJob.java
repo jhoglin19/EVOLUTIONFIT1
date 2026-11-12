@@ -1,5 +1,7 @@
 package com.evolutionfit.modules.memberships;
 
+import com.evolutionfit.common.logging.SensitiveData;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -29,7 +31,7 @@ class MembershipStatusSyncJob {
             int changed = membershipService.syncStoredStatuses();
             log.info("Estados de membresías sincronizados: {} cambios", changed);
         } catch (RuntimeException e) {
-            log.error("No se pudieron sincronizar los estados de membresías", e);
+            log.error("No se pudieron sincronizar los estados de membresías", SensitiveData.masked(e));
         }
     }
 }

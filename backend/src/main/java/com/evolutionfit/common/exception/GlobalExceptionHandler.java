@@ -8,6 +8,8 @@ import jakarta.validation.ConstraintViolationException;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.evolutionfit.common.logging.SensitiveData;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -72,7 +74,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex,
                                                         HttpServletRequest request) {
-        log.warn("Violación de integridad de datos: {}", ex.getMostSpecificCause().getMessage());
+        // MySQL repite el valor en conflicto (p. ej. la cédula): se registra solo qué restricción falló.
+        log.warn("Violación de integridad de datos: {}", SensitiveData.mask(ex.getMostSpecificCause().getMessage()));
         return build(HttpStatus.CONFLICT.value(),
                 "La operación no se puede completar porque viola una restricción de los datos",
                 request.getRequestURI(), null);
@@ -80,7 +83,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception ex, HttpServletRequest request) {
-        log.error("Error no controlado en {}", request.getRequestURI(), ex);
+        log.error("Error no controlado en {}", request.getRequestURI(), SensitiveData.masked(ex));
         return build(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error interno del servidor",
                 request.getRequestURI(), null);
     }

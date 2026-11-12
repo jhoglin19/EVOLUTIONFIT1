@@ -1,5 +1,7 @@
 package com.evolutionfit.modules.cash;
 
+import com.evolutionfit.common.logging.SensitiveData;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,7 +35,7 @@ class CashClosingJob {
                 log.info("Cierre automático de caja: {} día(s) cerrado(s)", closed);
             }
         } catch (RuntimeException e) {
-            log.error("No se pudo hacer el cierre automático de caja; se reintenta en un minuto", e);
+            log.error("No se pudo hacer el cierre automático de caja; se reintenta en un minuto", SensitiveData.masked(e));
         }
     }
 }
