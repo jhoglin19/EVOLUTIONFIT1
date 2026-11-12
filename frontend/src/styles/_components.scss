@@ -229,6 +229,18 @@ html {
   color: var(--ef-text-3);
 }
 
+// Material reserva una sola línea para la ayuda y la pone en posición absoluta: una ayuda de dos líneas se monta
+// sobre el campo siguiente. Los campos con ayuda reservan el alto real de su texto (una línea ocupa lo mismo que antes).
+.mat-mdc-form-field:has(.mat-mdc-form-field-hint) {
+  .mat-mdc-form-field-hint-wrapper {
+    position: static;
+  }
+
+  .mat-mdc-form-field-bottom-align::before {
+    content: none;
+  }
+}
+
 // Tablas de Material: encabezado en mayúsculas espaciadas, fila resaltada al pasar el cursor.
 .mat-mdc-header-cell {
   text-transform: uppercase;
