@@ -1,33 +1,41 @@
+// Pagos (docs/DISENO_VISUAL.md, sección 6.5): mismo sistema que Clientes.
 .filters {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  margin-bottom: 4px;
 
   mat-form-field {
-    flex: 0 1 170px;
+    flex: 0 1 138px;
+  }
+
+  mat-form-field:has(mat-select) {
+    flex-basis: 130px;
   }
 
   .search {
-    flex: 1 1 260px;
+    flex: 1 1 300px;
     max-width: 360px;
   }
 }
 
 .alert {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 8px 12px;
   margin-bottom: 16px;
-  padding: 8px 8px 8px 16px;
-  border-radius: 8px;
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  padding: 10px 12px 10px 20px;
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-danger-tint);
+  color: var(--ef-danger);
 }
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 12px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
   background: var(--ef-surface);
 }
 
@@ -36,19 +44,71 @@ table {
   background: transparent;
 }
 
-a {
-  color: var(--mat-sys-primary);
+td.mat-mdc-cell {
+  color: var(--ef-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+// Celdas más compactas para que la tabla quepa a 1280 px sin desplazarse.
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  padding: 0 12px;
+}
+
+// La fecha se parte entre día y hora; comprobante, total y acciones van en una línea.
+.mat-column-paidAt {
+  width: 96px;
+}
+
+.mat-column-receipt,
+.mat-column-amount,
+.mat-column-actions {
+  white-space: nowrap;
+}
+
+.mat-column-amount {
+  text-align: right;
+
+  &.mat-mdc-cell {
+    color: var(--ef-text);
+    font-weight: 600;
+  }
+}
+
+.mat-column-client {
+  min-width: 150px;
+}
+
+.mat-column-actions {
+  padding-right: 8px;
+}
+
+td a:not(.mat-mdc-icon-button) {
+  color: var(--ef-orange-light);
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+td .mat-mdc-icon-button:hover,
+td .mat-mdc-icon-button:focus-visible {
+  color: var(--ef-orange-light);
 }
 
 .sub {
-  font-size: 0.78rem;
-  color: var(--mat-sys-on-surface-variant);
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ef-text-3);
+  white-space: normal;
 }
 
 .empty td {
   padding: 32px 16px;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ef-text-3);
 }
