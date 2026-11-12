@@ -4,9 +4,9 @@ import java.util.List;
 
 import com.evolutionfit.modules.cash.CashCalculator.Movement;
 import com.evolutionfit.modules.cash.dto.CashClosingResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Component;
 
@@ -33,7 +33,7 @@ class CashClosingMapper {
     String writeMovements(List<Movement> movements) {
         try {
             return objectMapper.writeValueAsString(movements);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("No se pudo guardar el detalle del arqueo", e);
         }
     }
@@ -44,7 +44,7 @@ class CashClosingMapper {
         }
         try {
             return objectMapper.readValue(json, new TypeReference<List<Movement>>() { });
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("No se pudo leer el detalle del arqueo", e);
         }
     }

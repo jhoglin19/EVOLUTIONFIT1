@@ -12,8 +12,9 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 import com.evolutionfit.common.exception.ResourceNotFoundException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,8 +24,9 @@ class ReceiptServiceTest {
     private final ReceiptSequenceRepository sequences = mock(ReceiptSequenceRepository.class);
     private final PaymentReceiptRepository receipts = mock(PaymentReceiptRepository.class);
     private final BusinessSettingsRepository settingsRepository = mock(BusinessSettingsRepository.class);
-    private final ObjectMapper json = new ObjectMapper().findAndRegisterModules()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    private final ObjectMapper json = JsonMapper.builder()
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build();
     private final Clock clock = Clock.fixed(Instant.parse("2026-11-10T15:00:00Z"), ZoneId.of("America/Bogota"));
     private ReceiptService service;
     private ReceiptSequence sequence;

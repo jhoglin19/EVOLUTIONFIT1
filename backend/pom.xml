@@ -90,11 +90,6 @@
             <artifactId>openpdf</artifactId>
             <version>${openpdf.version}</version>
         </dependency>
-        <!-- Temporal: el código aún usa el ObjectMapper de Jackson 2 (com.fasterxml); se quita al pasar a Jackson 3. -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-jackson2</artifactId>
-        </dependency>
         <!-- Temporal durante la actualización: avisa en el arranque de propiedades renombradas o eliminadas. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

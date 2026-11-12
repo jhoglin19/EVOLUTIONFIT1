@@ -47,12 +47,6 @@ spring:
       # anterior (ausente = false), del que dependen los clientes de la API (p. ej. freezeUsedInPreviousSystem).
       fail-on-null-for-primitives: false
 
-  # Temporal: el ObjectMapper de Jackson 2 (auditoría, comprobantes, cierres, 401/403) con la misma configuración.
-  # Se quita al pasar ese código a Jackson 3.
-  jackson2:
-    time-zone: America/Bogota
-    default-property-inclusion: non_null
-
   web:
     error:
       include-message: never

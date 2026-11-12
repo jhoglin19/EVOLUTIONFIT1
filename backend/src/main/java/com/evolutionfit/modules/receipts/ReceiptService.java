@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 
 import com.evolutionfit.common.exception.ResourceNotFoundException;
 import com.evolutionfit.modules.receipts.ReceiptPdfGenerator.VoidMark;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -122,7 +122,7 @@ public class ReceiptService {
     private String toJson(ReceiptSnapshot snapshot) {
         try {
             return objectMapper.writeValueAsString(snapshot);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("No se pudo guardar la copia del comprobante", e);
         }
     }
@@ -130,7 +130,7 @@ public class ReceiptService {
     ReceiptSnapshot fromJson(String json) {
         try {
             return objectMapper.readValue(json, ReceiptSnapshot.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("No se pudo leer la copia del comprobante", e);
         }
     }
