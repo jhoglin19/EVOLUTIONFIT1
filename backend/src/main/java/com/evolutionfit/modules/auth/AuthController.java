@@ -8,6 +8,7 @@ import com.evolutionfit.security.AuthUserDetails;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -31,8 +32,9 @@ public class AuthController {
 
     @PostMapping("/login")
     @SecurityRequirements // endpoint público: sin candado en Swagger
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
+        // Detrás del proxy, Tomcat toma la IP del cliente de X-Forwarded-For (server.forward-headers-strategy).
+        return authService.login(request, http.getRemoteAddr());
     }
 
     @GetMapping("/me")

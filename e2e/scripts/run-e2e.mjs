@@ -191,6 +191,9 @@ async function main() {
     BOOTSTRAP_ADMIN_EMAIL: 'e2e.admin@example.test',
     BOOTSTRAP_ADMIN_PASSWORD: secrets.admin,
     TZ: 'America/Bogota',
+    // Todas las pruebas llegan desde 127.0.0.1: con el límite de producción (5 por IP) unos pocos fallos
+    // bloquearían todo el e2e. El límite por cuenta (5) es el de producción y lo prueba 01-login.
+    LOGIN_MAX_FAILURES_PER_IP: '1000',
   };
   const backend = start('backend', 'java', ['-jar', backendJar()], { cwd: RUN, env: backendEnv });
   await waitFor(`http://localhost:${PORTS.backend}/actuator/health`, 'El backend', backend, 180_000);

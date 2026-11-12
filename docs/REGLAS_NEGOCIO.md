@@ -325,6 +325,14 @@ Respuestas del dueño para la fase 6. Reemplazan lo anterior ("sin egresos por a
 3. **Clientes del sistema anterior:** de 80 a 100, cargados **a mano** con el flujo de membresía migrada (sección 8, punto 7), sin pagos y sin importación por CSV. Procedimiento y tiempo estimado en [PUESTA_EN_MARCHA.md](PUESTA_EN_MARCHA.md).
 4. **Respaldos:** diario automático a las 10:30 p.m. en el servidor, cifrado y copiado fuera del servidor; copia mensual en un disco externo guardado fuera del gimnasio; las copias del proveedor como capa extra; prueba de restauración mensual. Procedimiento en [RESPALDOS.md](RESPALDOS.md).
 5. **Efectivo sobrante después del arqueo:** sección 4, punto 12.
+6. **Sesiones e inicio de sesión:**
+   - **Cambio de contraseña:** cambiarla, o que el ADMIN la restablezca, cierra todas las sesiones abiertas de ese usuario (V8). Si el ADMIN restablece la suya, también se cierra su propia sesión.
+   - **Límite de intentos:** con 5 intentos fallidos en 15 minutos se bloquean los inicios de sesión de esa cuenta o de esa IP (lo que llegue primero) hasta que el fallo más antiguo cumpla 15 minutos. La respuesta es 429: "Demasiados intentos fallidos. Espera N minutos e intenta de nuevo.". Durante el bloqueo ni la contraseña correcta entra.
+     - Usuario y correo de una misma cuenta comparten el contador.
+     - Un ingreso correcto borra los fallos de la cuenta, no los de la IP.
+   - **Configuración:** los valores se cambian con `LOGIN_MAX_FAILURES_PER_USER`, `LOGIN_MAX_FAILURES_PER_IP` y `LOGIN_WINDOW`. Los contadores viven en memoria y se borran al reiniciar el backend.
+   - **Consecuencia que el dueño debe conocer:** todos los equipos del gimnasio salen a internet con la misma IP. Por eso 5 fallos entre todo el personal en 15 minutos bloquean el ingreso desde el gimnasio para todos. Si molesta, se sube `LOGIN_MAX_FAILURES_PER_IP` sin tocar el límite por cuenta.
+   - **Registro de fallos:** cada fallo queda en el registro del servidor con la cuenta (solo si existe) y la IP. Nunca se registra la contraseña.
 
 ---
 

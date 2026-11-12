@@ -33,6 +33,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     // ---- Errores propios de la aplicación ----
 
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<ApiError> handleTooManyLoginAttempts(TooManyLoginAttemptsException ex,
+                                                               HttpServletRequest request) {
+        int status = ex.getStatus().value();
+        return ResponseEntity.status(status)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                .body(ApiError.of(status, ex.getMessage(), request.getRequestURI(), null));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiError> handleBusiness(BusinessException ex, HttpServletRequest request) {
         return build(ex.getStatus().value(), ex.getMessage(), request.getRequestURI(), null);

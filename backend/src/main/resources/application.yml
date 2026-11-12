@@ -54,6 +54,9 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  # Detrás del proxy (Caddy) la IP del cliente llega en X-Forwarded-For. Con "native", Tomcat solo la acepta si la
+  # conexión viene de una dirección interna (10/8, 172.16/12, 192.168/16, 127/8), es decir, del proxy.
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:native}
 
 app:
   jwt:
@@ -76,6 +79,12 @@ app:
     # Hora del cierre automático diario (hora de Bogotá). La base, la fecha de inicio y los días que abre
     # los edita el ADMIN en "Configuración de caja" (tabla cash_settings).
     closing-time: ${CASH_CLOSING_TIME:22:00}
+  login:
+    # Límite de inicios de sesión fallidos (docs/REGLAS_NEGOCIO.md): por cuenta y por IP, en una ventana deslizante.
+    # Al llegar al límite se responde 429 hasta que el fallo más antiguo sale de la ventana.
+    max-failures-per-user: ${LOGIN_MAX_FAILURES_PER_USER:5}
+    max-failures-per-ip: ${LOGIN_MAX_FAILURES_PER_IP:5}
+    window: ${LOGIN_WINDOW:15m}
   reports:
     # Días máximos de un rango de fechas en los reportes del ADMIN (366: un año completo).
     max-range-days: ${REPORTS_MAX_RANGE_DAYS:366}
