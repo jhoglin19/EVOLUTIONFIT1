@@ -107,5 +107,9 @@ management:
         include: health,info
 
 springdoc:
+  # Swagger (documentación de la API): encendido en desarrollo. El perfil prod lo apaga salvo SWAGGER_ENABLED=true.
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
   swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
     path: /swagger-ui.html

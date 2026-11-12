@@ -1,0 +1,10 @@
+# Perfil de producción (SPRING_PROFILES_ACTIVE=prod). Solo lo que cambia frente a application.yml.
+# ProdGuard impide arrancar este perfil junto con e2e o con APP_E2E_ENABLED=true.
+
+springdoc:
+  # Swagger apagado por defecto: /v3/api-docs y /swagger-ui.html responden 404. Para una revisión puntual se
+  # enciende con SWAGGER_ENABLED=true y se vuelve a apagar.
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:false}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:false}

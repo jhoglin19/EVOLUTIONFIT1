@@ -137,6 +137,10 @@ contraseñas del dueño.
 - [ ] `BOOTSTRAP_ADMIN_USERNAME`, `BOOTSTRAP_ADMIN_EMAIL` y `BOOTSTRAP_ADMIN_PASSWORD` (larga, mínimo 8).
 - [ ] Reglas configurables: solo si el dueño pidió algo distinto del valor por defecto (README, tabla de
       variables).
+- [ ] `SPRING_PROFILES_ACTIVE=prod`. Con ese perfil Swagger queda apagado (`/v3/api-docs` y `/swagger-ui.html`
+      responden 404); `SWAGGER_ENABLED=true` lo enciende solo para una revisión puntual.
+- [ ] Límite de intentos del inicio de sesión: los valores por defecto (5 fallos en 15 minutos, por cuenta y por IP)
+      salvo que el dueño pida otros (`LOGIN_MAX_FAILURES_PER_USER`, `LOGIN_MAX_FAILURES_PER_IP`, `LOGIN_WINDOW`).
 - [ ] **No** existe `APP_E2E_ENABLED`, y `SPRING_PROFILES_ACTIVE` no incluye `e2e`.
 - [ ] `TZ=America/Bogota` en el backend y en MySQL (`--default-time-zone=-05:00`, como en `docker-compose.yml`).
 
