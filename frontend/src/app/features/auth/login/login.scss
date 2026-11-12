@@ -1,3 +1,4 @@
+// Login (docs/DISENO_VISUAL.md): marca a la izquierda, formulario en tarjeta a la derecha.
 :host {
   display: block;
   min-height: 100vh;
@@ -13,40 +14,45 @@
   display: flex;
   align-items: flex-end;
   padding: 56px;
-  color: #fff;
+  border-right: 1px solid var(--ef-border);
+  color: var(--ef-text);
   background:
-    radial-gradient(120% 80% at 0% 100%, rgb(255 152 0 / 35%), transparent 60%),
-    #1c1b1f;
+    radial-gradient(120% 80% at 0% 100%, rgb(255 122 26 / 28%), transparent 60%),
+    var(--ef-sidebar);
 }
 
 .brand-inner {
-  max-width: 440px;
+  max-width: 460px;
 }
 
+// La misma marca en texto de la barra lateral (hasta que llegue el logotipo del toro).
 .logo {
   display: block;
   margin-bottom: 48px;
-  font-size: 1.4rem;
-  font-weight: 300;
-  letter-spacing: 0.18em;
+  font-family: var(--ef-font-display);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 
   b {
-    font-weight: 700;
-    color: #ffb74d;
+    font-weight: 800;
+    color: var(--ef-orange);
   }
 }
 
 .brand h2 {
   margin: 0 0 16px;
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  font-weight: 700;
-  line-height: 1.05;
+  font-family: var(--ef-font-display);
+  font-size: clamp(2.4rem, 4.4vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .brand p {
   margin: 0;
-  font-size: 1.05rem;
-  color: rgb(255 255 255 / 70%);
+  font-size: 16px;
+  color: var(--ef-text-2);
 }
 
 .panel {
@@ -60,33 +66,41 @@
   flex-direction: column;
   gap: 4px;
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
+  padding: 32px;
+  border: 1px solid var(--ef-border);
+  border-radius: var(--ef-radius-card);
+  background: var(--ef-surface);
 
   h1 {
     margin: 0;
-    font: var(--mat-sys-headline-medium);
+    font-family: var(--ef-font-display);
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
 }
 
 .subtitle {
   margin: 0 0 20px;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--ef-text-3);
 }
 
 .alert {
   margin-bottom: 16px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 12px 16px;
+  border-radius: var(--ef-radius-control);
+  font-size: 14px;
 
   &.error {
-    background: var(--mat-sys-error-container);
-    color: var(--mat-sys-on-error-container);
+    background: var(--ef-danger-tint);
+    color: var(--ef-danger);
   }
 
   &.info {
-    background: var(--mat-sys-tertiary-container);
-    color: var(--mat-sys-on-tertiary-container);
+    background: var(--ef-info-tint);
+    color: var(--ef-info);
   }
 }
 
