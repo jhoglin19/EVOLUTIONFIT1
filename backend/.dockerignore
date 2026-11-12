@@ -1,0 +1,5 @@
+# Solo pom.xml y src/ entran a la imagen. Nunca un .env.
+*
+!pom.xml
+!src/
+src/test/
