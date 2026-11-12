@@ -1,11 +1,26 @@
 @use '../cash';
 
+// Reporte mensual (docs/DISENO_VISUAL.md): seis tarjetas en una fila a 1280 px y tablas que no se cortan.
 .month {
   width: 180px;
 }
 
+.cards {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+// Montos de millones en tarjetas angostas: un poco más pequeños que en Caja para no tocar el borde.
+.card {
+  padding: 18px 16px;
+
+  b {
+    font-size: 26px;
+  }
+}
+
+// Las dos tablas van lado a lado solo si caben enteras; si no, una debajo de la otra.
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr));
   gap: 16px;
 }
